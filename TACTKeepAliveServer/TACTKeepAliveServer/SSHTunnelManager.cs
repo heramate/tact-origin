@@ -1,0 +1,806 @@
+﻿using System;
+using System.Collections; //ArrayList
+using System.Collections.Generic; //List
+using System.ComponentModel; //[DefaultValue]
+using System.Net; //IPEndPoint
+using System.Net.NetworkInformation; //TcpState, IPAddress, IPGlobalProperties
+using System.Linq;
+using System.Text;
+using System.Threading; //Thread, IPEndPoint
+using RACTCommonClass;
+using System.Collections.Concurrent;
+
+namespace TACT.KeepAliveServer
+{
+    /// <summary>
+    /// 감시중인 포트상태가 변경될때 호출할 이벤트
+    /// </summary>
+    /// <param name="aDeviceIP">장비IP (RPCS)</param>
+    /// <param name="aPortInfo">터널포트정보</param>
+    /// <param name="aNewStatus">바뀐 포트 상태</param>
+    //public delegate void PortStateChangeEventHandler(E_TunnelState aOldState, TunnelInfo aTunnelInfo);
+
+    /* [설계규칙]
+     * - RPCS : SSH터널 : 사용자 = 1 : 1 : N
+     * - 장비당 1터널
+     * - 1터널로 여러 클라이언트 접속 가능, 접속가능세션 수는 설정값
+     * - RPCS에 연결된 장비(OLT/ONU등)에는 RPCS접속후 사용자가 연결장비 접속
+     * - 2018.10 RPCS의 경우 4사용자까지 연결가능
+     */
+    [Serializable]
+    public class SSHTunnelManager : IDisposable
+    {
+        #region 멤버변수 --------------------------------------------------
+        /// <summary>
+        /// 터널용 리모트 포트 할당 범위
+        /// </summary>
+        [DefaultValue(0)]
+        public ushort PortRangeMin { get; set; }
+        [DefaultValue(0)]
+        public ushort PortRangeMax { get; set; }
+
+        /// <summary>
+        /// 터널 포트 상태 업데이트 스레드
+        /// </summary>
+        private Thread m_TunnelMonitorThread = null;
+        /// <summary>
+        /// 감시대상 터널 포트 목록 - Dictionary<int, TunnelInfo>//Key:port
+        /// </summary>
+        //private Dictionary<ushort, TunnelInfo> m_TunnelPortInfos = new Dictionary<ushort, TunnelInfo>();
+        private ConcurrentDictionary<ushort, TunnelInfo> m_TunnelPortInfos = new ConcurrentDictionary<ushort, TunnelInfo>();
+        private ManualResetEvent m_TunnelPortMRE = new ManualResetEvent(false);
+
+        /// <summary>
+        /// 터널 포트 상태 업데이트 스레드
+        /// </summary>
+        private Thread m_TunnelStateThread = null;
+        /// <summary>
+        /// 감시대상 터널 포트 목록 - Dictionary<int, TunnelInfo>//Key:port
+        /// </summary>
+        //private Dictionary<ushort, TunnelInfo> m_TunnelPortInfos = new Dictionary<ushort, TunnelInfo>();
+        private Queue m_StateQueue = new Queue();//Item: KeepAlivePacket
+        private ManualResetEvent m_TunnelStateMRE = new ManualResetEvent(false);
+
+        /// <summary>
+        /// 데몬으로부터 받은 터널 요청
+        /// </summary>
+        private Queue<RequestCommunicationData> m_DaemonRequestQueue = new Queue<RequestCommunicationData>();
+        private Thread m_ProcessDaemonRequestThread = null;
+        private ManualResetEvent m_DaemonRequestMRE = new ManualResetEvent(false);
+
+        /// <summary>
+        /// TCP연결정보 조회/관리
+        /// </summary>
+        private SocketConnections sockConn = new SocketConnections();
+
+        #endregion 멤버변수 -----------------------------------------------
+
+
+        #region 이벤트 정의 -----------------------------------------------
+
+        /// <summary>
+        /// 감시중인 포트상태가 변경될때 호출할 이벤트
+        /// </summary>
+        //public event PortStateChangeEventHandler OnPortStateChange = null;
+
+        #endregion 이벤트 정의 --------------------------------------------
+
+
+        /// <summary>
+        /// 기본생성자 미사용(할당 포트범위 필수설정)
+        /// </summary>
+        private SSHTunnelManager() { }
+
+        public SSHTunnelManager(ushort aPortRangeMin, ushort aPortRangeMax)
+        {
+            if (aPortRangeMin > IPEndPoint.MaxPort || aPortRangeMin <= IPEndPoint.MinPort
+                || aPortRangeMax > IPEndPoint.MaxPort || aPortRangeMax <= IPEndPoint.MinPort)
+            {
+                GlobalClass.PrintLogError(string.Format("터널포트 설정값이 잘못되어 터널관리자를 실행할 수 없습니다. 포트범위값={0},{1}", aPortRangeMin, aPortRangeMax));
+                throw new System.ArgumentException(string.Format("터널포트 설정값이 잘못되어 터널관리자를 실행할 수 없습니다. 포트범위={0},{1}", aPortRangeMin, aPortRangeMax));
+            }
+
+            PortRangeMin = Math.Min(aPortRangeMin, aPortRangeMax);
+            PortRangeMax = Math.Max(aPortRangeMin, aPortRangeMax);
+        }
+
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        /// <summary>
+        /// 터널포트 할당 갯수
+        /// </summary>
+        /// <returns></returns>
+        public int TotalTunnelPortCount()
+        {
+            return (PortRangeMax - PortRangeMin + 1);
+        }
+
+        public bool HasTunnelPort(string aDeviceIP)
+        {
+            return FindTunnelInfo(aDeviceIP) != null;
+        }
+
+        /// <summary>
+        /// 장비에 해당하는 SSH터널을 찾는다.
+        /// (m_TunnelPortInfos[port]값은 참조형으로 넘기므로 protected로 외부에서 수정할 수 없게 보호)
+        /// </summary>
+        /// <param name="aDeviceIP">장비IP</param>
+        /// <returns>TunnelInfo (없으면 null)</returns>
+        protected TunnelInfo FindTunnelInfo(string aDeviceIP)
+        {
+            lock (m_TunnelPortInfos)
+            {
+                foreach (ushort port in m_TunnelPortInfos.Keys)
+                {
+                    TunnelInfo tunnelInfo = m_TunnelPortInfos[port];
+                    if (aDeviceIP.Equals(tunnelInfo.DeviceIP))
+                    {
+                        return tunnelInfo;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public void UpdateState(int aTunnelPort, E_TunnelState aTunnelState)
+        {
+            if (aTunnelPort == 0) return;
+
+            try
+            {
+                ushort port = Convert.ToUInt16(aTunnelPort);
+                
+                lock (m_TunnelPortInfos)
+                {
+                    if (!m_TunnelPortInfos.ContainsKey(port)) return;
+                                    
+                    m_TunnelPortInfos[port].UpdateState(aTunnelState);
+                }
+                
+            }
+            catch (OverflowException oe)
+            {
+                GlobalClass.PrintLogException(string.Format("[SSHTunnelManager.UpdateState] int -> ushort 변환 오류 aTunnelPort={0}", aTunnelPort), oe);
+            }
+            catch(Exception e)
+            {
+                GlobalClass.PrintLogException("[SSHTunnelManager.UpdateState] ", e);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// 장비에 새 포트번호를 할당한다.
+        /// </summary>
+        /// <returns>새 포트번호(사용가능한 포트번호가 없으면 0)</returns>
+        public int CreateTunnelPort(string aDeviceIP)
+        {
+            Util.Assert(PortRangeMin > 0 && PortRangeMax > 0 && PortRangeMin <= PortRangeMax, "[SSHTunnelManager.AddTunnel] 터널포트 번호 설정안됨. 환경설정 확인요망!");
+            ushort newTunnelPort = 0;
+            lock (m_TunnelPortInfos)
+            {
+                /// 포트 범위내에서 사용중이 아닌 포트번호를 뽑는다.
+                newTunnelPort = GetRandomAvailablePort(PortRangeMin, PortRangeMax, m_TunnelPortInfos);
+
+                /// 가용포트가 없으면 0 반환
+                if (newTunnelPort == 0) return 0;
+
+                // 감시 포트 추가
+                TunnelInfo tunnelInfo = new TunnelInfo(TunnelInfo.c_TunnelServerIP, newTunnelPort, aDeviceIP, E_TunnelState.Closed);
+                //m_TunnelPortInfos.Add(newTunnelPort, tunnelInfo);
+                m_TunnelPortInfos.TryAdd(newTunnelPort, tunnelInfo);
+
+                GlobalClass.PrintLogInfo(string.Format("● 새 터널포트 할당: 장비IP={0}, 터널IP:포트={1}:{2}", aDeviceIP, tunnelInfo.TunnelIP, newTunnelPort));
+                m_TunnelPortMRE.Set();
+
+                //감시중인 모든 터널정보 표시
+                PrintLogTunnelInfos();
+            }
+            return newTunnelPort; // 사용가능한 포트번호가 없음.
+        }
+
+        /// <summary>
+        /// 감시 터널 포트번호 삭제 (터널링 포트 자원 반환)
+        /// </summary>
+        /// <param name="aTunnelPort">터널링 포트번호</param>
+        /// <returns>삭제 성공 여부</returns>
+        public void RemoveTunnel(ushort aTunnelPort)
+        {
+            
+            //lock (m_TunnelPortInfos)
+            {
+                if (m_TunnelPortInfos.ContainsKey(aTunnelPort))
+                {
+                    TunnelInfo removeTunnel = m_TunnelPortInfos[aTunnelPort];
+                    TunnelInfo removeTunnelInfo;
+                    if (removeTunnel == null) return;
+
+                    GlobalClass.PrintLogInfo(string.Format("● 관리포트 삭제 : {0}", removeTunnel._ToString()));
+                    sockConn.KillProcess(removeTunnel.TunnelPort);
+                    //m_TunnelPortInfos.Remove(aTunnelPort);
+                    m_TunnelPortInfos.TryRemove(aTunnelPort, out removeTunnelInfo);
+                }
+            }
+        }
+
+        public void Start()
+        {
+            // 포트 상태감시 스레드
+            m_TunnelMonitorThread = new Thread(new ThreadStart(_ProcessPortMonitor));
+            m_TunnelMonitorThread.Start();
+
+            m_TunnelStateThread = new Thread(new ThreadStart(_ProcessPortState));
+            m_TunnelStateThread.Start();
+
+            // 데몬요청 처리 스레드
+            m_ProcessDaemonRequestThread = new Thread(new ThreadStart(_ProcessDaemonRequest));
+            m_ProcessDaemonRequestThread.Start();
+        }
+
+        /// <summary>
+        /// Pause
+        /// </summary>
+        public void Stop()
+        {
+            lock (m_DaemonRequestQueue)
+            {
+                m_DaemonRequestQueue.Clear();
+                m_DaemonRequestMRE.Reset();
+                GlobalClass.StopThread(m_ProcessDaemonRequestThread);
+            }
+
+            lock (m_StateQueue)
+            {
+                m_DaemonRequestQueue.Clear();
+                m_TunnelStateMRE.Reset();
+                GlobalClass.StopThread(m_TunnelStateThread);
+            }
+
+            lock (m_TunnelPortInfos)
+            {
+                m_TunnelPortInfos.Clear();
+                m_TunnelPortMRE.Reset();
+                GlobalClass.StopThread(m_TunnelMonitorThread);
+            }
+        }
+
+        /// <summary>
+        /// [Thread] 포트 상태감시 스레드
+        /// </summary>
+        private void _ProcessPortMonitor()
+        {
+            while (!GlobalClass.m_IsServerStop)
+            {
+                //GlobalClass.PrintLogInfo(string.Format("[터널관리자:포트감시] 터널포트 수= {0}건, 사용중인 터널수= {1}건", tcpListeners.Count, tcpConnInfos.Count));
+
+                /// 로컬 포트 상태 조회(isListen, isConnected)
+                sockConn.UpdateAllTcpConnections(PortRangeMin, PortRangeMax);
+
+                /// SSH터널링용 포트들중 관리대상(tunnelPorts)이 아닌 유령포트는 닫는다(process kill)
+                /// 더불어 미사용 터널 종료(포트Close를 위해 sshd 프로세스 강제종료)
+                lock (m_TunnelPortInfos)
+                {
+                    ushort[] tunnelPorts = null;
+                    if (m_TunnelPortInfos.Keys.Count > 0)
+                    {
+                        tunnelPorts = new ushort[m_TunnelPortInfos.Keys.Count];
+                        m_TunnelPortInfos.Keys.CopyTo(tunnelPorts, 0);
+                    }
+                    sockConn.KillProcesses(tunnelPorts);
+                }
+
+                if (m_TunnelPortInfos.Count == 0)
+                {
+                    m_TunnelPortMRE.Reset();
+                    m_TunnelPortMRE.WaitOne();
+                }
+
+
+                /// 감시중인 터널포트의 상태를 업데이트한다.
+                List<ushort> removePortList = new List<ushort>();
+                lock (m_TunnelPortInfos)
+                {
+                    foreach (ushort port in m_TunnelPortInfos.Keys)
+                    {
+                        TunnelInfo tunnelInfo = m_TunnelPortInfos[port];
+
+                        // 터널의 TCP연결정보 업데이트
+                        List<TcpConnInfo> portConnInfos = sockConn.GetTcpConnections(tunnelInfo.TunnelPort);
+                        tunnelInfo.TcpConnectionInfos = portConnInfos;
+                        tunnelInfo.TcpListenerInfo = sockConn.GetTcpListener(tunnelInfo.TunnelPort);
+
+
+                        switch (tunnelInfo.TunnelState)
+                        {
+                            case E_TunnelState.Closed:
+                                //Util.Assert(!sockConn.IsListen(port), "터널Open요청 KAM발송 전이므로 LISTNENING 되지 않아야한다");
+                                /// 미사용 터널Timeout 체크 
+                                if (GlobalClass.m_SystemInfo.SSHTunnelUseTimeoutSeconds > 0
+                                    && ((TimeSpan)DateTime.Now.Subtract(tunnelInfo.TimeStampClosed)).TotalSeconds > GlobalClass.m_SystemInfo.SSHTunnelUseTimeoutSeconds)
+                                {
+                                    removePortList.Add(tunnelInfo.TunnelPort);
+                                    GlobalClass.PrintLogInfo(string.Format("[터널감시] 닫힌채로 {0}초를 초과한 미사용 포트 발견 / 감시포트 삭제: DeviceIP={1}, TunnelPort={2}, TimeStampOpened={3}",
+                                                            GlobalClass.m_SystemInfo.SSHTunnelUseTimeoutSeconds, tunnelInfo.DeviceIP, tunnelInfo.TunnelPort, tunnelInfo.TimeStampOpened.ToShortTimeString()));
+                                }
+                                break;
+
+                            case E_TunnelState.WaitingOpen:
+                                if (sockConn.IsListen(port))
+                                {
+                                    tunnelInfo.UpdateState(E_TunnelState.Opened);
+                                }
+                                else
+                                {
+                                    /// 미사용 터널Timeout 체크 
+                                    if (GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds > 0
+                                        && ((TimeSpan)DateTime.Now.Subtract(tunnelInfo.TimeStampWaitingOpen)).TotalSeconds > GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds)
+                                    {
+                                        removePortList.Add(tunnelInfo.TunnelPort);
+                                        GlobalClass.PrintLogInfo(string.Format("[터널감시] KAM발송 후 {0}초 동안 열리지 않은 포트 발견 / 감시포트 삭제: DeviceIP={1}, TunnelPort={2}, TimeStampOpened={3}",
+                                                                GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds, tunnelInfo.DeviceIP, tunnelInfo.TunnelPort, tunnelInfo.TimeStampOpened.ToShortTimeString()));
+                                    }
+                                }
+                                break;
+
+                            case E_TunnelState.Opened:
+                                if (!sockConn.IsListen(port))
+                                {
+                                    tunnelInfo.UpdateState(E_TunnelState.Closed);
+                                    /// 2019.11.06 닫힌 터널이 감지되면 바로 포트 삭제하도록 한다.
+                                    removePortList.Add(tunnelInfo.TunnelPort);
+                                    GlobalClass.PrintLogInfo(string.Format("[터널감시] 닫힌 터널 감지(NOT LISTNENING) / 감시포트 삭제: DeviceIP={0}, TunnelPort={1}, TimeStampOpened={2}",
+                                                            tunnelInfo.DeviceIP, tunnelInfo.TunnelPort, tunnelInfo.TimeStampOpened.ToShortTimeString()));
+                                }
+                                else 
+                                {
+                                    if (portConnInfos != null) {
+                                        /// 터널에 (데몬이) 접속중이면 상태변경
+                                        tunnelInfo.UpdateState(E_TunnelState.Connected);
+                                    } else {
+                                        /// 미사용 터널Timeout 체크 
+                                        if (GlobalClass.m_SystemInfo.SSHTunnelUseTimeoutSeconds > 0
+                                            && ((TimeSpan)DateTime.Now.Subtract(tunnelInfo.TimeStampOpened)).TotalSeconds > GlobalClass.m_SystemInfo.SSHTunnelUseTimeoutSeconds)
+                                        {
+                                            tunnelInfo.UpdateState(E_TunnelState.WaitingClose);
+                                            GlobalClass.m_KeepAliveCommThread.AddKeepAliveReply(tunnelInfo.DeviceIP, E_SSHTunnelCreateOption.Close, tunnelInfo.TunnelPort);
+
+                                            GlobalClass.PrintLogInfo(string.Format("[터널감시] 클라이언트 연결없는 상태로 {0}초를 초과한 포트 발견 / KeepAliveReply에 Close요청: DeviceIP={1}, TunnelPort={2}, TimeStampOpened={3}",
+                                                                    GlobalClass.m_SystemInfo.SSHTunnelUseTimeoutSeconds, tunnelInfo.DeviceIP, tunnelInfo.TunnelPort, tunnelInfo.TimeStampOpened.ToShortTimeString()));
+                                        }
+                                    }
+                                }
+                                break;
+
+                            case E_TunnelState.Connected:
+                                //if (!sockConn.IsListen(port))
+                                //{
+                                //    tunnelInfo.UpdateState(E_TunnelState.Closed);
+                                //}
+                                //else
+                                //{
+                                    if (portConnInfos == null)
+                                    {
+                                        tunnelInfo.UpdateState(E_TunnelState.Opened);
+                                    }
+                                //}
+                                break;
+
+                            case E_TunnelState.WaitingClose:
+                                if (!sockConn.IsListen(port)) {
+                                    removePortList.Add(tunnelInfo.TunnelPort);
+                                    GlobalClass.m_KeepAliveCommThread.RemoveKeepAliveReply(tunnelInfo.DeviceIP, E_SSHTunnelCreateOption.Close, tunnelInfo.TunnelPort);
+                                }
+                                else
+                                {
+                                    /// [터널Closs요청Timeout체크] Close요청한지 30초이 지나도록 닫히지 않으면 강제로 포트를 닫는다(process kill)
+                                    UInt32 TunnelRequestTimeoutSeconds = (GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds == 0 ? 30 * 1000 : GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds);
+                                    if (((TimeSpan)DateTime.Now.Subtract(tunnelInfo.TimeStampWaitingClose)).TotalSeconds > TunnelRequestTimeoutSeconds)
+                                    {
+                                        removePortList.Add(port);
+                                        GlobalClass.PrintLogInfo(string.Format("[터널감시] Close요청한지 {0}초가 지난 포트를 관리목록에서 삭제합니다. 장비IP={1}, SSHTunnelPort={2}"
+                                                            , GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds, tunnelInfo.DeviceIP, tunnelInfo.TunnelPort));
+                                    }
+                                }
+                                break;
+
+                            default:
+                                break;
+                        } // End of switch(TunnelState)
+                    } // End of foreach (m_TunnelPortInfos.Keys)
+
+                    /// 닫힌 포트는 감시대상에서 제거한다.
+                    foreach (ushort tunnelPort in removePortList)
+                    {
+                        RemoveTunnel(tunnelPort);
+                    }
+
+                } // End of lock (m_TunnelPortInfos)
+
+
+
+                Thread.Sleep(1500);
+
+            } // End of while
+        }
+
+
+        private void _ProcessPortState()
+        {
+            TunnelInfo m_TunnelPortStateInfo = null;
+            while (!GlobalClass.m_IsServerStop)
+            {
+                if (m_StateQueue.Count == 0)
+                {
+                    m_TunnelStateMRE.Reset();
+                    m_TunnelStateMRE.WaitOne();
+                }
+
+                lock (m_StateQueue.SyncRoot)
+                {
+                    m_TunnelPortStateInfo = (m_StateQueue.Count > 0) ? (TunnelInfo)m_StateQueue.Dequeue() : null;
+                }
+                if (m_TunnelPortStateInfo == null) continue;
+
+                if (m_TunnelPortStateInfo.TunnelPort == 0) return;
+
+                try
+                {
+                    ushort port = Convert.ToUInt16(m_TunnelPortStateInfo.TunnelPort);
+
+                    lock (m_TunnelPortInfos)
+                    {
+                        if (!m_TunnelPortInfos.ContainsKey(port)) return;
+
+                        m_TunnelPortInfos[port].UpdateState(m_TunnelPortStateInfo.TunnelState);
+                    }
+                    m_TunnelPortStateInfo = null;
+
+                }
+                catch (Exception e)
+                {
+                    GlobalClass.PrintLogException("[SSHTunnelManager._ProcessPortState] ", e);
+                }
+
+            }
+        }
+
+        public void AddTunnelPortState(int aTunnelPort, E_TunnelState aTunnelState)
+        {
+            ushort port = Convert.ToUInt16(aTunnelPort);
+
+            lock (m_StateQueue.SyncRoot)
+            {
+                m_StateQueue.Enqueue(new TunnelInfo(port, aTunnelState));
+                m_TunnelStateMRE.Set();
+            }
+        }
+
+        /// <summary>
+        /// 데몬요청 큐에 추가
+        /// </summary>
+        /// <param name="aReq"></param>
+        public void AddDaemonRequest(RequestCommunicationData aReq)
+        {
+            lock (m_DaemonRequestQueue)
+            {
+                m_DaemonRequestQueue.Enqueue(aReq);
+                m_DaemonRequestMRE.Set();
+            }
+        }
+
+        /// <summary>
+        /// [Thread] 데몬요청 처리/응답 스레드
+        /// </summary>
+        private void _ProcessDaemonRequest()
+        {
+            RequestCommunicationData tReq = null;
+            DeviceInfo deviceInfo = null;
+            while (!GlobalClass.m_IsServerStop)
+            {
+                if (m_DaemonRequestQueue.Count == 0)
+                {
+                    m_DaemonRequestMRE.Reset();
+                    m_DaemonRequestMRE.WaitOne();
+                }
+
+                tReq = null;
+                lock (m_DaemonRequestQueue)
+                {
+                    if (m_DaemonRequestQueue.Count > 0)
+                        tReq = m_DaemonRequestQueue.Dequeue();
+                }
+                if (tReq == null) continue;
+
+                try
+                {
+                    deviceInfo = (DeviceInfo)tReq.RequestData;
+                    if (deviceInfo == null)
+                    {
+                        GlobalClass.PrintLogError(string.Format("[터널관리자] 데몬요청(RequestCommunicationData)에 장비정보(DeviceInfo)가 없습니다. CommType={0}, ClientID={1}, 요청수신시각={2}", tReq.CommType.ToString(), tReq.ClientID, Util.DateTimeToLogValue(tReq.RequestTime)));
+                        continue;
+                    }
+
+                    lock (m_TunnelPortInfos)
+                    {
+                        TunnelInfo tunnelInfo = FindTunnelInfo(deviceInfo.IPAddress);
+
+                        /// 할당된 터널포트가 없는 데몬요청은 KAM처리자로 전달
+                        if (tunnelInfo == null)
+                        {
+                            /// 새 터널포트 할당
+                            int newTunnelPort = GlobalClass.m_TunnelManager.CreateTunnelPort(deviceInfo.IPAddress);
+                            if (newTunnelPort == 0)
+                            {
+                                GlobalClass.m_DaemonCommProcess.AddResult(tReq, "", 0, new ErrorInfo(E_ErrorType.LogicError,
+                                    string.Format("할당된 터널포트({0}건)가 모두 사용중입니다.", GlobalClass.m_TunnelManager.TotalTunnelPortCount())));
+                                continue;
+                            }
+
+                            GlobalClass.m_KeepAliveCommThread.AddKeepAliveReply(deviceInfo.IPAddress, E_SSHTunnelCreateOption.Open, newTunnelPort);
+
+                            /// 계속 대기
+                            AddDaemonRequest(tReq);
+                            continue;
+                        }
+
+                        switch (tunnelInfo.TunnelState)
+                        {
+                            case E_TunnelState.Closed:
+                                /// 데몬요청처리 타임아웃 체크
+                                if (GlobalClass.m_SystemInfo.DaemonRequestTimeoutSeconds > 0
+                                    && ((TimeSpan)DateTime.Now.Subtract(tReq.RequestTime)).TotalSeconds > GlobalClass.m_SystemInfo.DaemonRequestTimeoutSeconds)
+                                {
+                                    GlobalClass.m_KeepAliveCommThread.RemoveKeepAliveReply(deviceInfo.IPAddress);
+                                    GlobalClass.m_DaemonCommProcess.AddResult(tReq, "", 0, new ErrorInfo(E_ErrorType.LogicError, "해당 장비로 부터 Keep-Alive 수신건이 없습니다."));
+                                    GlobalClass.PrintLogInfo(string.Format("[터널관리자] 터널포트 할당되었으나 KAM발송대기 Timeout: 포트번호 반환 ClientID={0}, DeviceID={1}, CommType={2}, 터널포트={3}"
+                                                            , tReq.ClientID, deviceInfo.IPAddress, tReq.CommType.ToString(), tunnelInfo.TunnelPort));
+                                    continue;
+                                }
+                                else
+                                {
+                                    /// 계속 대기
+                                    AddDaemonRequest(tReq);
+                                }
+                                break;
+
+                            case E_TunnelState.WaitingOpen:
+                                /// 터널요청하였으나 응답(포트상태 변화없음)
+                                if (GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds > 0
+                                    && ((TimeSpan)DateTime.Now.Subtract(tunnelInfo.TimeStampWaitingOpen)).TotalSeconds > GlobalClass.m_SystemInfo.TunnelRequestTimeoutSeconds)
+                                {
+                                    // 터널링 포트번호 반환
+                                    RemoveTunnel(tunnelInfo.TunnelPort);
+                                    // 데몬에 결과응답
+                                    GlobalClass.m_DaemonCommProcess.AddResult(tReq, tunnelInfo.TunnelIP, tunnelInfo.TunnelPort, new ErrorInfo(E_ErrorType.Timeout, string.Format("장비에 LTE연결을 요청하였으나 연결되지 않았습니다.")));
+                                    GlobalClass.PrintLogInfo(string.Format("[터널관리자] 터널요청하였으나 응답없음: 포트번호 반환(Timeout) ClientID={0}, DeviceID={1}, CommType={2}, 터널포트={3}"
+                                                            , tReq.ClientID, deviceInfo.IPAddress, tReq.CommType.ToString(), tunnelInfo.TunnelPort));
+                                }
+                                else
+                                {
+                                    /// 계속 대기
+                                    AddDaemonRequest(tReq);
+                                }
+                                break;
+
+                            case E_TunnelState.Opened:
+                            case E_TunnelState.Connected:
+                                /// 데몬에 터널포트 정보 전달
+                                GlobalClass.m_DaemonCommProcess.AddResult(tReq, tunnelInfo.TunnelIP, tunnelInfo.TunnelPort, new ErrorInfo(E_ErrorType.NoError, "LTE접속을 위한 터널이 Open되었습니다."));
+                                GlobalClass.PrintLogInfo(string.Format("[터널관리자] 터널Open이 확인되어 데몬에 응답 tunnelPort = {0}, State={1}", tunnelInfo.TunnelPort, tunnelInfo.TunnelState));
+                                break;
+
+                            case E_TunnelState.WaitingClose:
+                                GlobalClass.m_DaemonCommProcess.AddResult(tReq, tunnelInfo.TunnelIP, tunnelInfo.TunnelPort,
+                                        new ErrorInfo(E_ErrorType.LogicError, string.Format("장비에 LTE접속해제를 요청한 상태입니다.\r\n기존 연결이 닫힐때까지 잠시 대기후 재시도해주십시오."))
+                                );
+                                break;
+
+                            default:
+                                GlobalClass.PrintLogInfo(string.Format("[터널관리자] 처리되지 않은 터널상태값 입니다.{0}", tunnelInfo.TunnelState.ToString()));
+                                break;
+                        } // End of switch (tunnelInfo.TunnelState)
+                    }
+                }
+                catch (Exception e)
+                {
+                    GlobalClass.PrintLogException(string.Format("[SSHTunnelManager._ProcessDaemonRequest] 데몬요청 처리중 오류발생 - ClientID={0}, CommType={1}, 요청장비IP={2}"
+                                    , tReq != null ? tReq.ClientID.ToString() : null
+                                    , tReq != null ? tReq.CommType.ToString() : null
+                                    , deviceInfo != null ? deviceInfo.IPAddress : null), e);
+                }
+            } // End of while
+        }
+
+        /// <summary>
+        /// IPv4 리스너 포트 목록 (터널이 열렸는지 체크용)
+        /// </summary>
+        /// <param name="aPortRangeMin">터널링 포트범위 지정(Min)</param>
+        /// <param name="aPortRangeMax">터널링 포트범위 지정(Max)</param>
+        /// <returns>포트별 연결정보</returns>
+        public static Dictionary<int, IPEndPoint> _GetActiveTcpListeners(int aPortRangeMin, int aPortRangeMax)
+        {
+            if (aPortRangeMin > aPortRangeMax)
+            {
+                int temp = aPortRangeMin;
+                aPortRangeMin = aPortRangeMax;
+                aPortRangeMax = aPortRangeMin;
+            }
+
+            Dictionary<int, IPEndPoint> tcpListers = new Dictionary<int, IPEndPoint>();
+            try
+            {
+                IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();
+                IPEndPoint[] ipEndPoints = ipProperties.GetActiveTcpListeners();
+
+                // GlobalClass.PrintLogInfo("▼ LISTENING 포트 목록 ----------------");
+                foreach (IPEndPoint endPoint in ipEndPoints)
+                {
+                    if (endPoint.Port < aPortRangeMin || endPoint.Port > aPortRangeMax) continue;
+
+                    tcpListers[endPoint.Port] = endPoint;
+                    //GlobalClass.PrintLogInfo(string.Format("리스닝포트: IP={1}, PORT={2}", endPoint.Address.ToString(), endPoint.Port));
+                }
+                // GlobalClass.PrintLogInfo("--------------------------------");
+
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+                
+
+            }
+            catch (Exception e)
+            {
+                GlobalClass.PrintLogException("[SSHTunnelMangaer._GetActiveTcpListeners]", e);
+            }
+            return tcpListers;
+        }
+
+        /// <summary>
+        /// 지정범위 포트에 접속중인 IPv4 TCP연결 정보 (터널포트가 사용중인지 체크용)
+        /// </summary>
+        /// <param name="aPortRangeMin">터널링 포트범위 지정(Min)</param>
+        /// <param name="aPortRangeMax">터널링 포트범위 지정(Max)</param>
+        /// <returns>포트번호별 정보</returns>
+        public static Dictionary<int, List<TcpConnectionInformation>> _GetActiveTcpConnections(int aPortRangeMin, int aPortRangeMax)
+        {
+            if (aPortRangeMin > aPortRangeMax)
+            {
+                int temp = aPortRangeMin;
+                aPortRangeMin = aPortRangeMax;
+                aPortRangeMax = aPortRangeMin;
+            }
+
+            Dictionary<int, List<TcpConnectionInformation>> portConnInfos = new Dictionary<int, List<TcpConnectionInformation>>();
+            try
+            {
+                IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();
+                TcpConnectionInformation[] tcpConnInfoArray = ipProperties.GetActiveTcpConnections();
+
+                //GlobalClass.PrintLogInfo("▼ Listening port list ------------------------------");
+                //GlobalClass.PrintLogInfo("Local\t\t\t |Remote(터널링포트)\t\t\t |State");
+                foreach (TcpConnectionInformation tcpConnInfo in tcpConnInfoArray)
+                {
+                    //TcpState tcpState = tcpConnInfo.State;
+                    //IPEndPoint localEndPoint = tcpConnInfo.LocalEndPoint;
+                    IPEndPoint remoteEndPoint = tcpConnInfo.RemoteEndPoint; // 클라이언트의 연결정보만
+                    if (remoteEndPoint.Port < aPortRangeMin || remoteEndPoint.Port > aPortRangeMax) continue;
+
+                    if (portConnInfos.ContainsKey(remoteEndPoint.Port))
+                    {
+                        portConnInfos[remoteEndPoint.Port].Add(tcpConnInfo);
+                    }
+                    else
+                    {
+                        List<TcpConnectionInformation> connInfos = new List<TcpConnectionInformation>();
+                        connInfos.Add(tcpConnInfo);
+
+                        portConnInfos[remoteEndPoint.Port] = connInfos;
+                    }
+
+                    //GlobalClass.PrintLogInfo(string.Format("{0}:{1}\t\t]t ┃{2}:{3}\t\t\t ┃{4}",
+                    //                        tcpConnInfo.LocalEndPoint.Address, tcpConnInfo.LocalEndPoint.Port,
+                    //                        tcpConnInfo.RemoteEndPoint.Address, tcpConnInfo.RemoteEndPoint.Port,
+                    //                        tcpConnInfo.State.ToString()));
+                } // End of foreach (tcpConnInfoArray)
+            }
+            catch (Exception e)
+            {
+                GlobalClass.PrintLogException("[SSHTunnelMangaer._GetActiveTcpConnections]", e);
+            }
+
+            return portConnInfos;
+        }
+
+        /// <summary>
+        /// 모니터 화면 표시용
+        /// </summary>
+        /// <returns>모든 터널포트 목록</returns>
+        public ArrayList GetTunnelPortList()
+        {
+            ArrayList list = new ArrayList();
+            lock (m_TunnelPortInfos)
+            {
+                foreach (ushort port in m_TunnelPortInfos.Keys)
+                {
+                    list.Add(m_TunnelPortInfos[port]);
+                }
+            }
+
+            return list;
+        }
+
+        public void ClearAll()
+        {
+            lock (m_DaemonRequestQueue)
+            {
+                m_DaemonRequestQueue.Clear();
+            }
+            lock (m_TunnelPortInfos)
+            {
+                m_TunnelPortInfos.Clear();
+            }
+        }
+
+        //2020-05-15 KangBongHan 현재 사용하는 곳이 한군데 CreateTunnelPort()만 있고 Lock선언 안에서 호출하기 때문에PrintLogTunnelInfos()내에 lock 부분 주석처리
+        public void PrintLogTunnelInfos()
+        {
+            StringBuilder sb = new StringBuilder();
+            TunnelInfo tunnelInfo = null;
+
+            //lock (m_TunnelPortInfos)
+            //{
+                foreach(ushort port in m_TunnelPortInfos.Keys)
+                {
+                    tunnelInfo = m_TunnelPortInfos[port];
+                    if (tunnelInfo == null)
+                    {   
+                        sb.AppendLine(string.Format("[{0}] TunnelInfo 값이 null 임!!!!", port));
+                        continue;
+                    }
+
+                    //장비IP={0}, 터널포트={1}, 터널상태={2}, 터널Open대기시작={3}, 터널Open시작={4}, 터널Close대기시작={5}
+                    sb.AppendLine(string.Format("[{0}] ", tunnelInfo._ToString(true)));
+
+                }
+                GlobalClass.PrintLogInfo("*현재 감시중인 터널포트 목록 -------------------\r\n"+sb.ToString());
+            //}
+        }
+
+        /// <summary>
+        /// 지정범위 중에 미사용 랜덤한 포트번호를 얻는다.
+        /// (MinPort부터 순차적 할당시 특정포트에 사용이 집중되는 것을 예방하고
+        ///  잦은 포트 등록/삭제시 로그분석이 힘들어지는 것을 예방하기 위해 랜덤 포트번호 생성하여 사용)
+        /// </summary>
+        /// <param name="aMinPort">할당터널포트 시작번호</param>
+        /// <param name="aMaxPort">할당터널포트 마지막번호</param>
+        /// <param name="aTunnelPorts">사용중인 포트번호</param>
+        /// <returns>랜덤추출한 미사용 포트번호(가용포트가 없을경우 0 반환)</returns>
+        //private ushort GetRandomAvailablePort(ushort aMinPort, ushort aMaxPort, Dictionary<ushort, TunnelInfo> aTunnelPorts)
+        private ushort GetRandomAvailablePort(ushort aMinPort, ushort aMaxPort, ConcurrentDictionary<ushort, TunnelInfo> aTunnelPorts)
+        {
+            Util.Assert(aMaxPort >= aMinPort, "aMaxPort >= aMinPort");
+
+            ushort newPort = 0;
+
+            /// 가용포트가 없을경우
+            if (aTunnelPorts != null && aTunnelPorts.Count >= aMaxPort - aMinPort + 1) return newPort;
+
+            /// 사용중인 포트를 제외한 리스트 생성
+            List<ushort> availablePorts = new List<ushort>();
+            for (ushort port = aMinPort; port <= aMaxPort; port++)
+            {
+                if (aTunnelPorts != null && aTunnelPorts.ContainsKey(port)) continue;
+                availablePorts.Add(port);
+            }
+            if (availablePorts.Count == 0) return newPort;
+
+            /// List인덱스를 활용하여 랜덤포트 추출
+            Random rnd = new Random();
+            int index = (ushort)rnd.Next(0, availablePorts.Count);
+            newPort = availablePorts[index];
+
+            return newPort;
+        }
+    } // End of class SSHTunnelManager
+}

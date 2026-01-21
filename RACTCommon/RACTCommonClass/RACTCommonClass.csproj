@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RACTCommonClass</RootNamespace>
+    <AssemblyName>RACTCommonClass</AssemblyName>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACT_DLL\_Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACT_DLL\_Release\</OutputPath>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CommonConfigCompareClass">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\CommonConfigCompareClass.dll</HintPath>
+    </Reference>
+    <Reference Include="DevComponents.DotNetBar2">
+      <HintPath>..\..\_TACT_DLL\DevComponents.DotNetBar2.dll</HintPath>
+    </Reference>
+    <Reference Include="MKData">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKData.dll</HintPath>
+    </Reference>
+    <Reference Include="MKLog">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKLog.dll</HintPath>
+    </Reference>
+    <Reference Include="MKOleDBPool">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKOleDBPool.dll</HintPath>
+    </Reference>
+    <Reference Include="MKRemote">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKRemote.dll</HintPath>
+    </Reference>
+    <Reference Include="MKXML">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Data\CfgRestoreCommand.cs" />
+    <Compile Include="Data\CfgSaveInfo.cs" />
+    <Compile Include="Data\ConnectionHistoryInfo.cs" />
+    <Compile Include="Data\DaemonLauncherPartObject.cs" />
+    <Compile Include="Data\DeviceCfgSaveInfo.cs" />
+    <Compile Include="Data\EnumUtil.cs" />
+    <Compile Include="Data\E_CommandPart.cs" />
+    <Compile Include="Data\FACT_CommandSet.cs" />
+    <Compile Include="Data\FileLogProcess.cs" />
+    <Compile Include="Data\ITelnetEmulator.cs" />
+    <Compile Include="Data\E_TerminalMode.cs" />
+    <Compile Include="Data\LimitCmdInfo.cs" />
+    <Compile Include="Data\DefaultCmdInfo.cs" />
+    <Compile Include="Data\AutoCompleteCmdInfo.cs" />
+    <Compile Include="RequestInfo\CfgRestoreCommandRequestInfo.cs" />
+    <Compile Include="RequestInfo\CommandHistoryRequestInfo.cs" />
+    <Compile Include="RequestInfo\ConnectionHistoryRequestInfo.cs" />
+    <Compile Include="RequestInfo\DeviceSearchInfo.cs" />
+    <Compile Include="RequestInfo\UseableDaemonListRequestInfo.cs" />
+    <Compile Include="RequestInfo\UseableDaemonRequestInfo.cs" />
+    <Compile Include="Data\SerialConfig.cs" />
+    <Compile Include="Data\TelnetCommandHistoryInfo.cs" />
+    <Compile Include="Data\TerminalConnectInfo.cs" />
+    <Compile Include="Data\DaemonLoginResultInfo.cs" />
+    <Compile Include="Data\DaemonProcessInfo.cs" />
+    <Compile Include="Data\E_ConnectError.cs" />
+    <Compile Include="Data\CommunicationData.cs" />
+    <Compile Include="Data\DBLogInfo.cs" />
+    <Compile Include="Data\DeviceInfo.cs" />
+    <Compile Include="Data\E_ConnectionProtocol.cs" />
+    <Compile Include="RequestInfo\DeviceCollectionRequestInfo.cs" />
+    <Compile Include="RequestInfo\DeviceRequestInfo.cs" />
+    <Compile Include="Data\ErrorInfo.cs" />
+    <Compile Include="Data\E_CommandResultType.cs" />
+    <Compile Include="Data\E_CommunicationType.cs" />
+    <Compile Include="Data\E_DBLogType.cs" />
+    <Compile Include="Data\E_ErrorType.cs" />
+    <Compile Include="Data\E_FlagType.cs" />
+    <Compile Include="Data\E_FileLogType.cs" />
+    <Compile Include="Data\E_WorkType.cs" />
+    <Compile Include="Data\FACTGroupInfo.cs" />
+    <Compile Include="RequestInfo\GroupRequestInfo.cs" />
+    <Compile Include="Data\FileLogInfo.cs" />
+    <Compile Include="Data\IReservedString.cs" />
+    <Compile Include="Data\ModelInfo.cs" />
+    <Compile Include="Data\ObjectConverter.cs" />
+    <Compile Include="Data\CompressData.cs" />
+    <Compile Include="Data\E_LoginResult.cs" />
+    <Compile Include="Data\E_UserType.cs" />
+    <Compile Include="Data\LoginResultInfo.cs" />
+    <Compile Include="Data\RemoteClientMethod.cs" />
+    <Compile Include="Data\GroupInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestInfo\ScriptGroupRequestInfo.cs" />
+    <Compile Include="RequestInfo\ShortenCommandGroupRequestInfo.cs" />
+    <Compile Include="RequestInfo\ShortenCommandRequestInfo.cs" />
+    <Compile Include="RequestInfo\ScriptRequestInfo.cs" />
+    <Compile Include="Data\ReservedStringBase.cs" />
+    <Compile Include="Data\ScriptGroupInfo.cs" />
+    <Compile Include="Script\Script.cs" />
+    <Compile Include="Script\ScriptCollection.cs" />
+    <Compile Include="Data\SenderControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Data\SenderControl.Designer.cs">
+      <DependentUpon>SenderControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Data\SenderForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Data\SenderForm.Designer.cs">
+      <DependentUpon>SenderForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Data\SenderObject.cs" />
+    <Compile Include="Data\ShortenCommandInfo.cs" />
+    <Compile Include="Data\TelnetCommandInfo.cs" />
+    <Compile Include="Data\TelnetCommandResultInfo.cs" />
+    <Compile Include="Data\TelnetReservedString.cs" />
+    <Compile Include="Data\UserInfo.cs" />
+    <Compile Include="Data\UserInfoCollection.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\SenderForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SenderForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RACTTerminal\RACTTerminal.csproj">
+      <Project>{63e0427c-1c59-4c06-a9a6-b5d8663de84e}</Project>
+      <Name>RACTTerminal</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

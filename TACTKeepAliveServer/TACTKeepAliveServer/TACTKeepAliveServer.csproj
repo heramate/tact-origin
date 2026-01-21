@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{91710145-9E92-4900-AB82-7D0F5F856549}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TACT.KeepAliveServer</RootNamespace>
+    <AssemblyName>TACTKeepAliveServer</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\_TACTKeepAliveServer\_$(Configuration)\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\_TACTKeepAliveServer\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="DaemonCommProcess.cs" />
+    <Compile Include="Data\Enum.cs" />
+    <Compile Include="Data\KeepAliveClass.cs" />
+    <Compile Include="Data\KeepAliveManager.cs" />
+    <Compile Include="Data\SystemConfig.cs" />
+    <Compile Include="Data\TlvCollection.cs" />
+    <Compile Include="Data\TlvDefine.cs" />
+    <Compile Include="Data\TunnelInfo.cs" />
+    <Compile Include="KeepAliveCommProcess.cs" />
+    <Compile Include="KeepAliveServer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SSHTunnelManager.cs" />
+    <Compile Include="Util\DBLogProcess.cs" />
+    <Compile Include="Util\DBWorker.cs" />
+    <Compile Include="Util\GlobalClass.cs" />
+    <Compile Include="Util\SocketConnections.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RACTCommon\RACTCommonClass\RACTCommonClass.csproj">
+      <Project>{6304cb78-9eaf-4ea3-a750-bb1b4cee8d75}</Project>
+      <Name>RACTCommonClass</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="CommonConfigCompareClass">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\CommonConfigCompareClass.dll</HintPath>
+    </Reference>
+    <Reference Include="MKData">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKData.dll</HintPath>
+    </Reference>
+    <Reference Include="MKOleDBPool">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKOleDBPool.dll</HintPath>
+    </Reference>
+    <Reference Include="MKRemote">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKRemote.dll</HintPath>
+    </Reference>
+    <Reference Include="MKSocket">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKSocket.dll</HintPath>
+    </Reference>
+    <Reference Include="MKXML">
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

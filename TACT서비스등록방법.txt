@@ -1,0 +1,33 @@
+Last updated: 2019.02.01
+
+▼ 데몬런처 서비스 등록
+sc create "RACS_Daemon_Launcher" binPath= "C:\Program Files (x86)\RACS\RACTDaemonService\RACTDaemonService.exe" DisplayName= "RACS Daemon Launcher" start= auto
+
+▼ 데몬런처 서비스 삭제
+sc delete "RACS_Daemon_Launcher"
+
+
+▼ 서버 서비스 등록
+sc create "RACS_Server" binPath= "C:\Program Files (x86)\RACS\RACTServer\RACTServerService.exe" DisplayName= "RACS Server" start= auto
+
+▼ 서버 서비스 삭제
+sc delete "RACS_Server"
+
+
+▼ KeepAlive 서버 서비스 등록 (2018,c-RPCS과제)
+sc create "TACT_KeepAliveServer" binPath= "E:\TACTService\TACTKeepAliveServer\TACTKeepAliveServerService.exe" DisplayName= "TACT Keep-Alive Server" start= auto
+
+▼ KeepAlive 서버 서비스 삭제 (2018,c-RPCS과제)
+sc delete "TACT_KeepAliveServer"
+
+
+▼ ServiceRestart(서비스 자동재시작) 서비스 등록 (2018,c-RPCS과제)
+sc create "TACT_ServiceRestart" binPath= "D:\TACTService\TACTRestartService\TACTRestartService.exe" DisplayName= "TACT ServiceRestart" start= auto
+
+▼ ServiceRestart(서비스 자동재시작) 서버 서비스 삭제 (2018,c-RPCS과제)
+sc delete "TACT_ServiceRestart"
+
+
+
+작업관리자 서비스 기동시 "오류 5: 액세스가 거부 되었습니다." 발생 / 반면에 서비스관리자=정상적으로 실행
+https://m.ppomppu.co.kr/new/bbs_view.php?id=computer&no=510150

@@ -1,0 +1,165 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using MKLibrary.MKData;
+
+using MKLibrary.MKNetwork;
+
+using System.Collections;
+using System.Threading;
+using System.IO;
+using System.IO.Compression;
+using RACTCommonClass;
+using RACTServerCommon;
+
+
+namespace RACTServer
+{
+    public static class GlobalClass
+    {
+        public static bool m_IsRequestToStop = false;
+        /// <summary>
+        /// 서버의 버전 정보 입니다.
+        /// </summary>
+        //public const string c_Version = "1.0.0.1";
+        public const string c_Version = "1.1.0.0"; // 2020-10-08 KwonTaeSUk [20고도화(.NET업그레이드)] .NET Framework 2.0 -> 4.8 (minor+1)
+        /// <summary>
+        /// 서버 시작 위치입니다.
+        /// </summary>
+        public static string m_StartupPath = string.Empty;
+        /// <summary>
+        /// 서버 환경 설정이 저장된 XML 파일명입니다.
+        /// </summary>
+        public const string c_SystemConfigFileName = @"\SystemInfo.xml";
+        /// <summary>
+        /// 서버 환경 설정 정보입니다.
+        /// </summary>
+        public static SystemConfig m_SystemInfo = null;
+        /// <summary>
+        /// DB 연결 정보 입니다.
+        /// </summary>
+        public static DBConnectionInfo m_DBConnectionInfo = null;
+        /// <summary>
+        /// 데이터베이스 풀 개체입니다.
+        /// </summary>
+        public static MKOleDBPool m_DBPool = null;
+        /// <summary>
+        /// 데이터베이스 풀 개체입니다.
+        /// </summary>
+        public static MKOleDBPool m_DBExecutePool = null;
+        /// <summary>
+        /// JOB ID 생성 클래스 입니다.
+        /// </summary>
+       // public static JobIDGenerator m_JobIDGenerator = null;
+        /// <summary>
+        /// 클라이언트와 통신할 클래스 입니다.
+        /// </summary>
+        public static ClientCommunicationProcess m_ClientProcess = null;
+        /// <summary>
+        /// 모델 목록 입니다.
+        /// </summary>
+        public static ModelInfoCollection m_ModelInfoCollection = null;
+
+        /// <summary>
+        /// 15-09-10 Gunny 제한 명령어 목록 입니다.
+        /// </summary>
+        public static LimitCmdInfoCollection m_LimitCmdInfoCollection = null;
+
+        /// <summary>
+        /// 15-09-30 Gunny 기본 명령어 목록 입니다.
+        /// </summary>
+        public static DefaultCmdInfoCollection m_DefaultCmdInfoCollection = null;
+
+        /// <summary>
+        /// 15-09-30 Gunny 기본 명령어 목록 입니다.
+        /// </summary>
+        public static AutoCompleteCmdInfoCollection m_AutoCompleteCmdInfoCollection = null;
+        
+        /// <summary>
+        /// 2013-05-02 - shinyn - 디바이스정보 목록입니다.
+        /// </summary>
+        //public static DeviceInfoCollection m_DeviceInfos = null;
+
+        /// <summary>
+        /// 로그 저장 프로세서 입니다.
+        /// </summary>
+        public static FileLogProcess m_LogProcess = null;
+        /// <summary>
+        /// DB 로그 저장 프로세서 입니다.
+        /// </summary>
+        public static DBLogProcess m_DBLogProcess = null;
+        /// <summary>
+        /// 서버 실행 여부 입니다.
+        /// </summary>
+        public static bool m_IsRun = false;
+        /// <summary>
+        /// FACT 그룹 정보 입니다.
+        /// </summary>
+        public static FACTGroupInfo m_FACTGroupInfo;
+        /// <summary>
+        /// 데몬 관리자 입니다.
+        /// </summary>
+        public static DaemonProcessManager s_DaemonProcessManager;
+        /// <summary>
+        /// 서버와 통신할 프로세서 입니다.
+        /// </summary>
+        public static ServiceManagerCommunicationProcess s_ServiceManagerCommunicationProcess = null;
+        /// <summary>
+        /// 세션 관리 타임 아웃 시간 입니다.
+        /// </summary>
+        public static readonly int s_HealthCheckTimeOut = 28;
+        /// <summary>
+        /// 마지막 로그인 이후 제한 기간 입니다.(Day)
+        /// </summary>
+        public static int s_UnUsedLimit = 0;
+
+        /// <summary>
+        /// 쓰레드를 강제 종료합니다.
+        /// </summary>
+        /// <param name="aThread"></param>
+        public static void StopThread(Thread aThread)
+        {
+            if (aThread != null)
+            {
+                aThread.Join(100);
+                if (aThread.IsAlive)
+                {
+                    try
+                    {
+                        aThread.Abort();
+                    }
+                    catch (Exception) { }
+                }
+                aThread = null;
+            }
+        }
+
+        /// <summary>
+        /// 지정한 클라이언트에 결과를 전송합니다.
+        /// </summary>		
+        /// <param name="aResult">결과 데이터 입니다.</param>
+        public static void SendResultClient(ResultCommunicationData aResult)
+        {
+            if (m_ClientProcess != null)
+                m_ClientProcess.SendResultClient(aResult);
+            else
+                aResult = null;
+        }
+
+        /// <summary>
+        /// 객체를 압축한 메모리스트림을 반환 합니다.
+        /// </summary>
+        /// <param name="aValue">압축할 객체 입니다.</param>
+        /// <returns>메모리 스트림 입니다.</returns>
+        public static CompressData ObjectCompress(object aValue)
+        {
+            byte[] tBytes = ObjectConverter.GetBytes(aValue);
+            MemoryStream tMemoryStream = new MemoryStream();
+            GZipStream tGZipStream = new GZipStream(tMemoryStream, CompressionMode.Compress, true);
+            tGZipStream.Write(tBytes, 0, tBytes.Length);
+            tGZipStream.Close();
+            CompressData tCompressData = new CompressData(tBytes.Length, tMemoryStream);
+            return tCompressData;
+        }
+    }
+}

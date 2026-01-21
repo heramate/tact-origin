@@ -1,0 +1,143 @@
+<?xml version="1.0" standalone="no"?>
+<ClientOption>
+  <ServerIP>118.217.79.41</ServerIP>
+  <DefaultMainControl>BatchRegister</DefaultMainControl>
+  <TerminalPopupType>PopUp</TerminalPopupType>
+  <NotePadWindowsPopupType>Tab</NotePadWindowsPopupType>
+  <ShortenCommandTaget>ActiveTerminal</ShortenCommandTaget>
+  <LogPath>D:\Source\TACTApp\_TACTClientExe\_Debug\Log\</LogPath>
+  <ScriptSavePath>D:\Source\TACTApp_Update\_TACTClientExe\_Debug\Script\</ScriptSavePath>
+  <IsUseTerminalAutoLogin>True</IsUseTerminalAutoLogin>
+  <IsUseTerminalClose>False</IsUseTerminalClose>
+  <IsUseTerminalAutoMoreString>True</IsUseTerminalAutoMoreString>
+  <TerminalDisplayNameType>IPAddress</TerminalDisplayNameType>
+  <TerminalWindowsPopupType>Tab</TerminalWindowsPopupType>
+  <PopupSizeHeight>529</PopupSizeHeight>
+  <PopupSizeWidth>653</PopupSizeWidth>
+  <TerminalColumnCount>80</TerminalColumnCount>
+  <TerminalBackGroundColor>255.0.0.0</TerminalBackGroundColor>
+  <TerminalFontColor>255.173.255.47</TerminalFontColor>
+  <TerminalBoldColor>255.255.255.255</TerminalBoldColor>
+  <TerminalBlinkColor>255.255.0.0</TerminalBlinkColor>
+  <TerminalFontName>굴림체</TerminalFontName>
+  <TerminalFontSize>9</TerminalFontSize>
+  <TerminalFontStyle>Regular</TerminalFontStyle>
+  <HighlightBackGroundColor>255.0.0.0</HighlightBackGroundColor>
+  <HighlightFontColor>255.255.0.0</HighlightFontColor>
+  <HighlightBoldColor>255.255.255.255</HighlightBoldColor>
+  <HighlightBlinkColor>255.255.0.0</HighlightBlinkColor>
+  <HighlightFontName>굴림체</HighlightFontName>
+  <HighlightFontSize>9</HighlightFontSize>
+  <HighlightFontStyle>Regular</HighlightFontStyle>
+  <IsTerminalTextClear>False</IsTerminalTextClear>
+  <IsAutoSaveLog>False</IsAutoSaveLog>
+  <SendDelay>10</SendDelay>
+  <ConnectionInfo>
+    <ID />
+    <Password />
+    <TelnetPort>23</TelnetPort>
+    <IPAddress />
+    <SerialConfig>
+      <Handshake>None</Handshake>
+      <StopBits>One</StopBits>
+      <Parity>None</Parity>
+      <DataBits>8</DataBits>
+      <BaudRate>9600</BaudRate>
+      <PortName />
+    </SerialConfig>
+    <ConnectionProtocol>TELNET</ConnectionProtocol>
+  </ConnectionInfo>
+  <ConnectionHistoryMaxCount>5</ConnectionHistoryMaxCount>
+  <ConnectionHistoryList ValueType="Object">
+    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
+      <ConnectionInfo>
+        <ID />
+        <Password />
+        <TelnetPort>23</TelnetPort>
+        <IPAddress>100.72.241.46</IPAddress>
+        <SerialConfig>
+          <Handshake>None</Handshake>
+          <StopBits>One</StopBits>
+          <Parity>None</Parity>
+          <DataBits>8</DataBits>
+          <BaudRate>9600</BaudRate>
+          <PortName />
+        </SerialConfig>
+        <ConnectionProtocol>TELNET</ConnectionProtocol>
+      </ConnectionInfo>
+      <ConncetTime>2024-03-13 오후 5:30:39</ConncetTime>
+    </Value>
+    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
+      <ConnectionInfo>
+        <ID />
+        <Password />
+        <TelnetPort>23</TelnetPort>
+        <IPAddress>100.72.243.13</IPAddress>
+        <SerialConfig>
+          <Handshake>None</Handshake>
+          <StopBits>One</StopBits>
+          <Parity>None</Parity>
+          <DataBits>8</DataBits>
+          <BaudRate>9600</BaudRate>
+          <PortName />
+        </SerialConfig>
+        <ConnectionProtocol>TELNET</ConnectionProtocol>
+      </ConnectionInfo>
+      <ConncetTime>2024-03-13 오후 6:04:37</ConncetTime>
+    </Value>
+    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
+      <ConnectionInfo>
+        <ID />
+        <Password />
+        <TelnetPort>23</TelnetPort>
+        <IPAddress>211.215.86.142</IPAddress>
+        <SerialConfig>
+          <Handshake>None</Handshake>
+          <StopBits>One</StopBits>
+          <Parity>None</Parity>
+          <DataBits>8</DataBits>
+          <BaudRate>9600</BaudRate>
+          <PortName />
+        </SerialConfig>
+        <ConnectionProtocol>TELNET</ConnectionProtocol>
+      </ConnectionInfo>
+      <ConncetTime>2025-08-04 오후 5:06:05</ConncetTime>
+    </Value>
+    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
+      <ConnectionInfo>
+        <ID />
+        <Password />
+        <TelnetPort>23</TelnetPort>
+        <IPAddress>211.210.139.198</IPAddress>
+        <SerialConfig>
+          <Handshake>None</Handshake>
+          <StopBits>One</StopBits>
+          <Parity>None</Parity>
+          <DataBits>8</DataBits>
+          <BaudRate>9600</BaudRate>
+          <PortName />
+        </SerialConfig>
+        <ConnectionProtocol>TELNET</ConnectionProtocol>
+      </ConnectionInfo>
+      <ConncetTime>2025-08-04 오후 5:19:31</ConncetTime>
+    </Value>
+    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
+      <ConnectionInfo>
+        <ID />
+        <Password />
+        <TelnetPort>23</TelnetPort>
+        <IPAddress>221.138.218.149</IPAddress>
+        <SerialConfig>
+          <Handshake>None</Handshake>
+          <StopBits>One</StopBits>
+          <Parity>None</Parity>
+          <DataBits>8</DataBits>
+          <BaudRate>9600</BaudRate>
+          <PortName />
+        </SerialConfig>
+        <ConnectionProtocol>TELNET</ConnectionProtocol>
+      </ConnectionInfo>
+      <ConncetTime>2025-08-04 오후 5:20:11</ConncetTime>
+    </Value>
+  </ConnectionHistoryList>
+</ClientOption>

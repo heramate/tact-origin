@@ -1,0 +1,223 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A32FC664-1933-48A6-A2D4-82A271496F65}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RACTServerServiceManager</RootNamespace>
+    <AssemblyName>RACTServerServiceManager</AssemblyName>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACTServerExe\_$(Configuration)\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACTServerExe\</OutputPath>
+    <Optimize>true</Optimize>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="C1.Common, Version=1.0.20031.116, Culture=neutral, PublicKeyToken=e272bb32d11b1948">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\C1.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1FlexGrid, Version=2.1.20031.104, Culture=neutral, PublicKeyToken=c9c7ad9c0a5706c9">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\C1.Win.C1FlexGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="CommonConfigCompareClass">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\CommonConfigCompareClass.dll</HintPath>
+    </Reference>
+    <Reference Include="DevComponents.DotNetBar2">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MKData">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKData.dll</HintPath>
+    </Reference>
+    <Reference Include="MKLibrary">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="MKRemote">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKRemote.dll</HintPath>
+    </Reference>
+    <Reference Include="MKXML">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="RACTServerServiceManager.cs" />
+    <Compile Include="ServerCommunicationProcess.cs" />
+    <Compile Include="ServiceManagerMainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ServiceManagerMainForm.Designer.cs">
+      <DependentUpon>ServiceManagerMainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Properties\licenses.licx" />
+    <EmbeddedResource Include="ServiceManagerMainForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ServiceManagerMainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucConnectionDataPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucConnectionDataPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucDaemonDataListPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucDaemonDataListPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="ServiceManagerGlobal.cs" />
+    <Compile Include="ucDaemonDataListPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucDaemonDataListPanel.Designer.cs">
+      <DependentUpon>ucDaemonDataListPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ucConnectionDataPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucConnectionDataPanel.Designer.cs">
+      <DependentUpon>ucConnectionDataPanel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RACTCommon\RACTCommonClass\RACTCommonClass.csproj">
+      <Project>{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}</Project>
+      <Name>RACTCommonClass</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RACTCommon\RACTServerCommon\RACTServerCommon.csproj">
+      <Project>{b7ca1573-0423-43f2-9634-dd8e3238da95}</Project>
+      <Name>RACTServerCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RACTServer\RACTServer.csproj">
+      <Project>{a4f264a4-0903-455f-91b0-742aa45ef74c}</Project>
+      <Name>RACTServer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\click_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\click_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\nomal_center.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\nomal_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\nomal_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\nomal_center1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\nomal_left1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\nomal_right1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\click_center.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\hover_center.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\hover_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\hover_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\disable_center.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\disable_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\disable_right.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

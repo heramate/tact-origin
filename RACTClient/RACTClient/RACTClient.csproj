@@ -1,0 +1,989 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{365ECC94-24C4-4D2D-89BB-9940F05EA3C3}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RACTClient</RootNamespace>
+    <AssemblyName>TACTClient</AssemblyName>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <ApplicationIcon>Main.ico</ApplicationIcon>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetZone>Custom</TargetZone>
+    <GenerateManifests>false</GenerateManifests>
+    <TargetFrameworkProfile />
+    <PublishUrl>http://localhost/RACTClient/</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Web</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACTClientExe\_$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACTClientExe\</OutputPath>
+    <Optimize>true</Optimize>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="C1.Common, Version=1.0.20031.116, Culture=neutral, PublicKeyToken=e272bb32d11b1948">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\C1.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1FlexGrid, Version=2.1.20031.104, Culture=neutral, PublicKeyToken=c9c7ad9c0a5706c9">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\C1.Win.C1FlexGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="CommonConfigCompareClass">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\CommonConfigCompareClass.dll</HintPath>
+    </Reference>
+    <Reference Include="DevComponents.DotNetBar2, Version=10.0.0.11, Culture=neutral, PublicKeyToken=7eb7c3a35b91de04, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <HintPath>..\..\_TACT_DLL\DevComponents.DotNetBar2.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.MSScriptControl, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <HintPath>..\..\_TACT_DLL\Interop.MSScriptControl.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="MKData">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKData.dll</HintPath>
+    </Reference>
+    <Reference Include="MKLibrary">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="MKLog">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKLog.dll</HintPath>
+    </Reference>
+    <Reference Include="MKRemote">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKRemote.dll</HintPath>
+    </Reference>
+    <Reference Include="MKThreadPool">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKThreadPool.dll</HintPath>
+    </Reference>
+    <Reference Include="MKXML">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AppGlobal.cs" />
+    <Compile Include="ClientOption.cs" />
+    <Compile Include="CommandExecuteLogProcess.cs" />
+    <Compile Include="CommonClass\ButtonInfo.cs" />
+    <Compile Include="CommonClass\CommandLogWriter.cs" />
+    <Compile Include="CommonClass\BaseForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CommonClass\BaseForm.Designer.cs">
+      <DependentUpon>BaseForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CommonClass\Kernel32.cs" />
+    <Compile Include="CommonClass\PopUp.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CommonClass\PopUp.Designer.cs">
+      <DependentUpon>PopUp.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CommonClass\ConnectionHistoryInfo.cs" />
+    <Compile Include="CommonClass\DemonProcessRemoteObject.cs" />
+    <Compile Include="CommonClass\Interface1.cs" />
+    <Compile Include="Hash.cs" />
+    <Compile Include="MainPanel\ucMainNotePads.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucMainNotePads.Designer.cs">
+      <DependentUpon>ucMainNotePads.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MCLoadingCircleClass.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="MCLoadingCircleClass.designer.cs">
+      <DependentUpon>MCLoadingCircleClass.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModUpate.cs" />
+    <Compile Include="NotePadControl\NotePadWindows.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NotePadControl\NotePadWindows.Designer.cs">
+      <DependentUpon>NotePadWindows.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NotePadControl\ucNotePad.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NotePadControl\ucNotePad.Designer.cs">
+      <DependentUpon>ucNotePad.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucGeneral.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucGeneral.Designer.cs">
+      <DependentUpon>ucGeneral.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\OptionConfigurationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Option\OptionConfigurationForm.Designer.cs">
+      <DependentUpon>OptionConfigurationForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucHighlightColor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucHighlightColor.Designer.cs">
+      <DependentUpon>ucHighlightColor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucTerminalLayout.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucTerminalLayout.Designer.cs">
+      <DependentUpon>ucTerminalLayout.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ScriptEditor\E_ScriptWorkType.cs" />
+    <Compile Include="ScriptEditor\MCScriptControl.cs" />
+    <Compile Include="ScriptEditor\ScriptEditorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ScriptEditor\ScriptEditorControl.Designer.cs">
+      <DependentUpon>ScriptEditorControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\IMainPanel.cs" />
+    <Compile Include="MainPanel\UserControl1.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\UserControl1.Designer.cs">
+      <DependentUpon>UserControl1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\IOptionPanal.cs" />
+    <Compile Include="CommonClass\OrganizationInfo.cs" />
+    <Compile Include="DevicePartCompare.cs" />
+    <Compile Include="DevicePartInfo.cs" />
+    <Compile Include="ScriptEditor\ScriptGenerator.cs" />
+    <Compile Include="ScriptEditor\ScriptManager.cs" />
+    <Compile Include="ScriptEditor\ScriptObjectClass.cs" />
+    <Compile Include="SearchIPList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SearchIPList.Designer.cs">
+      <DependentUpon>SearchIPList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\AddDeviceList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\AddDeviceList.Designer.cs">
+      <DependentUpon>AddDeviceList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\AutoCompleteKey.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\AutoCompleteKey.Designer.cs">
+      <DependentUpon>AutoCompleteKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\BatchCmdForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\BatchCmdForm.Designer.cs">
+      <DependentUpon>BatchCmdForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ClientModeChange.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ClientModeChange.Designer.cs">
+      <DependentUpon>ClientModeChange.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\CmdExecResultForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\CmdExecResultForm.Designer.cs">
+      <DependentUpon>CmdExecResultForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ConnectionHistorySearch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ConnectionHistorySearch.Designer.cs">
+      <DependentUpon>ConnectionHistorySearch.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\DeviceSearch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\DeviceSearch.Designer.cs">
+      <DependentUpon>DeviceSearch.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EventProcessor.cs" />
+    <Compile Include="DataSyncProcessor.cs" />
+    <Compile Include="ModelSortCompare.cs" />
+    <Compile Include="SubForm\EasyScript.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\EasyScript.Designer.cs">
+      <DependentUpon>EasyScript.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\FontFrom.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\FontFrom.Designer.cs">
+      <DependentUpon>FontFrom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModeChangeSubForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModeChangeSubForm.Designer.cs">
+      <DependentUpon>ModeChangeSubForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyShareGroupInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyShareGroupInfo.Designer.cs">
+      <DependentUpon>ModifyShareGroupInfo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyUserDeviceInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyUserDeviceInfo.Designer.cs">
+      <DependentUpon>ModifyUserDeviceInfo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\OpenDeviceList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\OpenDeviceList.Designer.cs">
+      <DependentUpon>OpenDeviceList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\OpenRestoreCommand.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\OpenRestoreCommand.Designer.cs">
+      <DependentUpon>OpenRestoreCommand.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\QuickConnect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\QuickConnect.Designer.cs">
+      <DependentUpon>QuickConnect.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyDeviceInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyDeviceInfo.Designer.cs">
+      <DependentUpon>ModifyDeviceInfo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyGroupInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyGroupInfo.Designer.cs">
+      <DependentUpon>ModifyGroupInfo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucTerminalColor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucTerminalColor.Designer.cs">
+      <DependentUpon>ucTerminalColor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyShortenCommand.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyShortenCommand.Designer.cs">
+      <DependentUpon>ModifyShortenCommand.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyShortenCommandGroup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyShortenCommandGroup.Designer.cs">
+      <DependentUpon>ModifyShortenCommandGroup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ScriptExecutionCheck.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ScriptExecutionCheck.Designer.cs">
+      <DependentUpon>ScriptExecutionCheck.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\SearchDefaultCmdForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\SearchDefaultCmdForm.Designer.cs">
+      <DependentUpon>SearchDefaultCmdForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\SearchLinkDevice.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\SearchLinkDevice.Designer.cs">
+      <DependentUpon>SearchLinkDevice.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\SelectTargetTerminal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\SelectTargetTerminal.Designer.cs">
+      <DependentUpon>SelectTargetTerminal.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ShortenCommandGroupList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ShortenCommandGroupList.Designer.cs">
+      <DependentUpon>ShortenCommandGroupList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ShortenCommandList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ShortenCommandList.Designer.cs">
+      <DependentUpon>ShortenCommandList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\TerminalReName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\TerminalReName.Designer.cs">
+      <DependentUpon>TerminalReName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\TerminalSelection.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SubForm\TerminalSelection.Designer.cs">
+      <DependentUpon>TerminalSelection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ucSerialConnectOption.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SubForm\ucSerialConnectOption.Designer.cs">
+      <DependentUpon>ucSerialConnectOption.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ucCommandHistory.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SubForm\ucCommandHistory.Designer.cs">
+      <DependentUpon>ucCommandHistory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ViewReservedString.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ViewReservedString.Designer.cs">
+      <DependentUpon>ViewReservedString.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ScriptList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ScriptList.Designer.cs">
+      <DependentUpon>ScriptList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyScriptGroup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyScriptGroup.Designer.cs">
+      <DependentUpon>ModifyScriptGroup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ScriptGroupList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ScriptGroupList.Designer.cs">
+      <DependentUpon>ScriptGroupList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SubForm\ModifyScript.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SubForm\ModifyScript.Designer.cs">
+      <DependentUpon>ModifyScript.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TerminalControl\HorzScrollBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\LogWriter.cs" />
+    <Compile Include="TerminalControl\MCSmallTerminal.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\MCTerminalControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\TelnetFindForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\TelnetFindForm.Designer.cs">
+      <DependentUpon>TelnetFindForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TerminalControl\TelnetFiindInfo.cs" />
+    <Compile Include="TerminalControl\TelnetStringFindHandlerArgs.cs" />
+    <Compile Include="TerminalControl\TerminalPopupType.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\TerminalPopupType.Designer.cs">
+      <DependentUpon>TerminalPopupType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\ucCommandLine.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucCommandLine.Designer.cs">
+      <DependentUpon>ucCommandLine.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucTelnetPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucTelnetPanel.Designer.cs">
+      <DependentUpon>ucTelnetPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucConnectOptionPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucConnectOptionPanel.Designer.cs">
+      <DependentUpon>ucConnectOptionPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\ucSearchDevice.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucSearchDevice.Designer.cs">
+      <DependentUpon>ucSearchDevice.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TerminalControl\Keyboard.cs" />
+    <Compile Include="TerminalControl\TerminalWindows.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\TerminalWindows.Designer.cs">
+      <DependentUpon>TerminalWindows.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TerminalControl\VertScrollBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\WMCodes.cs" />
+    <Compile Include="MainPanel\TerminalPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\TerminalPanel.Designer.cs">
+      <DependentUpon>TerminalPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TreeNodeEx.cs" />
+    <Compile Include="TreeViewEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="DelegateClass.cs" />
+    <Compile Include="Enum.cs" />
+    <Compile Include="ClientMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ClientMain.Designer.cs">
+      <DependentUpon>ClientMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="ClientMain.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ClientMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucMainNotePads.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucMainNotePads.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\UserControl1.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>UserControl1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NotePadControl\NotePadWindows.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>NotePadWindows.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NotePadControl\ucNotePad.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucNotePad.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\OptionConfigurationForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>OptionConfigurationForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucGeneral.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucGeneral.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucHighlightColor.resx">
+      <DependentUpon>ucHighlightColor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucTerminalLayout.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucTerminalLayout.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
+    <EmbeddedResource Include="SearchIPList.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SearchIPList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\AddDeviceList.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AddDeviceList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\AutoCompleteKey.resx">
+      <DependentUpon>AutoCompleteKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\BatchCmdForm.resx">
+      <DependentUpon>BatchCmdForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ClientModeChange.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ClientModeChange.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\CmdExecResultForm.resx">
+      <DependentUpon>CmdExecResultForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ConnectionHistorySearch.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ConnectionHistorySearch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\DeviceSearch.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DeviceSearch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\EasyScript.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>EasyScript.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\FontFrom.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FontFrom.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModeChangeSubForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModeChangeSubForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyShareGroupInfo.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModifyShareGroupInfo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyUserDeviceInfo.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModifyUserDeviceInfo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\OpenDeviceList.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>OpenDeviceList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\OpenRestoreCommand.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>OpenRestoreCommand.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\QuickConnect.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>QuickConnect.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyDeviceInfo.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModifyDeviceInfo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyGroupInfo.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModifyGroupInfo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucTerminalColor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucTerminalColor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SplashControl.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SplashControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyShortenCommand.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModifyShortenCommand.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyShortenCommandGroup.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ModifyShortenCommandGroup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ScriptExecutionCheck.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ScriptExecutionCheck.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\SearchDefaultCmdForm.resx">
+      <DependentUpon>SearchDefaultCmdForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\SearchLinkDevice.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SearchLinkDevice.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\SelectTargetTerminal.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SelectTargetTerminal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ShortenCommandGroupList.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ShortenCommandGroupList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ShortenCommandList.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ShortenCommandList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\TerminalReName.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TerminalReName.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\TerminalSelection.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TerminalSelection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ucSerialConnectOption.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucSerialConnectOption.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ucCommandHistory.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucCommandHistory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ViewReservedString.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ViewReservedString.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ScriptList.resx">
+      <DependentUpon>ScriptList.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyScriptGroup.resx">
+      <DependentUpon>ModifyScriptGroup.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ScriptGroupList.resx">
+      <DependentUpon>ScriptGroupList.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SubForm\ModifyScript.resx">
+      <DependentUpon>ModifyScript.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TerminalControl\MCSmallTerminal.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>MCSmallTerminal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TerminalControl\MCTerminalControl.resx">
+      <DependentUpon>MCTerminalControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TerminalControl\TelnetFindForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TelnetFindForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\TerminalPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TerminalPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TerminalControl\TerminalPopupType.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TerminalPopupType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucCommandLine.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucCommandLine.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucTelnetPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucTelnetPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucConnectOptionPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucConnectOptionPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucMainBatchRegisterBasePanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucMainBatchRegisterBasePanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TerminalControl\TerminalWindows.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TerminalWindows.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucBatchRegisterPanel.resx">
+      <DependentUpon>ucBatchRegisterPanel.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucDeviceSearch.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucDeviceSearch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucGroupTree.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucGroupTree.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucSearchDevice.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucSearchDevice.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucSerialPortPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucSerialPortPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucShortenCommand.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucShortenCommand.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Option\ucTerminalPopupType.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucTerminalPopupType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainPanel\ucShortenScript.resx">
+      <DependentUpon>ucShortenScript.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucBatchDeviceSelectPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucBatchDeviceSelectPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="Properties\app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="SplashControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SplashControl.Designer.cs">
+      <DependentUpon>SplashControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\ucMainBatchRegisterBasePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucMainBatchRegisterBasePanel.Designer.cs">
+      <DependentUpon>ucMainBatchRegisterBasePanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ucBatchRegisterPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucBatchRegisterPanel.Designer.cs">
+      <DependentUpon>ucBatchRegisterPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ucDeviceSearch.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucDeviceSearch.Designer.cs">
+      <DependentUpon>ucDeviceSearch.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\ucGroupTree.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucGroupTree.Designer.cs">
+      <DependentUpon>ucGroupTree.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ucDesignPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucDesignPanel.Designer.cs">
+      <DependentUpon>ucDesignPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucSerialPortPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucSerialPortPanel.Designer.cs">
+      <DependentUpon>ucSerialPortPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\ucShortenCommand.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucShortenCommand.Designer.cs">
+      <DependentUpon>ucShortenCommand.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Option\ucTerminalPopupType.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Option\ucTerminalPopupType.Designer.cs">
+      <DependentUpon>ucTerminalPopupType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainPanel\ucShortenScript.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainPanel\ucShortenScript.Designer.cs">
+      <DependentUpon>ucShortenScript.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ucBatchDeviceSelectPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucBatchDeviceSelectPanel.Designer.cs">
+      <DependentUpon>ucBatchDeviceSelectPanel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RACTCommon\RACTCommonClass\RACTCommonClass.csproj">
+      <Project>{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}</Project>
+      <Name>RACTCommonClass</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RACTCommon\RACTTerminal\RACTTerminal.csproj">
+      <Project>{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}</Project>
+      <Name>RACTTerminal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RACTCommon\TelnetProcess\TelnetProcessor.csproj">
+      <Project>{D56F2E9F-8820-4123-B90C-D64187F4818F}</Project>
+      <Name>TelnetProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RACTSerialProcess\RACTSerialProcess.csproj">
+      <Project>{51E64A65-E4E9-4654-9F32-61293295BE81}</Project>
+      <Name>RACTSerialProcess</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Image\Button\ButtonIcon\add.png" />
+    <Content Include="Image\Button\ButtonIcon\apply.png" />
+    <Content Include="Image\Button\ButtonIcon\close.png" />
+    <Content Include="Image\Button\ButtonIcon\delete.png" />
+    <Content Include="Image\Button\ButtonIcon\modify.png" />
+    <Content Include="Image\Button\ButtonIcon\save.png" />
+    <Content Include="Image\Button\ButtonIcon\stop.png" />
+    <Content Include="Image\Button\ButtonIcon\찾아보기.png" />
+    <Content Include="Image\Button\click_center.png" />
+    <Content Include="Image\Button\click_left.png" />
+    <Content Include="Image\Button\click_right.png" />
+    <Content Include="Image\Button\disable_center.png" />
+    <Content Include="Image\Button\disable_left.png" />
+    <Content Include="Image\Button\disable_right.png" />
+    <Content Include="Image\Button\hover_center.png" />
+    <Content Include="Image\Button\hover_left.png" />
+    <Content Include="Image\Button\hover_right.png" />
+    <Content Include="Image\Button\nomal_center.png" />
+    <Content Include="Image\Button\nomal_left.png" />
+    <Content Include="Image\Button\nomal_right.png" />
+    <None Include="Image\ICON\Main.ico" />
+    <Content Include="Image\ICON\RACS모드변경.png" />
+    <Content Include="Image\ICON\그룹.png" />
+    <Content Include="Image\ICON\그룹등록.png" />
+    <Content Include="Image\ICON\메모장열기.png" />
+    <Content Include="Image\ICON\목록열기.png" />
+    <Content Include="Image\ICON\빠른연결.png" />
+    <Content Include="Image\ICON\새파일.png" />
+    <Content Include="Image\ICON\수동장비등록.png" />
+    <Content Include="Image\ICON\스크립트레코딩.png" />
+    <Content Include="Image\ICON\스크립트실행.png" />
+    <Content Include="Image\ICON\실행.png" />
+    <Content Include="Image\ICON\실행취소.png" />
+    <Content Include="Image\ICON\옵션설정_대분류.png" />
+    <Content Include="Image\ICON\옵션설정_소분류.png" />
+    <Content Include="Image\ICON\장비.png" />
+    <Content Include="Image\ICON\저장스크립트관리.png" />
+    <Content Include="Image\ICON\접속이력보기.png" />
+    <Content Include="Image\ICON\종료.png" />
+    <Content Include="Image\ICON\클라이언트.png" />
+    <Content Include="Image\ICON\텔넷연결.png" />
+    <Content Include="Image\ICON\텔넷접속.png" />
+    <Content Include="Image\ICON\텔넷종료.png" />
+    <Content Include="Image\Login\b_close.png" />
+    <Content Include="Image\Login\b_login.png" />
+    <Content Include="Image\Login\login.jpg" />
+    <Content Include="Image\Login\racs_16.ico" />
+    <Content Include="Image\Login\racs_32.ico" />
+    <Content Include="Image\Terminal\led_gray.png" />
+    <Content Include="Image\Terminal\led_green.png" />
+    <Content Include="Image\Terminal\led_red.png" />
+    <Content Include="Image\Terminal\led_blue.gif" />
+    <None Include="Resources\DUMMYNODE_ADD.png" />
+    <None Include="Resources\AddScript.png" />
+    <None Include="Resources\ConnectionHistory.png" />
+    <None Include="Resources\batchRegister.png" />
+    <None Include="Resources\Clear.png" />
+    <None Include="Resources\find.png" />
+    <None Include="Resources\copy.png" />
+    <Content Include="Main.ico" />
+    <Content Include="racs_32.ico" />
+    <Content Include="racs_32_disconnect.ico" />
+    <Content Include="Resources\Folder2.png" />
+    <Content Include="Resources\folder3.png" />
+    <Content Include="Resources\folder4.png" />
+    <None Include="Resources\NODEGROUP_ADD.png" />
+    <None Include="Resources\SETTING_TELNET.png" />
+    <None Include="Resources\ModeChange.png" />
+    <None Include="Resources\run_cancel.png" />
+    <None Include="Resources\script_rec1.png" />
+    <None Include="Resources\script_save.png" />
+    <None Include="Resources\rec_cancel.png" />
+    <None Include="Resources\paste.png" />
+    <None Include="Resources\select_all.png" />
+    <None Include="Resources\Main.ico" />
+    <None Include="Resources\racs_32_disconnect.ico" />
+    <Content Include="Resources\Switch_Generic.png" />
+    <None Include="Resources\새파일.bmp" />
+    <None Include="Resources\terminal1.png" />
+    <None Include="Resources\TELNET_CONNECT2.png" />
+    <None Include="Resources\folder.jpg" />
+    <None Include="Resources\16_critical.png" />
+    <None Include="Resources\yellow.png" />
+    <None Include="Resources\red.png" />
+    <None Include="Resources\orange.png" />
+    <None Include="Resources\green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8%28x86 및 x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  <Target Name="BeforePublish">
+     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(IntermediateOutputPath)" />
+  </Target>
+  -->
+</Project>

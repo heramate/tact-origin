@@ -1,0 +1,591 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Collections;
+using System.Threading;
+using RACTCommonClass;
+using MKLibrary.MKData;
+
+namespace RACTServer
+{
+    /// <summary>
+    /// 클라이언트 요청에 결과를 반환하는 프로세스 입니다.
+    /// </summary>
+    public class ClientResponseProcess : IDisposable
+    {
+        /// <summary>
+        /// 클라이언트 요청을 저장할 큐 입니다.
+        /// </summary>
+        private Queue<RequestCommunicationData> m_RequestQueue = null;
+        /// <summary>
+        /// 요청 처리 스레드 입니다.
+        /// </summary>
+        private Thread m_RequestProcessThread = null;
+
+        /// <summary>
+        /// 기본 생성자 입니다.
+        /// </summary>
+        public ClientResponseProcess()
+        {
+            m_RequestQueue = new Queue<RequestCommunicationData>();
+        }
+
+        /// <summary>
+        /// 종료 처리 합니다.
+        /// </summary>
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        /// <summary>
+        /// 프로세스를 시작합니다.
+        /// </summary>
+        /// <returns></returns>
+        public bool Start()
+        {
+            try
+            {
+                m_RequestProcessThread = new Thread(new ThreadStart(ProcessClientRequest));
+                m_RequestProcessThread.Start();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 프로세스를 종료합니다.
+        /// </summary>
+        public void Stop()
+        {
+            GlobalClass.StopThread(m_RequestProcessThread);
+            if (m_RequestQueue != null) m_RequestQueue.Clear();
+        }
+
+        /// <summary>
+        /// 요청 정보를 추가합니다.
+        /// </summary>
+        /// <param name="aRequest"></param>
+        public void AddRequest(RequestCommunicationData aRequest)
+        {
+            lock (m_RequestQueue) m_RequestQueue.Enqueue(aRequest);
+        }
+
+        /// <summary>
+        /// 클라이언트 요청을 처리합니다.
+        /// </summary>
+        private void ProcessClientRequest()
+        {
+            RequestCommunicationData tClientRequest = null;
+            while (GlobalClass.m_IsRun)
+            {
+                try
+                {
+                    lock (m_RequestQueue)
+                    {
+                        if (m_RequestQueue.Count < 1) continue;
+                        tClientRequest = m_RequestQueue.Dequeue();
+                    }
+                    if (tClientRequest == null) continue;
+
+                    UserInfo tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(tClientRequest.ClientID);
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Info, string.Format("[클라이언트 요청 수신] ClientID={0}, UserID={1}, CommType={2} ",
+                        tClientRequest.ClientID, tUserInfo != null ? tUserInfo.Account : "정보없음", tClientRequest.CommType.ToString()));
+
+                    switch (tClientRequest.CommType)
+                    {
+                        case E_CommunicationType.RequestGroupInfo://그룹 정보를 요청합니다.
+                            GroupProcess.RequestProcess(tClientRequest);
+                            break;
+                        // 2013-08-14 -shinyn -공유할 사용자 장비 정보를 요청합니다.->삭제
+                        case E_CommunicationType.RequestRactUserList:
+                            GroupProcess.RequestRactUserListProcess(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestAddShareDevice: // 2013-08-14 - shinyn - 공유할 사용자 장비 목록 등록을 요청합니다.
+                            GroupProcess.RequestAddShareDeviceProcess(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestDeviceInfo: //장비 정보를 요청합니다.
+                            DeviceProcess.RequestProcess(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestModelInfo: //모델 정보를 요청 합니다.
+                            ModelInfoReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestOneTerminalModelInfo: //모델 정보를 요청 합니다.
+                            OneTerminalModelInfoReceiver(tClientRequest);
+                            break;                            
+                        case E_CommunicationType.RequestLimitCmdInfo: //Gunny 제한 명령어 정보를 요청 합니다.
+                            LimitCmdInfoReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestDefaultCmdInfo: //Gunny 기본 명령어 정보를 요청 합니다.
+                            DefaultCmdInfoReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestAutoCompleteCmd: // 2015-10-12 - gunny -  개인별 자동완성 리스트를 보내줌
+                            RequestAutoCompleteCmd(tClientRequest);
+                            break;
+
+                        case E_CommunicationType.RequestFactGroupInfo: //FACT 그룹 정보를 요청 합니다.
+                            FactGroupInfoReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestShortenCommand://단축 명령 정보를 요청 합니다.
+                            ShortenCommandProcess.RequestProcess(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestShortenCommandGroup://단축 명령 그룹 정보 수정을 요청 합니다.
+                            ShortenCommandProcess.RequestGroupProcess(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestScriptGroup://스크립트 그룹 정보 요청 합니다.
+                            ScriptProcess.RequestProcess(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestScriptInfo: //스크립트 정보를 요청 합니다.
+                            ScriptProcess.RequestScriptProcess(tClientRequest);
+                            break;
+                        //case E_CommunicationType.RequestDaemonStatusUpdate: // 데몬 상태 변경을 요청 합니다.
+                        //    GlobalClass.s_DaemonProcessManager.UpdateDaemonStatus((DaemonProcessInfo)tClientRequest.RequestData);
+                        //    break;
+                        case E_CommunicationType.RequestBatchRegisteration: //장비 일괄 등록 처리를 요청 합니다.
+                            DeviceProcess.RequestBatchRegisteration(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestConnectionHistory://장비 접속 기록을 요청 합니다.
+                            ConnectionHistoryRequestReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestCommandHistory://명령 기록을 요청 합니다.
+                            CommandHistoryRequestReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestFACTSearchDevice:
+                            DeviceProcess.RequestFactDeviceSearchProcess(tClientRequest);
+                            break;
+                        // 2013-05-02 - shinyn - 일반/사용자장비등록에 따라 장비리스트를 조회합니다.
+                        case E_CommunicationType.RequestSearchDeviceForType:
+                            DeviceProcess.RequestSearchDeviceForType(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestFACTIPSearchDevice:
+                            DeviceProcess.RequestFactIPDeviceSearchProcess(tClientRequest); // 2013-04-22 - shinyn - 여러대의 아이피의 장비리스트를 조회합니다.
+                            break;
+                        case E_CommunicationType.RequestDaemonInfo:
+                            DaemonProcessInfoRequestReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestDaemonInfoList:
+                            DaemonProcessInfoListRequestReceiver(tClientRequest);
+                            break;
+                        /// KwonTaeSuk, 2018.12, [c-RPCS과제] LTE(Cat.M1)접속 기능 추가
+                        case E_CommunicationType.RequestSSHDaemonInfoList:
+                            SSHTunnelDaemonProcessInfoListRequestReceiver(tClientRequest);
+                            break;
+                        /// KwonTaeSuk, 2019.07.02 [c-RPCS과제] LTE(Cat.M1) 1대 접속(OneTerminal) 추가 - E_CommunicationType.RequestSSHDaemonInfo
+                        case E_CommunicationType.RequestSSHDaemonInfo:
+                            SSHTunnelDaemonProcessInfoRequestReceiver(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestDefaultConnectionCommand:
+                            DefaultConnectionCommand(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestCfgRestoreCommand: // 2013-01-11 - shinyn - CFG복원명령을 Client에게 전송
+                            ScriptProcess.RequestCfgRestoreCommand(tClientRequest);
+                            break;
+                        case E_CommunicationType.RequestDevicesCfgRestoreCommand: // 2013-01-11 - shinyn - 여러대의 CFG복원명령을 Client에게 전송
+                            ScriptProcess.RequestDevicesCfgRestoreCommand(tClientRequest);
+                            break;
+                        //2017.06.21 - NoSeungPil - RCCS 로그인 기능추가
+                        case E_CommunicationType.RequestRMSCMTSSearchDevice:
+                            DeviceProcess.RequestSearchRMSCMTSDevice(tClientRequest);
+                            break;
+                        default:
+                            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning,
+                                string.Format("[클라이언트 요청 수신] ClientID={0}, UserID={1}, CommType={2} : 처리되지 않은 CommunicationType 값입니다.",
+                                tClientRequest.ClientID, tUserInfo != null ? tUserInfo.Account : "정보없음", tClientRequest.CommType.ToString()));
+                            break;
+                    }
+                    tClientRequest = null;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                }
+                finally
+                {
+                    Thread.Sleep(1);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 기본 접속 명령을 처리 합니다.
+        /// </summary>
+        /// <param name="tClientRequest"></param>
+        private void DefaultConnectionCommand(RequestCommunicationData tClientRequest)
+        {
+            DefaultConnectionCommandProcess.GetCommand(tClientRequest);
+        }
+
+        private void DaemonProcessInfoRequestReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            tResultData = new ResultCommunicationData(aClientRequest);
+            lock (this)
+            {
+                UseableDaemonRequestInfo tRequestInfo = (UseableDaemonRequestInfo)aClientRequest.RequestData;
+                DaemonProcessInfo tProcessInfo;
+                // 2013-04-26 - shinyn - 연결할 데몬을 요청이 왔는지 로그를 저장합니다.
+                GlobalClass.m_LogProcess.PrintLog("DaemonProcessInfoRequestReceiver : 데몬요청 ClientID : " + tRequestInfo.ClientID.ToString());
+                tProcessInfo = GlobalClass.s_DaemonProcessManager.GetDaemonProcess(tRequestInfo);
+                // 2013-04-26 - shinyn - 연결할 데몬이 있는지 로그를 저장합니다.
+                if (tProcessInfo == null)
+                {
+                    GlobalClass.m_LogProcess.PrintLog("DaemonProcessInfoRequestReceiver : ClientID : " + tRequestInfo.ClientID.ToString() + " 가 요청한 사용가능한 데몬이 없습니다.");
+                }
+                else
+                {
+                    GlobalClass.m_LogProcess.PrintLog("DaemonProcessInfoRequestReceiver : ClientID : " + tRequestInfo.ClientID.ToString() +
+                                                      " 가 요청해서 사용가능한 데몬 : " + tProcessInfo.DaemonID.ToString() + " 입니다.");
+                }
+
+                if (tProcessInfo != null)
+                {
+                    tResultData.ResultData = new DaemonProcessInfo(tProcessInfo);
+                }
+            }
+
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        private void DaemonProcessInfoListRequestReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            tResultData = new ResultCommunicationData(aClientRequest);
+            List<DaemonProcessInfo> tDaemonList = new List<DaemonProcessInfo>();
+
+            lock (this)
+            {
+                DaemonProcessInfo tProcessInfo;
+                int tRequestCount = (int)aClientRequest.RequestData;
+                GlobalClass.s_DaemonProcessManager.TempConnectionListClear();
+                for (int i = 0; i < tRequestCount; i++)
+                {
+                    tDaemonList.Add(GlobalClass.s_DaemonProcessManager.GetDaemonProcess());
+                }
+            }
+            tResultData.ResultData = tDaemonList;
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        /// <summary>
+        /// KwonTaeSuk, 2018.12, [c-RPCS과제] LTE(Cat.M1)접속 기능 추가
+        /// LTE접속을 위해 SSH터널링 데몬정보를 요청받음
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        private void SSHTunnelDaemonProcessInfoListRequestReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+            List<DaemonProcessInfo> tDaemonList = new List<DaemonProcessInfo>();
+
+            lock (this)
+            {
+                DaemonProcessInfo tProcessInfo = null;
+                //List<DeviceInfo> tDeviceList = (List<DeviceInfo>)aClientRequest.RequestData;
+                DeviceInfoCollection tDeviceList = (DeviceInfoCollection)aClientRequest.RequestData;
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, string.Format("[LTE연결을 위한 데몬요청 수신] 장비={0}건, ", tDeviceList.Count));
+
+                //GlobalClass.s_DaemonProcessManager.TempConnectionListClear();
+                foreach (DeviceInfo tDeviceInfo in tDeviceList)
+                {
+                    if (tDeviceInfo == null) continue;
+                    tProcessInfo = GlobalClass.s_DaemonProcessManager.GetSSHTunnelDaemonProcess();
+                    tDaemonList.Add(tProcessInfo);
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, string.Format("# LTE연결 데몬할당: 장비IP/모델={0}/{1}, 데몬ID/IP/포트={2}/{3}/{4}", 
+                                            tDeviceInfo.IPAddress, tDeviceInfo.ModelName, tProcessInfo.DaemonID, tProcessInfo.IP, tProcessInfo.Port));
+                }
+            }
+            tResultData.ResultData = tDaemonList;
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        /// <summary>
+        /// KwonTaeSuk, 2019.07.02, [c-RPCS과제] LTE(Cat.M1)접속 기능 
+        /// LTE접속을 위해 SSH터널링 데몬정보를 요청받음 (1대 접속, OneTerminal)
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        private void SSHTunnelDaemonProcessInfoRequestReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+            DaemonProcessInfo tDaemonProcessInfo = null;
+
+            lock (this)
+            {
+                UseableDaemonRequestInfo tRequestInfo = (UseableDaemonRequestInfo)aClientRequest.RequestData;
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, string.Format("[LTE연결을 위한 데몬요청 수신] 데몬요청 ClientID={0} ", tRequestInfo.ClientID.ToString()));
+
+                //GlobalClass.s_DaemonProcessManager.TempConnectionListClear();
+                tDaemonProcessInfo = GlobalClass.s_DaemonProcessManager.GetSSHTunnelDaemonProcess();
+                if (tDaemonProcessInfo == null)
+                {
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, string.Format("└ LTE데몬할당 ClientID={0}: 사용가능한 데몬이 없습니다.", tRequestInfo.ClientID.ToString()));
+                }
+                else
+                {
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, string.Format("└ LTE데몬할당 ClientID={0}: DaemonID={1}, DaemonIP={2}, DaemonPort={3}",
+                                                      tRequestInfo.ClientID.ToString(), tDaemonProcessInfo.DaemonID, tDaemonProcessInfo.IP, tDaemonProcessInfo.Port));
+                }
+            }
+            tResultData.ResultData = new DaemonProcessInfo(tDaemonProcessInfo);
+
+            GlobalClass.SendResultClient(tResultData);
+        }
+        
+
+        /// <summary>
+        /// 세션의 명령 기록을 가져오기 합니다.
+        /// </summary>
+        /// <param name="tClientRequest"></param>
+        private void CommandHistoryRequestReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            MKDBWorkItem tDBWI = null;
+            MKDataSet tDataSet = null;
+            string tQueryString = "";
+            TelnetCommandHistoryRequestInfo tCommandHistoryRequestInfo;
+            TelnetCommandHistoryInfo tHistoryInfo;
+            TelnetCommandHistoryInfoCollection tHistoryList = new TelnetCommandHistoryInfoCollection();
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+                tCommandHistoryRequestInfo = (TelnetCommandHistoryRequestInfo)aClientRequest.RequestData;
+                tQueryString = @"select * from dbo.RACT_Log_ExcuteCommand where ConnectionLogID = {0}";
+
+                tQueryString = string.Format(tQueryString, tCommandHistoryRequestInfo.ConnectionLogID);
+
+                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
+                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
+                    tResultData.Error.Error = E_ErrorType.UnKnownError;
+                    tResultData.Error.ErrorString = tDBWI.ErrorString;
+                }
+                else
+                {
+                    if (tDataSet != null)
+                    {
+                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        {
+                            tHistoryInfo = new TelnetCommandHistoryInfo();
+                            tHistoryInfo.Time = tDataSet.GetDateTime("DateTime");
+                            tHistoryInfo.Command = tDataSet.GetString("Command");
+
+                            tHistoryList.Add(tHistoryInfo);
+                            tDataSet.MoveNext();
+                        }
+                    }
+                    tResultData.ResultData = tHistoryList;
+                }
+
+                GlobalClass.SendResultClient(tResultData);
+            }
+            catch (Exception ex)
+            {
+                tResultData.Error.Error = E_ErrorType.UnKnownError;
+                GlobalClass.SendResultClient(tResultData);
+            }
+            finally
+            {
+                if (tDataSet != null)
+                    MKOleDBClass.CloseDataSet(tDataSet);
+            }
+        }
+
+        /// <summary>
+        /// 접속 기록을 가져오기 합니다.
+        /// </summary>
+        /// <param name="tClientRequest"></param>
+        private void ConnectionHistoryRequestReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            MKDBWorkItem tDBWI = null;
+            MKDataSet tDataSet = null;
+            string tQueryString = "";
+            ConnectionHistoryRequestInfo tConnectionHistoryRequestInfo;
+            DeviceConnectionHistoryInfo tHistoryInfo;
+            ConnectionHistoryInfoCollection tHistoryList = new ConnectionHistoryInfoCollection();
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+                tConnectionHistoryRequestInfo = (ConnectionHistoryRequestInfo)aClientRequest.RequestData;
+                tQueryString = @"select L.* ,N.NEName, N.MasterIP as IPAddress from RACT_LOG_DeviceConnection L inner Join Ne_Ne N On N.NEID = L.NEID where L.userid = {0} and dateTime between '" + tConnectionHistoryRequestInfo.StartTime.ToString("yyyy-MM-dd HH:mm:ss") + "' and '" + tConnectionHistoryRequestInfo.EndTime.ToString("yyyy-MM-dd HH:mm:ss") + "' order by L.id desc";
+
+                tQueryString = string.Format(tQueryString, tConnectionHistoryRequestInfo.UserID);
+
+                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
+                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
+                    tResultData.Error.Error = E_ErrorType.UnKnownError;
+                    tResultData.Error.ErrorString = tDBWI.ErrorString;
+                }
+                else
+                {
+                    if (tDataSet != null)
+                    {
+                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        {
+                            tHistoryInfo = new DeviceConnectionHistoryInfo();
+                            tHistoryInfo.ID = tDataSet.GetInt32("ID");
+                            tHistoryInfo.DeviceID = tDataSet.GetInt32("NEID");
+                            tHistoryInfo.DeviceName = tDataSet.GetString("NEName");
+                            tHistoryInfo.ConnectionTime = tDataSet.GetDateTime("DateTime");
+                            tHistoryInfo.ConnectionType = (E_DeviceConnectType)tDataSet.GetInt32("ConnectLogType");
+                            tHistoryInfo.Description = tDataSet.GetString("Description");
+                            if (tHistoryInfo.ConnectionType == E_DeviceConnectType.DisConnection)
+                            {
+                                tHistoryInfo.EndTime = tDataSet.GetDateTime("DisconnectTime");
+                            }
+                            tHistoryInfo.IPAddress = tDataSet.GetString("IPAddress");
+
+                            tHistoryList.Add(tHistoryInfo);
+                            tDataSet.MoveNext();
+                        }
+                    }
+                    tResultData.ResultData = tHistoryList;
+                }
+
+                GlobalClass.SendResultClient(tResultData);
+            }
+            catch (Exception ex)
+            {
+                tResultData.Error.Error = E_ErrorType.UnKnownError;
+                GlobalClass.SendResultClient(tResultData);
+            }
+            finally
+            {
+                if (tDataSet != null)
+                    MKOleDBClass.CloseDataSet(tDataSet);
+            }
+        }
+
+        /// <summary>
+        /// FACT그룹 정보를 전송할 메소드 입니다.
+        /// </summary>
+        /// <param name="tClientRequest"></param>
+        private void FactGroupInfoReceiver(RequestCommunicationData aClientRequest)
+        {
+
+            UserInfo tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo((int)aClientRequest.RequestData);
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+            if (tUserInfo.IsViewAllBranch)
+            {
+                tResultData.ResultData = GlobalClass.m_FACTGroupInfo.DeepClone();
+            }
+            else
+            {
+                tResultData.ResultData = GroupProcess.GetFactGroup(tUserInfo);
+            }
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        /// <summary>
+        /// 장비 모델 정보를 전송할 메서드입니다.
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        private void ModelInfoReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+            tResultData.ResultData = GlobalClass.m_ModelInfoCollection.DeepClone();
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        /// <summary>
+        /// 장비 모델 정보를 전송할 메서드입니다.
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        private void OneTerminalModelInfoReceiver(RequestCommunicationData aClientRequest)
+        {
+            MKDBWorkItem tDBWI = null;
+            MKDataSet tDataSet = null;
+            ResultCommunicationData tResultData = null;
+            string tQueryString = "";
+            int tModelId = 0;
+
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+            
+                String ReqData = (String)aClientRequest.RequestData;
+
+                tQueryString = @"SELECT ModelID FROM NE_NE WHERE MasterIP = '{0}' and Uses = 1;";
+
+                tQueryString = string.Format(tQueryString, ReqData);
+
+                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
+                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
+                    tResultData.Error.Error = E_ErrorType.UnKnownError;
+                    tResultData.Error.ErrorString = tDBWI.ErrorString;
+                }
+                else
+                {
+                    if (tDataSet != null)
+                    {
+                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        {
+                            tModelId = tDataSet.GetInt32("ModelID");
+                            tDataSet.MoveNext();
+                        }
+                    }
+                    if (tModelId != 0)
+                        tResultData.ResultData = GlobalClass.m_ModelInfoCollection[tModelId];
+                }
+
+                GlobalClass.SendResultClient(tResultData);
+
+            }
+            catch (Exception ex)
+            {
+                tResultData.Error.Error = E_ErrorType.UnKnownError;
+                GlobalClass.SendResultClient(tResultData);
+            }
+            finally
+            {
+                if (tDataSet != null)
+                    MKOleDBClass.CloseDataSet(tDataSet);
+            }
+        }
+
+        /// <summary>
+        /// 15-09-10 Gunny
+        /// 제한 명령어 정보를 전송할 메서드입니다.
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        private void LimitCmdInfoReceiver(RequestCommunicationData aClientRequest)
+        {
+            UserInfo tUserInfo = null;
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+            tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(aClientRequest.ClientID);
+            if (!BaseDataLoadProcess.LoadLimitCmdInfo(tUserInfo.UserType)) return;
+            tResultData.ResultData = GlobalClass.m_LimitCmdInfoCollection.DeepClone();
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        /// <summary>
+        /// 15-09-30 Gunny
+        /// 기본 명령어 정보를 전송할 메서드입니다.
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        private void DefaultCmdInfoReceiver(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+            if (!BaseDataLoadProcess.LoadDefaultCmdInfo()) return;
+            tResultData.ResultData = GlobalClass.m_DefaultCmdInfoCollection.DeepClone();
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+
+        private void RequestAutoCompleteCmd(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
+
+            if (!BaseDataLoadProcess.LoadAutoCompleteInfo((int)aClientRequest.RequestData)) return;
+            tResultData.ResultData = GlobalClass.m_AutoCompleteCmdInfoCollection.DeepClone();
+            GlobalClass.SendResultClient(tResultData);
+        }
+    }
+}

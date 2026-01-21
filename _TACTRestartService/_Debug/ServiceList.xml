@@ -1,0 +1,8 @@
+<?xml version="1.0" standalone="no"?>
+<TACTServiceList>
+	<TACTService>
+	  <ServiceName>TACT_KeepAliveServer</ServiceName>
+	  <ProcessName>TACTKeepAliveServerService</ProcessName>
+	  <Description>TACT LTE Keep-Alive Server</Description>
+	</TACTService>
+</TACTServiceList>

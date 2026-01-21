@@ -1,0 +1,18 @@
+<?xml version="1.0" standalone="no"?>
+<DaemonConfig>
+  <ServerIP>118.217.79.48</ServerIP>
+  <ServerDaemonChannelName>RemoteDaemon</ServerDaemonChannelName>
+  <ServerDaemonPort>43210</ServerDaemonPort>
+  <LauncherIP>118.217.79.48</LauncherIP>
+  <LauncherPort>43215</LauncherPort>
+  <LauncherChannelName>RactLauncherChannel</LauncherChannelName>
+  <LauncherServiceName>RACS_Daemon_Launcher</LauncherServiceName>
+  <DaemonIP>118.217.79.48</DaemonIP>
+  <DaemonPort>43220</DaemonPort>
+  <DaemonStartCount>1</DaemonStartCount>
+  <DaemonChannelName>RACTDaemonChannel</DaemonChannelName>
+  <KAMServerConnectEnable>false</KAMServerConnectEnable>
+  <KAMServerIP>118.217.79.48</KAMServerIP>
+  <KAMServerChannel>RemoteKAMServer</KAMServerChannel>
+  <KAMServerPort>40009</KAMServerPort>
+</DaemonConfig>

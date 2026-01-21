@@ -1,0 +1,600 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
+using System.Collections.Specialized;
+using System.Collections;
+
+namespace RACTTerminal
+{
+    /// <summary>
+    /// 접속 결과에 사용할 핸들러 입니다.
+    /// </summary>
+    /// <param name="aIsConnect">접속 여부 입니다.</param>
+    public delegate void ConnectHandler(bool aIsConnect);
+    /// <summary>
+    /// 수신 이벤트에 사용할 핸들러 입니다.
+    /// </summary>
+    /// <param name="aReceivedData">수신 결과 입니다.</param>
+    public delegate void ReceivedDataHandler(string aReceivedData);
+    /// <summary>
+    /// 접속 종료에 사용할 핸들러 입니다.
+    /// </summary>
+    public delegate void DisConnectHandler();
+
+    /// <summary>
+    /// 텔넷 서버 입니다.
+    /// </summary>
+    public class TerminalServer
+    {
+        private event RxdTextEventHandler OnRxdTextEvent;
+        /// <summary>
+        /// Parser 입니다.
+        /// </summary>
+        private Parser m_Parser = null;
+        /// <summary>
+        /// NVT Parser 입니다.
+        /// </summary>
+        private TelnetParser m_NvtParser = null;
+        /// <summary>
+        /// 접속 결과 이벤트 입니다.
+        /// </summary>
+        public event ConnectHandler OnConnected;
+        /// <summary>
+        /// 수신 이벤트 입니다.
+        /// </summary>
+        public event ReceivedDataHandler OnReceivedData;
+        /// <summary>
+        /// 연결 종료 이벤트 입니다.
+        /// </summary>
+        public event DisConnectHandler OnDisconnected;
+        /// <summary>
+        /// 소켓 입니다.
+        /// </summary>
+        private Socket m_CurrentSocket;
+        /// <summary>
+        /// 결과처리 입니다.
+        /// </summary>
+        private AsyncCallback CallbackProcess;
+        /// <summary>
+        /// 전송할 버퍼 입니다.
+        /// </summary>
+        private string m_OutBuffer = "";
+        /// <summary>
+        /// 결과 분배 입니다.
+        /// </summary>
+        private AsyncCallback CallbackEndDispatch;
+
+
+        /// <summary>
+        /// SSH연결 에뮬레이터
+        /// </summary>
+        private WalburySoftware.TerminalEmulator m_SHHTermEmul;
+
+        
+
+        public TerminalServer()
+        {
+            m_Parser = new Parser();
+            m_NvtParser = new TelnetParser();
+            this.OnRxdTextEvent += new RxdTextEventHandler(this.m_NvtParser.Parsestring);
+            this.m_NvtParser.NvtParserEvent += new NegotiateParserEventHandler(TelnetInterpreter);
+        }
+
+       
+
+        private void TelnetInterpreter(object Sender, NegotiateParserEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case E_NegotiateActions.SendUp:
+                    this.m_Parser.Parsestring(e.CurChar.ToString());
+                    break;
+                default:
+                    break;
+            }
+
+            if (e.CurSequence.StartsWith("\xFD"))
+            {
+                System.Char CurCmd = System.Convert.ToChar(e.CurSequence.Substring(1, 1));
+
+                switch (CurCmd)
+                {
+                    // 24 - terminal type 
+                    case '\x18':
+                        NvtSendWill(CurCmd);
+                        break;
+
+                    default:
+                        NvtSendWont(CurCmd);
+                        break;
+                }
+            }
+
+            // if the sequence is a WILL message
+            if (e.CurSequence.StartsWith("\xFB"))
+            {
+                System.Char CurCmd = System.Convert.ToChar(e.CurSequence.Substring(1, 1));
+
+                switch (CurCmd)
+                {
+                    case '\x01': // echo
+                        NvtSendDo(CurCmd);
+                        break;
+
+                    default:
+                        NvtSendDont(CurCmd);
+                        break;
+                }
+            }
+
+            // if the sequence is a SUBNEGOTIATE message
+            if (e.CurSequence.StartsWith("\xFA"))
+            {
+                if (e.CurSequence[2] != '\x01')
+                {
+                    return;
+                }
+
+                System.Char CurCmd = System.Convert.ToChar(e.CurSequence.Substring(1, 1));
+
+                switch (CurCmd)
+                {
+                    // 24 - terminal type 
+                    case '\x18':
+                        NvtSendSubNeg(CurCmd, "vt220");
+                        break;
+
+                    default:
+                        NvtSendSubNeg(CurCmd, "");
+                        System.Console.Write("unsupported telnet SUBNEG sequence {0} happened\n",
+                            System.Convert.ToInt32(System.Convert.ToChar(e.CurSequence.Substring(1, 1))));
+                        break;
+                }
+            }
+        }
+        /// <summary>
+        /// Will 전송 합니다.
+        /// </summary>
+        /// <param name="CurChar"></param>
+        private void NvtSendWill(System.Char CurChar)
+        {
+            SendCommand( "\xFF\xFB" + CurChar.ToString());
+        }
+        /// <summary>
+        /// Wont 전송 합니다.
+        /// </summary>
+        /// <param name="CurChar"></param>
+        private void NvtSendWont(System.Char CurChar)
+        {
+            SendCommand( "\xFF\xFC" + CurChar.ToString());
+        }
+        /// <summary>
+        /// Dont 전송 합니다.
+        /// </summary>
+        /// <param name="CurChar"></param>
+        private void NvtSendDont(System.Char CurChar)
+        {
+            SendCommand( "\xFF\xFE" + CurChar.ToString());
+        }
+        /// <summary>
+        /// Do 전송 합니다.
+        /// </summary>
+        /// <param name="CurChar"></param>
+        private void NvtSendDo(System.Char CurChar)
+        {
+            SendCommand( "\xFF\xFD" + CurChar.ToString());
+        }
+        /// <summary>
+        /// Subneg 전송 합니다.
+        /// </summary>
+        /// <param name="CurChar"></param>
+        /// <param name="Curstring"></param>
+        private void NvtSendSubNeg(System.Char CurChar, string Curstring)
+        {
+            SendCommand( "\xFF\xFA" + CurChar.ToString() + "\x00" + Curstring + "\xFF\xF0");
+        }
+
+        /// <summary>
+        /// 장비에 연결 합니다.
+        /// </summary>
+        /// <param name="aHostName">Host Name 입니다.</param>
+        public bool Connect(string aHostName)
+        {
+            return Connect(aHostName, 23);
+        }
+
+        /// <summary>
+        /// 연결 결과 처리 합니다.
+        /// </summary>
+        /// <param name="aResult">결과 입니다.</param>
+        private void ConnectCallback(IAsyncResult aResult)
+        {
+            try
+            {
+                Socket tSock = (Socket)aResult.AsyncState;
+
+                if (tSock.Connected)
+                {
+                    SocketObject tStateObject = new SocketObject();
+                    tStateObject.Socket = tSock;
+                    CallbackProcess = new AsyncCallback(ReceivedData);
+
+                    tSock.BeginReceive(tStateObject.Buffer, 0, tStateObject.Buffer.Length, SocketFlags.None, CallbackProcess, tStateObject);
+                }
+
+                if (OnConnected != null) OnConnected(tSock.Connected);
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                if (OnConnected != null)  OnConnected(false);
+            }
+        }
+
+
+        /// <summary>
+        /// // 2015-04-30 - 신윤남 - 터미널 가능한 라인갯수에 맞게 잘라서 보내기
+        /// </summary>
+        /// <param name="aReceived"></param>
+        /// <returns></returns>
+        private string GetLineFeedData(string aReceived)
+        {
+            string tReceived = "";
+            string tLineFeedValue = "\r\n";
+            int i = 0;
+            string[] arrReceived = null;
+            string[] tSplit = new string[1];
+            tSplit[0] = tLineFeedValue;
+            string tSplitString = "";
+            try
+            {
+                if (aReceived.IndexOf("\r\n") != -1)
+                {
+                    arrReceived = System.Text.RegularExpressions.Regex.Split(aReceived, "\r\n");
+
+                    for (i = 0; i < arrReceived.Length; i++)
+                    {
+                        tSplitString = arrReceived[i];
+                        // 2015-05-20 - 맨마지막 값은 리턴되지 않도록 처리
+                        if (i == arrReceived.Length - 1)
+                        {
+                            tReceived += GetLineFeedString(tSplitString);
+                        }
+                        else
+                        {
+                            tReceived += GetLineFeedString(tSplitString) + tLineFeedValue;
+                        }
+                    }
+                }
+                else
+                {
+                    tReceived = GetLineFeedString(aReceived);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[E][GetLineFeedData] " + ex.ToString());
+            }
+
+
+            tReceived = GetCharString(tReceived);
+
+            return tReceived;
+        }
+
+        /// <summary>
+        /// // 2015-04-30 - 신윤남 - 터미널 가능한 라인갯수에 맞게 잘라서 보내기
+        /// </summary>
+        /// <param name="aReceived"></param>
+        /// <returns></returns>
+        private string GetLineFeedString(string aReceived)
+        {
+            string tReceived = "";
+            int tLinFeedLength = 80;
+            string tLineFeedValue = "\r\n";
+            int tLineLength = aReceived.Length;
+            int tStartLength = 0;
+            int tCount = 0;
+            int i = 0;
+            int tTailLength = 0;
+            try
+            {
+                tCount = tLineLength / tLinFeedLength;
+                if (tCount < 1)
+                {
+                    tReceived = aReceived;
+                }
+                else if (tCount > 0)
+                {
+                    for (i = 0; i < tCount; i++)
+                    {
+                        tStartLength = i * tLinFeedLength;
+                        tReceived += aReceived.Substring(tStartLength, tLinFeedLength) + tLineFeedValue;
+                    }
+
+                    tTailLength = tLineLength % tLinFeedLength;
+                    tStartLength = tStartLength + tLinFeedLength;
+                    tReceived += aReceived.Substring(tStartLength, tTailLength);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[E][GetLineFeedString] " + ex.ToString());
+            }
+
+            return tReceived;
+        }
+
+        /// <summary>
+        /// // 2015-04-30 - 신윤남 - 터미널 가능한 라인갯수에 맞게 잘라서 보내기
+        /// </summary>
+        /// <param name="aReceived"></param>
+        /// <returns></returns>
+        private string GetCharString(string aReceived)
+        {
+            int i = 0;
+            string tReceived = "";
+
+            try
+            {
+                for (i = 0; i < aReceived.Length; i++)
+                {
+                    tReceived += Convert.ToChar(aReceived.Substring(i, 1));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[E][GetCharString] " + ex.ToString());
+            }
+            tReceived = tReceived.Replace("\r\n\r\n", "\r\n");
+
+            return tReceived;
+        }
+
+
+        /// <summary>
+        /// 받음 처리 합니다.
+        /// </summary>
+        /// <param name="aResult"></param>
+        private void ReceivedData(IAsyncResult aResult)
+        {
+            try
+            {
+                SocketObject tStateObject = (SocketObject)aResult.AsyncState;
+
+                //System.Diagnostics.Debug.WriteLine("클라이언트한테 결과 전송");
+                int tBytesReceive = tStateObject.Socket.EndReceive(aResult);
+
+                if (tBytesReceive > 0)
+                {
+                    string tReceived = "";
+
+                    for (int i = 0; i < tBytesReceive; i++)
+                    {
+                        tReceived += Convert.ToChar(tStateObject.Buffer[i]).ToString();
+                    }
+
+                    // 2015-04-30 - 신윤남 - 터미널 가능한 컬럼 갯수에 맞게 잘라서 보내기
+                    // 2015-06-02 - 신윤남 - 클라이언트 화면에서 컬럼 갯수를 늘리고 줄일 수 있도록 옵션 수정
+                    //tReceived = GetLineFeedData(tReceived);
+
+                    if (OnReceivedData != null)
+                    {
+                        OnReceivedData(tReceived);
+                    }
+
+                    OnRxdTextEvent(string.Copy(tReceived));
+                    tStateObject.Socket.BeginReceive(tStateObject.Buffer, 0, tStateObject.Buffer.Length, SocketFlags.None, new System.AsyncCallback(ReceivedData), tStateObject);
+                }
+                else if (tStateObject.Socket.Poll(1, SelectMode.SelectRead) && (tStateObject.Socket.Available == 0))
+                {
+                    tStateObject.Socket.Shutdown(System.Net.Sockets.SocketShutdown.Both);
+                    tStateObject.Socket.Close();
+                    if (OnDisconnected != null) OnDisconnected();
+                }
+                else
+                {
+                    tStateObject.Socket.BeginReceive(tStateObject.Buffer, 0, tStateObject.Buffer.Length, SocketFlags.None, new AsyncCallback(this.ReceivedData), tStateObject);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ReceivedData] Socket Error 발생" + ex.ToString());
+            }
+        }
+
+        
+        /// <summary>
+        /// 제한 명령어 결과를 전송합니다.
+        /// </summary>
+        /// <param name="aString">전송할 내용 입니다.</param>
+        public void SendLimitResult(string aString)
+        {
+            OnRxdTextEvent(string.Copy(aString));
+            //tStateObject.Socket.BeginReceive(tStateObject.Buffer, 0, tStateObject.Buffer.Length, SocketFlags.None, new System.AsyncCallback(ReceivedData), tStateObject);
+        }
+
+
+        /// <summary>
+        /// 명령을 전송 합니다.
+        /// </summary>
+        /// <param name="aString">전송할 명령 입니다.</param>
+        public void SendCommand(string aString)
+        {
+            int i = 0;
+
+            try
+            {
+                System.Byte[] tSendBytes = new System.Byte[aString.Length];
+
+                if (m_OutBuffer != "")
+                {
+                    aString = m_OutBuffer + aString;
+                    m_OutBuffer = "";
+                }
+                System.Byte tByte;
+                for (i = 0; i < aString.Length; i++)
+                {
+                    tByte = System.Convert.ToByte(aString[i]);
+                    tSendBytes[i] = tByte;
+                }
+
+                if (this.m_CurrentSocket == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("소켓 null");
+                }
+                else
+                {
+                    try
+                    {
+                        IAsyncResult tAsyncResult = this.m_CurrentSocket.BeginSend(tSendBytes,0,tSendBytes.Length,SocketFlags.None,CallbackEndDispatch,this.m_CurrentSocket);
+                    }
+                    catch
+                    {
+                        System.Diagnostics.Debug.WriteLine("Socket Error 발생");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 종료 처리 합니다.
+        /// </summary>
+        public void Dispose()
+        {
+            if(m_CurrentSocket != null && m_CurrentSocket.Connected)
+            {
+                m_CurrentSocket.Disconnect(false);
+            }
+            m_CurrentSocket = null;
+        }
+        /// <summary>
+        /// 연결 합니다.
+        /// </summary>
+        /// <param name="aIP">IP Address입니다.</param>
+        /// <param name="aPort">Port 입니다.</param>
+        /// <returns></returns>
+        public bool Connect(string aIP, int aPort)
+        {
+            IPHostEntry tIPHost = Dns.GetHostByName(aIP);
+            IPAddress[] tAddress = tIPHost.AddressList;
+
+            try
+            {
+                this.m_CurrentSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                IPEndPoint tIPEndPoint = new IPEndPoint(tAddress[0], aPort);
+                this.m_CurrentSocket.Blocking = false;
+                this.m_CurrentSocket.BeginConnect(tIPEndPoint, new AsyncCallback(ConnectCallback), m_CurrentSocket);
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 2013-03-06 - SSH텔넷인 경우 로그인아이디, 비밀번호가 무조건 있어야함
+        /// </summary>
+        /// <param name="aIP"></param>
+        /// <param name="aPort"></param>
+        /// <param name="aUserName"></param>
+        /// <param name="aPassword"></param>
+        /// <returns></returns>
+        public bool ConnectSSH2(string aIP, int aPort, string aUserName, string aPassword)
+        {
+
+            if (m_SHHTermEmul != null) m_SHHTermEmul.Dispose();
+
+            m_SHHTermEmul = new WalburySoftware.TerminalEmulator();
+
+            m_SHHTermEmul.ConnectSSH2(aIP, aPort, aUserName, aPassword);
+
+            m_SHHTermEmul.m_SSHReceivedDataEvent += new WalburySoftware.SSHReceivedDataEventHandler(m_SSHReceivedData);
+
+            m_SHHTermEmul.m_SSHDisConnectEvent += new WalburySoftware.SSHDisConnectEventHandler(m_SSHDisConnect);
+
+            return true;
+            
+        }
+
+
+        private void m_SSHReceivedData(object sender, WalburySoftware.SSHReceiveEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine(e.ReceivedData);
+
+            if (e.ReceivedData != "")
+            {
+                OnReceivedData(e.ReceivedData);
+            }
+
+            OnRxdTextEvent(string.Copy(e.ReceivedData));
+        }
+
+        private void m_SSHDisConnect(object sender)
+        {
+            if (OnDisconnected != null) OnDisconnected();
+        }
+
+        /// <summary>
+        /// 2013-01-28 - SSH 명령어 전송
+        /// </summary>
+        /// <param name="aString">전송할 명령 입니다.</param>
+        public void SendSSHCommand(string aString)
+        {
+            //int i = 0;
+
+            try
+            {
+                /*
+                System.Byte[] tSendBytes = new System.Byte[aString.Length];
+
+                if (m_OutBuffer != "")
+                {
+                    aString = m_OutBuffer + aString;
+                    m_OutBuffer = "";
+                }
+                System.Byte tByte;
+                for (i = 0; i < aString.Length; i++)
+                {
+                    tByte = System.Convert.ToByte(aString[i]);
+                    tSendBytes[i] = tByte;
+                }
+                */
+                if (m_SHHTermEmul == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("SSH 연결 null");
+                }
+                else
+                {
+                    try
+                    {
+                        m_SHHTermEmul.DispatchMessage(this, aString);
+                    }
+                    catch
+                    {
+                        System.Diagnostics.Debug.WriteLine("SSH 연결 Error 발생");
+                    }
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+        }
+
+    }
+
+
+}
+  

@@ -1,0 +1,33 @@
+last updated: 2019.11.14
+
+<?xml version="1.0" standalone="no"?>
+<SystemConfig>
+  <ServerID>33</ServerID>                           // KAMServer 서버구분ID
+  <ServerIP>127.0.0.1</ServerIP>                    // KAMServer 서버IP
+  <ServerChannel>RemoteClient</ServerChannel>
+  <ServerPort>40001</ServerPort>                    // Keep-Alive 메시지 수신포트(UDP)
+
+  <DBServerIP>118.217.79.49,43218</DBServerIP>      // DB접속정보
+  <DBName>FACT_MAIN</DBName>
+  <UserID>sa</UserID>
+  <Password>inds106!1</Password>
+  <DBConnectionCount>3</DBConnectionCount>
+
+  <DServerIP>127.0.0.1</DServerIP>                  // TACTDaemon 접속정보
+  <DServerChannel>RemoteDaemon</DServerChannel>     // TACTDaemon 접속정보
+  <DServerPort>43215</DServerPort>                  // TACTDaemon로부터 요청 수신포트
+
+  //▼ Keep-Alive에 대한 응답값(LTE를 통한 장비접속을 위한 SSH터널링 정보)
+  <SSHServerIP>catm1.skbroadband.com</SSHServerIP>              // SSH서버 접속정보
+  <SSHServerPort>40002</SSHServerPort>                          
+  <SSHUserID>f_v2010!</SSHUserID>
+  <SSHPassword>oct@201810</SSHPassword>                         // SSH서버 
+  <SSHTunnelPortRange>40101,40300</SSHTunnelPortRange>          // SSH터널링에 사용할 포트범위
+  <SSHTunnelUseTimeoutSeconds>300</SSHTunnelUseTimeoutSeconds>// 미사용 SSH터널을 Close하기위한 타임아웃
+  <TunnelRequestTimeoutSeconds>30</TunnelRequestTimeoutSeconds>  //터널Open/Close 요청후 포트상태가 변경되길 대기하는 시간
+  <DaemonRequestTimeoutSeconds>90</DaemonRequestTimeoutSeconds>// 데몬의 연결요청에 대한 타임아웃 처리
+  <KeepAliveBase64Encode>true</KeepAliveBase64Encode>                    // Keep-Alive 메시지 Base64인코딩 여부
+  <FileLogDetailYN>false</FileLogDetailYN> // 파일로그를 모두 출력할지 여부(GlobalClass.PrintLog 참고)
+  <TunnelRequestSendPeriodSeconds>5</TunnelRequestSendPeriodSeconds> //(19.11.13) 터널Close요청 재발송주기(초)
+  <TunnelRequestCount>3</TunnelRequestCount> //(19.11.13) 터널Close요청 발송 횟수
+</SystemConfig>

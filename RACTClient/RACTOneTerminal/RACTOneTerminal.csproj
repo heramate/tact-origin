@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F0E05EFC-4773-4DE3-AEF0-E9045EF38A1A}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RACTOneTerminal</RootNamespace>
+    <AssemblyName>TACTOneTerminal</AssemblyName>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACTClientExe\_$(Configuration)\</OutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputPath>..\..\_TACTClientExe\</OutputPath>
+    <Optimize>true</Optimize>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>false</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="C1.Common, Version=1.0.20031.116, Culture=neutral, PublicKeyToken=e272bb32d11b1948">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\C1.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1FlexGrid, Version=2.1.20031.104, Culture=neutral, PublicKeyToken=c9c7ad9c0a5706c9">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\C1.Win.C1FlexGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="CommonConfigCompareClass">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\CommonConfigCompareClass.dll</HintPath>
+    </Reference>
+    <Reference Include="DevComponents.DotNetBar2, Version=10.0.0.11, Culture=neutral, PublicKeyToken=7eb7c3a35b91de04, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\DevComponents.DotNetBar2.dll</HintPath>
+    </Reference>
+    <Reference Include="MKData">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKData.dll</HintPath>
+    </Reference>
+    <Reference Include="MKLibrary">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="MKRemote">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKRemote.dll</HintPath>
+    </Reference>
+    <Reference Include="MKThreadPool">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKThreadPool.dll</HintPath>
+    </Reference>
+    <Reference Include="MKXML">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EasyScript.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EasyScript.Designer.cs">
+      <DependentUpon>EasyScript.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="EasyScript.resx">
+      <DependentUpon>EasyScript.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucOneTerminal.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ucOneTerminal.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="Properties\app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="ucOneTerminal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ucOneTerminal.Designer.cs">
+      <DependentUpon>ucOneTerminal.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RACTCommon\RACTCommonClass\RACTCommonClass.csproj">
+      <Project>{6304cb78-9eaf-4ea3-a750-bb1b4cee8d75}</Project>
+      <Name>RACTCommonClass</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RACTCommon\RACTTerminal\RACTTerminal.csproj">
+      <Project>{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}</Project>
+      <Name>RACTTerminal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RACTClient\RACTClient.csproj">
+      <Project>{365ecc94-24c4-4d2d-89bb-9940f05ea3c3}</Project>
+      <Name>RACTClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RACTSerialProcess\RACTSerialProcess.csproj">
+      <Project>{51e64a65-e4e9-4654-9f32-61293295be81}</Project>
+      <Name>RACTSerialProcess</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="racs_32.ico" />
+    <Content Include="racs_32_disconnect.ico" />
+    <None Include="Resources\racs_32_disconnect.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

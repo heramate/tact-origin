@@ -1,0 +1,60 @@
+<dotnetbarlayout version="6" zorder="1,5,3,2">
+  <docksite size="0" dockingside="Top" originaldocksitesize="0" />
+  <docksite size="201" dockingside="Bottom" originaldocksitesize="0">
+    <dockcontainer orientation="1" w="0" h="0">
+      <barcontainer w="1048" h="198">
+        <bar name="barCommandLine" dockline="0" layout="2" dockoffset="0" state="2" dockside="4" visible="true">
+          <items>
+            <item name="dockContainerItem3" origBar="" origPos="-1" pos="0" />
+          </items>
+        </bar>
+      </barcontainer>
+    </dockcontainer>
+  </docksite>
+  <docksite size="246" dockingside="Left" originaldocksitesize="0">
+    <dockcontainer orientation="1" w="0" h="0">
+      <barcontainer w="243" h="199">
+        <bar name="barGroup" dockline="0" layout="2" dockoffset="0" state="2" dockside="1" visible="true">
+          <items>
+            <item name="dockContainerItem1" origBar="" origPos="-1" pos="0" />
+          </items>
+        </bar>
+      </barcontainer>
+      <barcontainer w="243" h="249">
+        <bar name="barDeviceSearch" dockline="0" layout="2" dockoffset="100" state="2" dockside="1" visible="true">
+          <items>
+            <item name="dockContainerItem7" origBar="" origPos="-1" pos="0" />
+          </items>
+        </bar>
+      </barcontainer>
+    </dockcontainer>
+  </docksite>
+  <docksite size="214" dockingside="Right" originaldocksitesize="0">
+    <dockcontainer orientation="0" w="0" h="0">
+      <barcontainer w="211" h="451">
+        <bar name="barShortenCommand" dockline="0" layout="2" dockoffset="0" state="2" dockside="2" visible="true">
+          <items>
+            <item name="dockContainerItem2" origBar="" origPos="-1" pos="0" />
+          </items>
+        </bar>
+      </barcontainer>
+    </dockcontainer>
+  </docksite>
+  <documents>
+    <dockcontainer orientation="0" w="0" h="0">
+      <barcontainer w="588" h="451">
+        <bar name="bar4" dockline="0" layout="2" dockoffset="0" state="2" dockside="5" visible="true" seldocktab="0">
+          <items>
+            <item name="tabTerminal" origBar="" origPos="-1" pos="0" />
+            <item name="tabBatchRegister" origBar="" origPos="-1" pos="1" />
+            <item name="tabNotePads" origBar="" origPos="-1" pos="2" />
+          </items>
+        </bar>
+      </barcontainer>
+    </dockcontainer>
+  </documents>
+  <bars>
+    <bar name="bar6" dockline="0" layout="0" dockoffset="0" state="2" dockside="3" visible="true" />
+    <bar name="bar8" dockline="1" layout="0" dockoffset="0" state="2" dockside="3" visible="true" />
+  </bars>
+</dotnetbarlayout>

@@ -1,0 +1,338 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Windows.Forms;
+using System.Collections;
+using MKLibrary.MKData;
+using RACTDaemonProcess;
+using MKLibrary.MKProcess;
+using System.Diagnostics;
+using MKLibrary.MKLog;
+using System.Threading;
+using RACTCommonClass;
+using MKLibrary.MKNetwork;
+
+namespace RACTDaemonLauncher
+{
+    public class DaemonLauncher
+    {
+
+        /// <summary>
+        /// Daemon List 입니다.
+        /// </summary>
+        private List<DaemonProcess> m_DaemonList = null;
+        /// <summary>
+        /// 상태 체크 목록 입니다.
+        /// </summary>
+        private HealthCheckProcessCollection m_DaemonHealthCheckList = new HealthCheckProcessCollection();
+        /// <summary>
+        /// 프로세서 실행용 Pool 입니다.
+        /// </summary>
+        private MKThreadPool m_ThreadPool;
+        /// <summary>
+        /// 실행 여부 입니다.
+        /// </summary>
+        private bool m_IsRun = false;
+        /// <summary>
+        /// Launcher Manager와 통신할 객체 입니다.
+        /// </summary>
+        private MKRemote m_RemoteGateway;
+       
+        /// <summary>
+        /// 시작 합니다.
+        /// </summary>
+        /// <returns></returns>
+        public bool Start()
+        {
+            // 기존 프로세스 kill
+            DaemonExeProcessKill();
+
+            //서버를 초기화 합니다.
+            m_IsRun = true;
+
+            if (!Initiallize()) return false;
+
+            RactDaemonCheck();
+
+            foreach (HealthCheckProcess tProcess in m_DaemonHealthCheckList.Values)
+            {
+                m_ThreadPool.ExecuteWork(new MKWorkItem(new WorkItemParmeterMethod(tProcess.StartHealthCheck), null));
+                AppGlobal.s_FileLog.PrintLogEnter(string.Format("[ExecuteWork] {0} {1}", tProcess.HealthCheckItem.Key, tProcess.HealthCheckItem.ExecutionArg));
+            }
+
+            if (!RemoteServerStart()) return false;
+
+            return true;
+        }
+        /// <summary>
+        /// 프로세스 목록 입니다.
+        /// </summary>
+        private Hashtable m_DaemonProcessList = new Hashtable();
+        private void RactDaemonCheck()
+        {
+            ProcessInfo tDaemonProcess;
+            HealthCheckItem tItem;
+            IniFile tIni = new IniFile(Application.StartupPath + "\\RACTProcessList.ini");
+            string tTemp;
+            HealthCheckProcess tHealthCheckProcess;
+            RACTDaemonPocessInfo tDaemonProcessInfo;
+            for (int i = 0; i < AppGlobal.s_SystemInfo.DaemonStartCount; i++)
+            {
+                tItem = new HealthCheckItem();
+                
+                tItem.DaemonIPAddress = AppGlobal.s_SystemInfo.DaemonIP;
+                tItem.DaemonPort = AppGlobal.s_SystemInfo.DaemonPort + i;
+                // 2019.01.25 KwonTaeSuk 환경설정파일 정리(DaemonLauncherConfig.xml, DaemonProcessConfig.xml)
+                //tItem.DaemonChannelName = DaemonConfig.s_DaemonRemoteChannelName + tItem.DaemonPort;
+                tItem.DaemonChannelName = AppGlobal.s_SystemInfo.DaemonChannelName + tItem.DaemonPort;
+
+
+                if (!m_DaemonProcessList.ContainsKey(tItem.Key))
+                {
+                    tDaemonProcess = new ProcessInfo();
+
+                    tDaemonProcess.Key = tItem.Key;
+                    tTemp = tIni.ReadValue(tItem.Key, "Auto Start");
+                    if (tTemp != string.Empty)
+                    {
+                        tDaemonProcess.AutoStart = Convert.ToBoolean(int.Parse(tTemp));
+                        tItem.AutoStart = tDaemonProcess.AutoStart;
+                    }
+                    tTemp = tIni.ReadValue(tItem.Key, "Process ID");
+                    if (tTemp != string.Empty)
+                    {
+
+                        tDaemonProcess.ProcessID = int.Parse(tTemp);
+                        tItem.ProcessID = tDaemonProcess.ProcessID;
+                    }
+
+                    //tItem.ExecutionArg = AppGlobal.s_SystemInfo.ServerIP +" " +AppGlobal.s_SystemInfo.ServerDaemonPort +" " +AppGlobal.s_SystemInfo.ServerDaemonChannelName +" "+ AppGlobal.s_SystemInfo.DaemonIP +" "+ (AppGlobal.s_SystemInfo.DaemonPort + i);
+                    tItem.ExecutionArg = AppGlobal.s_SystemInfo.ServerIP + " " + AppGlobal.s_SystemInfo.ServerDaemonPort
+                                       + " " + tItem.DaemonChannelName + " " + tItem.DaemonIPAddress + " " + tItem.DaemonPort;
+
+                    AppGlobal.PrintLogEnter(
+                        string.Format("[DaemonLauncher.RactDaemonCheck(데몬추가)] DaemonKey={0}, DaemonIPAddress={1}, DaemonPort={2}, DaemonChannelName={3}, AutoStart={4}, ProcessID={5}, ExecutionArg={6}",
+                        tItem.Key, tItem.DaemonIPAddress, tItem.DaemonPort, tItem.DaemonChannelName, 
+                        tItem.AutoStart, tItem.ProcessID, tItem.ExecutionArg), true);
+
+                    tHealthCheckProcess = new HealthCheckProcess(tItem);
+                    tHealthCheckProcess.OnProcessStatusChange += new ProcessStatusChangeHandelr(HealthCheckProcess_OnProcessStatusChange);
+
+                    tDaemonProcessInfo = new RACTDaemonPocessInfo(tItem);
+                    m_DaemonProcessList.Add(tDaemonProcessInfo.Key, tDaemonProcessInfo);
+                    m_DaemonHealthCheckList.Add(tItem.Key, tHealthCheckProcess);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 서버 상태 변경 처리 입니다.
+        /// </summary>
+        /// <param name="aCheckItem"></param>
+        /// <param name="aStatus"></param>
+        void HealthCheckProcess_OnProcessStatusChange(HealthCheckItem aCheckItem, E_ProcessStatus aStatus)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine(aCheckItem.Key + "  " + aStatus.ToString());
+
+                ((RACTDaemonPocessInfo)m_DaemonProcessList[aCheckItem.Key]).ProcessStatus = aStatus;
+            }
+            catch (Exception ex)
+            {
+                AppGlobal.s_FileLog.PrintLogEnter(ex.ToString());
+            }
+        }
+    
+        /// <summary>
+        /// 초기화 합니다.
+        /// </summary>
+        /// <returns></returns>
+        private bool Initiallize()
+        {
+            AppGlobal.s_FileLog = new MKFileLog(Application.StartupPath + "\\Log\\", "RACT Launcher", true, true);
+          
+            if (AppGlobal.s_FileLog == null)
+            {
+                return false;
+            }
+            AppGlobal.s_FileLog.PrintLogEnter("RACT Launcher를 시작합니다.");
+
+            if (!AppGlobal.LoadSystemInfo()) return false;
+
+            m_ThreadPool = new MKThreadPool("RACT Process", 10);
+            m_ThreadPool.StartThreadPool();
+
+            return true;
+        }
+
+        /// <summary>
+        /// 종료 합니다.
+        /// </summary>
+        /// <returns></returns>
+        public bool Stop()
+        {
+            m_IsRun = false;
+
+            try
+            {
+                AppGlobal.s_FileLog.PrintLogEnter("RACT Daemon Launcher를 종료 합니다.");
+
+                foreach (HealthCheckProcess tProcess in m_DaemonHealthCheckList.Values)
+                {
+                    try
+                    {
+                        AppGlobal.s_FileLog.PrintLogEnter("RACT Daemon  : " + tProcess.HealthCheckItem.Key + " 를 종료 합니다.");
+                        tProcess.Stop();
+                    }
+                    catch { }
+                }
+
+                Thread.Sleep(1000);
+
+                m_ThreadPool.StopThreadPool();
+                m_ThreadPool.Dispose();
+
+                if (AppGlobal.m_RemoteGateway != null)
+                {
+                    string tErrorString = "";
+                    AppGlobal.m_RemoteGateway.StopServer(out tErrorString);
+                    AppGlobal.m_RemoteGateway.Dispose();
+                    AppGlobal.m_RemoteGateway = null;
+                }
+
+
+                if (m_RemoteGateway != null)
+                {
+                    string tErrorString = "";
+                    m_RemoteGateway.StopServer(out tErrorString);
+                    m_RemoteGateway.Dispose();
+                    m_RemoteGateway = null;
+                }
+
+                AppGlobal.SaveConfig(m_DaemonHealthCheckList);
+                AppGlobal.s_FileLog.Dispose();
+                AppGlobal.s_FileLog = null;
+
+                m_DaemonHealthCheckList.Clear();
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                DaemonExeProcessKill();
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Remote Server를 시작합니다.
+        /// </summary>
+        public bool RemoteServerStart()
+        {
+            int tCount = 0;
+            string tResult = string.Empty;
+            DaemonLauncherPartObject tRemoteMethod = null;
+            try
+            {
+               // DaemonGlobal.s_FileLogProcess.PrintLog(E_FileLogType.Infomation, string.Concat(DaemonGlobal.s_DaemonConfig.DaemonIP, ":", DaemonGlobal.s_DaemonConfig.DaemonPort, DaemonConfig.s_DaemonRemoteChannelName + DaemonGlobal.s_DaemonConfig.DaemonPort, "  클라이언트 채널을 생성 합니다."));
+                m_RemoteGateway = new MKRemote(E_RemoteType.TCPRemote, AppGlobal.s_SystemInfo.LauncherIP, AppGlobal.s_SystemInfo.LauncherPort,AppGlobal.s_SystemInfo.LauncherChannelName);
+                while (tCount < 10)
+                {
+                    if (m_RemoteGateway.StartRemoteServer(out tResult) != E_RemoteError.Success)
+                    {
+//                        AppGlobal.s_FileLog.PrintLog E_FileLogType.Error, string.Concat("클라이언트 채널을 생성할 수 없습니다. : ", tResult));
+                        Thread.Sleep(3000);
+                        tCount++;
+                    }
+                    else
+                        break;
+                }
+
+                if (m_RemoteGateway == null)
+                {
+  //                  AppGlobal.s_FileLog.PrintLog(E_FileLogType.Error, string.Format("클라이언트 IP: {0}  PortNo: {1}  ChannelName: {2}에 연결 할 수 없습니다.", DaemonGlobal.s_DaemonConfig.DaemonIP, DaemonGlobal.s_DaemonConfig.DaemonPort, DaemonConfig.s_DaemonRemoteChannelName));
+                    return false;
+                }
+
+                //원격 메소드를 설정합니다.
+                tRemoteMethod = new DaemonLauncherPartObject();
+                tRemoteMethod.SetStartServerMethod(StartServer);
+                tRemoteMethod.SetGetRACTDaemonListHandlerMethod(GetRACTDaemonList);
+
+                m_RemoteGateway.ServerObject = tRemoteMethod;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+              //  DaemonGlobal.s_FileLogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
+                return false;
+            }
+        }
+        /// <summary>
+        /// 실행 중인 daemon 목록을 가져오기 합니다.
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetRACTDaemonList()
+        {
+            return ObjectConverter.GetBytes(m_DaemonProcessList);
+        }
+
+        /// <summary>
+        /// 서버를 시작합니다.
+        /// </summary>
+        /// <param name="aKey"></param>
+        /// <param name="aIsStart"></param>
+        /// <returns></returns>
+        public bool StartServer(string aKey, bool aIsStart)
+        {
+            try
+            {
+                if (m_DaemonHealthCheckList.ContainsKey(aKey))
+                {
+                    m_DaemonHealthCheckList[aKey].HealthCheckItem.AutoStart = aIsStart;
+                    if (aIsStart)
+                    {
+                        AppGlobal.s_FileLog.PrintLogEnter("RACT Daemon : " + aKey + " 를 시작 합니다.");
+                        m_ThreadPool.ExecuteWork(new MKWorkItem(new WorkItemParmeterMethod(m_DaemonHealthCheckList[aKey].StartHealthCheck), null));
+                    }
+                    else
+                    {
+                        AppGlobal.s_FileLog.PrintLogEnter("RACT Daemon : " + aKey + " 를 종료 합니다.");
+                        m_DaemonHealthCheckList[aKey].Stop();
+                    }
+                    AppGlobal.SaveConfig(m_DaemonHealthCheckList);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppGlobal.s_FileLog.PrintLogEnter(ex.ToString());
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 지정 프로세스를 Kill처리합니다.
+        /// </summary>
+        /// <param name="aProcessName">대상 프로세스명</param>
+        public void DaemonExeProcessKill(string aProcessName = "RACTDaemonExe")
+        {
+            int tKillCount = 0;
+            Process[] tProcessList = Process.GetProcessesByName(aProcessName);
+            foreach (Process tDaemonProcess in tProcessList)
+            {
+                AppGlobal.PrintLogEnter(string.Format("[DaemonLauncher.Start] {0} 프로세스 kill (ProcessId={1}, ProcessName={2}", aProcessName, tDaemonProcess.Id, tDaemonProcess.ProcessName));
+                tDaemonProcess.Kill();
+                tKillCount++;
+            }
+            Thread.Sleep(tKillCount * 1000);
+        }
+      
+    }
+}

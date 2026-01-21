@@ -1,0 +1,137 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using RACTCommonClass;
+using System.Threading;
+
+namespace RACTClient
+{
+    public class CommandExecuteLogProcess : SenderObject
+    {
+        /// <summary>
+        /// 로그 목록 입니다.
+        /// </summary>
+        private Queue<DBExecuteCommandLogInfo> m_CommandLogQueue;
+        /// <summary>
+        ///  로그 전송 대기 입니다.
+        /// </summary>
+        private ManualResetEvent m_LogRequestMRE = new ManualResetEvent(false);
+        /// <summary>
+        /// 로그 처리 스레드 입니다.
+        /// </summary>
+        private Thread m_LogProcessThread = null;
+        /// <summary>
+        /// 실행 중인지 여부 입니다.
+        /// </summary>
+        private bool m_IsRun = false;
+        /// <summary>
+        /// 기본 생성자 입니다.
+        /// </summary>
+        public CommandExecuteLogProcess() 
+        {
+            m_CommandLogQueue = new Queue<DBExecuteCommandLogInfo>();
+            
+        }
+        /// <summary>
+        /// 로그 처리 프로세서를 시작 합니다.
+        /// </summary>
+        public void Start()
+        {
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "터미널 로그 처리 프로세서를 시작 합니다.");
+            m_IsRun = true;
+            StartSendThread(new ThreadStart(ProcessLog));
+        }
+        /// <summary>
+        /// 종료 처리 합니다.
+        /// </summary>
+        public void Stop()
+        {
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "터미널 로그 처리 프로세서를 종료 합니다.");
+            m_IsRun = false;
+            m_CommandLogQueue.Clear();
+            m_LogRequestMRE.Set();
+            Dispose();
+        }
+
+        /// <summary>
+        /// 로그를 처리 합니다.
+        /// </summary>
+        private void ProcessLog()
+        {
+            DBExecuteCommandLogInfo tLog = null;
+            RequestCommunicationData tRequestData = null;
+            while (m_IsRun)
+            {
+                if (m_CommandLogQueue.Count == 0)
+                {
+                    m_LogRequestMRE.Reset();
+                    m_LogRequestMRE.WaitOne();
+                }
+                lock (m_CommandLogQueue)
+                {
+                    if(m_CommandLogQueue.Count > 0)
+                    {
+                        tLog = m_CommandLogQueue.Dequeue();
+                    }
+                }
+
+                if (tLog != null)
+                {
+                    if (tLog.Command.Trim().Length == 0) continue;
+
+                    
+                    if (tLog.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
+                    {
+                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && tLog.DeviceInfo.IsRegistered)
+                        {
+                            tRequestData = AppGlobal.MakeDefaultRequestData();
+                            tRequestData.CommType = E_CommunicationType.RequestSaveExcuteCommand;
+                            tRequestData.RequestData = tLog;
+
+                            m_Result = null;
+                            m_MRE.Reset();
+                            AppGlobal.SendRequestData(this, tRequestData);
+
+                            //tLog = null;
+                            //continue;
+                        }
+                    }
+                    else if (tLog.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
+                    {
+                        // 2013-03-06 - shinyn - SSH텔넷인경우 분기 처리 추가
+                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && tLog.DeviceInfo.IsRegistered)
+                        {
+                            tRequestData = AppGlobal.MakeDefaultRequestData();
+                            tRequestData.CommType = E_CommunicationType.RequestSaveExcuteCommand;
+                            tRequestData.RequestData = tLog;
+
+                            m_Result = null;
+                            m_MRE.Reset();
+                            AppGlobal.SendRequestData(this, tRequestData);
+                        
+                            //tLog = null;
+                            //continue;
+                        }
+                    }
+
+                    CommandWriter.WriteCommandLog(tLog);
+                    tLog = null;
+                   
+                }
+            }
+        }
+
+        /// <summary>
+        /// 로그를 저장 합니다.
+        /// </summary>
+        /// <param name="aLog"></param>
+        public void AddTerminalExecuteLog(DBExecuteCommandLogInfo aLog)
+        {
+            lock (m_CommandLogQueue)
+            {
+                m_CommandLogQueue.Enqueue(aLog);
+            }
+            m_LogRequestMRE.Set();
+        }
+    }
+}

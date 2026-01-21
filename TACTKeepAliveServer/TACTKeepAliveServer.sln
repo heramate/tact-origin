@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TACTKeepAliveServer", "TACTKeepAliveServer\TACTKeepAliveServer.csproj", "{91710145-9E92-4900-AB82-7D0F5F856549}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75} = {6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TACTKeepAliveServerService", "TACTKeepAliveServerService\TACTKeepAliveServerService.csproj", "{95472174-E245-4CBD-8098-5C169E7F23A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TACTKeepAliveServerController", "TACTKeepAliveServerController\TACTKeepAliveServerController.csproj", "{989F2B69-5CFD-4164-AD2B-435202606C37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RACTCommonClass", "..\RACTCommon\RACTCommonClass\RACTCommonClass.csproj", "{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RACTTerminal", "..\RACTCommon\RACTTerminal\RACTTerminal.csproj", "{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSHTerminalControl", "..\RACTCommon\SSHTerminalControl\SSHTerminalControl.csproj", "{3545E021-A75E-4558-8EA3-234DF99FB49A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TACTKeepAliveClientTest", "TACTKeepAliveClientTest\TACTKeepAliveClientTest.csproj", "{BADDC206-84C1-44CD-A09A-E1C67A25DDC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TACTRestartService", "TACTRestartService\TACTRestartService.csproj", "{234FF515-4A28-4F29-9182-B329546F74E3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{91710145-9E92-4900-AB82-7D0F5F856549}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91710145-9E92-4900-AB82-7D0F5F856549}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91710145-9E92-4900-AB82-7D0F5F856549}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91710145-9E92-4900-AB82-7D0F5F856549}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95472174-E245-4CBD-8098-5C169E7F23A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95472174-E245-4CBD-8098-5C169E7F23A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95472174-E245-4CBD-8098-5C169E7F23A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95472174-E245-4CBD-8098-5C169E7F23A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{989F2B69-5CFD-4164-AD2B-435202606C37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{989F2B69-5CFD-4164-AD2B-435202606C37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{989F2B69-5CFD-4164-AD2B-435202606C37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{989F2B69-5CFD-4164-AD2B-435202606C37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6304CB78-9EAF-4EA3-A750-BB1B4CEE8D75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3545E021-A75E-4558-8EA3-234DF99FB49A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3545E021-A75E-4558-8EA3-234DF99FB49A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3545E021-A75E-4558-8EA3-234DF99FB49A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3545E021-A75E-4558-8EA3-234DF99FB49A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BADDC206-84C1-44CD-A09A-E1C67A25DDC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BADDC206-84C1-44CD-A09A-E1C67A25DDC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BADDC206-84C1-44CD-A09A-E1C67A25DDC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BADDC206-84C1-44CD-A09A-E1C67A25DDC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{234FF515-4A28-4F29-9182-B329546F74E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{234FF515-4A28-4F29-9182-B329546F74E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{234FF515-4A28-4F29-9182-B329546F74E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{234FF515-4A28-4F29-9182-B329546F74E3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

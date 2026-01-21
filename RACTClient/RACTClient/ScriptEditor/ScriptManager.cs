@@ -1,0 +1,502 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using RACTCommonClass;
+using MSScriptControl;
+using System.Windows.Forms;
+using RACTTerminal;
+using System.Threading;
+using MKLibrary.MKProcess;
+
+namespace RACTClient
+{
+    /// <summary>
+    /// 스크립트 관리자 입니다.
+    /// </summary>
+    public class ScriptManager
+    {
+        /// <summary>
+        /// 실행 완료 이벤트 입니다.
+        /// </summary>
+        public event DefaultHandler OnRunScriptComplete;
+        /// <summary>
+        /// 스크립트 제어용 Reset Event 입니다.
+        /// </summary>
+        private ManualResetEvent m_MRE = new ManualResetEvent(false);
+        /// <summary>
+        /// 스크립트 실행 객체 입니다.
+        /// </summary>
+        private MCScriptControl m_ScriptControl;
+        /// <summary>
+        /// Script 입니다.
+        /// </summary>
+        private Script m_Script;
+        /// <summary>
+        /// 스크립트 객체 입니다.
+        /// </summary>
+        private RACT m_ScriptObject;
+        /// <summary>
+        /// 부모 입니다.
+        /// </summary>
+        private MCTerminalEmulator m_Parent;
+        /// <summary>
+        /// 실행 시킬 스레드 입니다.
+        /// </summary>
+        private Thread m_RunTrhead;
+        /// <summary>
+        /// Wait 대기 문자 입니다.
+        /// </summary>
+        private string m_WaitString = string.Empty;
+        /// <summary>
+        /// 전송 스크립트 목록 입니다.
+        /// </summary>
+        private Queue<string> m_SendQueue = new Queue<string>();
+        /// <summary>
+        /// 대기 스크립트 목록 입니다.
+        /// </summary>
+        private Queue<string> m_WaitQueue = new Queue<string>();
+        /// <summary>
+        /// 대시 스크립트를 확인할 스레드 입니다.
+        /// </summary>
+        private Thread m_WaitForStringCheckThread;
+        /// <summary>
+        /// 스크립트 실행 여부 입니다.
+        /// </summary>
+        private bool m_IsRunScript = false;
+        /// <summary>
+        /// 수신 확인 문자를 저저장 합니다.
+        /// </summary>
+        private Queue<string> m_InCommingWaitForStringQueue = new Queue<string>();
+        /// <summary>
+        /// 타임아웃을 확인 waiter 입니다.
+        /// </summary>
+        private Thread m_TimeOutCheckThread = null;
+        /// <summary>
+        /// 스크립트 시작 시간 입니다.
+        /// </summary>
+        private DateTime m_StartTime;
+
+        /// <summary>
+        /// 스크립트 제어용 Reset Event 입니다.
+        /// </summary>
+       // private ManualResetEvent m_WaitMRE = new ManualResetEvent(false);
+
+        /// <summary>
+        /// 기본 생성자 입니다.
+        /// </summary>
+        /// <param name="aMCTerminalControl"></param>
+        public ScriptManager(MCTerminalEmulator aMCTerminalControl)
+        {
+            m_Parent = aMCTerminalControl;
+            m_ScriptControl = new MCScriptControl();
+            m_ScriptControl.OnScriptMakeComplete += new DefaultHandler(m_ScriptControl_OnScriptMakeComplete);
+            m_ScriptObject = new RACT();
+            m_ScriptObject.OnScriptSend += new HandlerArgument1<string>(m_ScriptObject_OnScriptSend);
+            m_ScriptObject.OnWaitForString += new HandlerArgument1<string>(m_ScriptObject_OnWaitForString);
+        }
+
+      
+        
+       
+        void m_ScriptObject_OnWaitForString(string aValue1)
+        {
+            lock (m_WaitQueue)
+            {
+                m_WaitQueue.Enqueue(aValue1);
+            }
+        }
+
+        void m_ScriptObject_OnScriptSend(string aValue1)
+        {
+            lock (m_SendQueue)
+            {
+                m_SendQueue.Enqueue(aValue1);
+            }
+        }
+
+        /// <summary>
+        /// 전송한 문자 라인 수 입니다.
+        /// </summary>
+        private int m_SendIndex = -1;
+
+        /// <summary>
+        /// 스크립트를 실행 합니다.
+        /// </summary>
+        private void RunScript()
+        {
+            try
+            {
+                m_StartTime = DateTime.Now;
+                m_SendIndex = -1;
+                 if (m_TimeOutCheckThread != null && m_TimeOutCheckThread.IsAlive)
+                {
+                    try
+                    {
+                        m_TimeOutCheckThread.Join(10);
+                        m_TimeOutCheckThread.Abort();
+                    }
+                    catch { }
+
+                    m_TimeOutCheckThread = null;
+                }
+                m_TimeOutCheckThread = new Thread(new ThreadStart(CheckTimeOut));
+                m_TimeOutCheckThread.Start();
+               
+                m_IsRunScript = true;
+                if (m_WaitForStringCheckThread != null && m_WaitForStringCheckThread.IsAlive)
+                {
+                    try
+                    {
+                        m_WaitForStringCheckThread.Join(10);
+                        m_WaitForStringCheckThread.Abort();
+                    }
+                    catch { }
+
+                    m_WaitForStringCheckThread = null;
+                }
+
+
+                m_WaitForStringCheckThread = new Thread(new ThreadStart(CheckWaitForString));
+                m_WaitForStringCheckThread.Start();
+
+                string tSendString = "";
+                //AppGlobal.s_FileLogProcessor.PrintLog("send 갯수 : " + m_SendQueue.Count);
+
+                if (m_Script.ScriptType == E_ScriptType.WaitScript)
+                {
+                    while (m_WaitQueue.Count > 0)
+                    {
+                        tSendString = "";
+                        if (m_SendQueue.Count != 0)
+                        {
+
+                            lock (m_SendQueue)
+                            {
+                                tSendString = m_SendQueue.Dequeue();
+                            }
+
+                            if (tSendString.Length > 0)
+                            {
+                                m_MRE.Reset();
+                                if (m_WaitQueue.Count > 0)
+                                {
+                                    lock (m_WaitQueue)
+                                    {
+                                        m_WaitString = m_WaitQueue.Dequeue();
+                                    }
+                                }
+
+                                if (!m_WaitString.Equals(string.Empty))
+                                {
+                                    m_MRE.WaitOne();
+                                }
+
+                                //20170822 - NoSeungPil - RCCS 로그인의 경우 로그인전에 강제로 엔터키 전송
+                                if (AppGlobal.s_IsRCCSLoginOK)
+                                {
+                                    tSendString = "";
+                                }
+
+                                m_Parent.DispatchMessage(this, tSendString);
+                                m_SendIndex++;
+                                // m_WaitMRE.Set();
+                            }
+                        }
+                        else
+                        {
+                            m_MRE.Reset();
+                            if (m_WaitQueue.Count > 0)
+                            {
+                                lock (m_WaitQueue)
+                                {
+                                    m_WaitString = m_WaitQueue.Dequeue();
+                                }
+                            }
+
+                            if (!m_WaitString.Equals(string.Empty))
+                            {
+                                m_MRE.WaitOne();
+                            }
+                        }
+                        m_WaitString = "";
+                        tSendString = "";
+                    }
+                }
+                else
+                {
+                    while (m_SendQueue.Count > 0)
+                    {
+                        lock (m_SendQueue)
+                        {
+                            tSendString = m_SendQueue.Dequeue();
+                        }
+
+                        if (tSendString.Length > 0)
+                        {
+                            m_MRE.Reset();
+                            if (m_WaitQueue.Count > 0)
+                            {
+                                lock (m_WaitQueue)
+                                {
+                                    m_WaitString = m_WaitQueue.Dequeue();
+                                }
+                            }
+                            m_Parent.DispatchMessage(this, tSendString);
+                            m_SendIndex++;
+                          
+
+                            if (!m_WaitString.Equals(string.Empty))
+                            {
+                                m_MRE.WaitOne();
+                            }
+                           
+                        }
+                        m_WaitString = "";
+                        tSendString = "";
+                    }
+
+                  
+                }
+                m_Parent.DispatchMessage(this, "\r");
+                AppGlobal.s_FileLogProcessor.PrintLog("스크립트 수신 대기 문자를 확인을 종료 합니다.");
+                m_IsRunScript = false;
+
+              
+                if (OnRunScriptComplete != null) OnRunScriptComplete();
+                
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+        }
+
+        private void CheckTimeOut()
+        {
+            while (m_IsRunScript)
+            {
+                try
+                {
+                    //20170822 - NoSeungPil - RCCS 로그인의 경우 로그인전에 강제로 엔터키 전송
+                    //if (((TimeSpan)DateTime.Now.Subtract(m_StartTime)).TotalSeconds >= 30)
+                    int sTotalSeconds = 20;
+                    if (AppGlobal.s_ConnectionMode == 1 || AppGlobal.s_ConnectionMode == 2)
+                    {
+                        sTotalSeconds = 10;
+                    }
+                    else
+                    {
+                        if (AppGlobal.s_MultipleCmd > sTotalSeconds)
+                        {
+                            sTotalSeconds = AppGlobal.s_MultipleCmd;
+                        }
+                    }
+
+                    if (((TimeSpan)DateTime.Now.Subtract(m_StartTime)).TotalSeconds >= sTotalSeconds)
+                    {
+                        m_IsRunScript = false;
+                        if (OnRunScriptComplete != null) OnRunScriptComplete();
+                        break;
+                    }
+                    Thread.Sleep(1000);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                }
+            }
+        }
+        /// <summary>
+        /// 스크립트를 실행 합니다.
+        /// </summary>
+        public void Run()
+        {
+            try
+            {
+                Object[] oParams = new Object[0] { };
+                m_ScriptControl.ExecuteScript(m_Script.RawScript);
+                m_ScriptControl.AddObject("TACT", m_ScriptObject);
+                string tString = (string)m_ScriptControl.Run("Main", ref oParams);
+                if (tString.Length == 0)
+                {
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "스크립트를 확인하세요.", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Warning);
+                    if (OnRunScriptComplete != null) OnRunScriptComplete();
+                    return;
+                }
+              
+            }
+            catch (Exception ex)
+            {
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, ex.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        void m_ScriptControl_OnScriptMakeComplete()
+        {
+            m_RunTrhead = new Thread(new ThreadStart(RunScript));
+            m_RunTrhead.Start();
+        }
+
+        /// <summary>
+        /// Script 가져오거나 설정 합니다.
+        /// </summary>
+        public Script Script
+        {
+            get { return m_Script; }
+            set { m_Script = value; }
+        }
+
+        /// <summary>
+        /// 수신 문자를 확인 합니다.
+        /// </summary>
+        /// <param name="aString"></param>
+        internal void CheckWait(string aString)
+        {
+            if (!m_IsRunScript) return;
+
+            lock (m_InCommingWaitForStringQueue)
+            {
+              //  m_WaitMRE.Set();
+                m_InCommingWaitForStringQueue.Enqueue(aString);
+            }
+        }
+
+        
+        /// <summary>
+        /// 수신 대기 문자를 확인 합니다.
+        /// </summary>
+        private void CheckWaitForString()
+        {
+            string tErrorString = "";
+            string tIncommingWaitForString = "";
+            AppGlobal.s_FileLogProcessor.PrintLog("스크립트 수신 대기 문자를 확인합니다.");
+            while (m_IsRunScript)
+            {
+             Thread.Sleep(1);
+             try
+             {
+
+                 lock (m_InCommingWaitForStringQueue)
+                 {
+                     
+
+                     if (m_InCommingWaitForStringQueue.Count != 0)
+                     {
+                         tIncommingWaitForString += m_InCommingWaitForStringQueue.Dequeue();
+                     }
+
+                 }
+
+                 //20170822 - NoSeungPil - RCCS 로그인의 경우 로그인전에 강제로 엔터키 전송
+                 if (AppGlobal.s_ConnectionMode == 1)
+                 {
+                     if (tIncommingWaitForString.IndexOf("#") > -1)
+                     {
+                         m_WaitQueue.Clear();
+                         m_SendQueue.Clear();
+                         AppGlobal.s_IsRCCSLoginOK = true;
+                         m_MRE.Set();
+                         tIncommingWaitForString = "";
+                         break;
+                     }
+                 }
+
+                 if (m_WaitString.Contains("|"))
+                 {
+                     string[] tSplit = m_WaitString.Split('|');
+                     for (int i = 0; i < tSplit.Length; i++)
+                     {
+                         if (tIncommingWaitForString.IndexOf(tSplit[i]) > -1)
+                         {
+                             m_MRE.Set();
+                             tIncommingWaitForString = "";
+                             break;
+                         }
+                     }
+                 }
+                 else
+                 {
+                     if (m_WaitString.Length > 0 && tIncommingWaitForString.IndexOf(m_WaitString) > -1)
+                     {
+                         m_MRE.Set();
+                         tIncommingWaitForString = "";
+                     }
+                 }
+
+                 if (m_Parent.ConnectioncommandSet != null && m_SendIndex > -1)
+                 {
+                     tErrorString = m_Parent.ConnectioncommandSet.CommandList[m_SendIndex].ErrorString;
+                     if (tErrorString.Length > 0)
+                     {
+                         if (tIncommingWaitForString.Contains(tErrorString))
+                         {
+                             //오류 발생 종료 처리 합니다.
+                             if (OnRunScriptComplete != null) OnRunScriptComplete();
+                         }
+                     }
+                 }
+             }
+             catch (Exception ex)
+             {
+                 System.Diagnostics.Debug.WriteLine(ex.ToString());
+             }
+
+
+               
+            }
+        }
+
+        /// <summary>
+        /// 스크립트를 종료 합니다.
+        /// </summary>
+        internal void Stop()
+        {
+            m_IsRunScript = false;
+            m_Script = null;
+            
+            m_ScriptControl.Reset();
+            lock (m_SendQueue)
+            {
+                m_SendQueue.Clear();
+            }
+
+            lock (m_WaitQueue)
+            {
+                m_WaitQueue.Clear();
+            }
+            try
+            {
+                m_MRE.Reset();
+                m_MRE.Set();
+            }
+            catch { }
+
+
+            try
+            {
+                if (m_TimeOutCheckThread != null && m_TimeOutCheckThread.IsAlive)
+                {
+                    m_TimeOutCheckThread.Abort();
+                }
+                m_TimeOutCheckThread = null;
+            }
+            catch { }
+
+            try
+            {
+                if (m_RunTrhead != null && m_RunTrhead.IsAlive)
+                {
+                    m_RunTrhead.Join(100);
+                    m_RunTrhead.Abort();
+                }
+                m_RunTrhead = null;
+            }
+            catch (ThreadAbortException e) { ; }
+            finally {
+                ;
+            }
+        }
+    }
+
+   
+}

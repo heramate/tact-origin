@@ -1,0 +1,141 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RACTCommonClass
+{
+    [Serializable]
+    public class DeviceSearchInfo
+    {
+        
+        /// <summary>
+        /// Device IP 입니다.
+        /// </summary>
+        private string m_DeviceIPAddress ="";
+
+        /// <summary>
+        /// Device Name 입니다.
+        /// </summary>
+        private string m_DeviceName ="";
+
+        /// <summary>
+        /// 장비 분류 입니다.
+        /// </summary>
+        private int m_DevicePart=0;
+
+        /// <summary>
+        /// 장비 모델 입니다.
+        /// </summary>
+        private int m_DeviceModel=0;
+
+        /// <summary>
+        /// User ID 입니다.
+        /// </summary>
+        private int m_UserID;
+
+        /// <summary>
+        /// Check Permission 입니다.
+        /// </summary>
+        private bool m_IsCheckPermission = true;
+
+        /// <summary>
+        /// 모델 이름 입니다.
+        /// </summary>
+        private string m_ModelName="";
+
+
+        /// <summary>
+        /// 국소명 이름입니다.
+        /// </summary>
+        private string m_TpoName = "";
+
+        public string TpoName
+        {
+            get { return m_TpoName; }
+            set { m_TpoName = value; }
+        }
+
+
+
+
+        /// <summary>
+        /// FACT Group Info 입니다.
+        /// </summary>
+        private FACTGroupInfo m_SelectFACTGroupInfo;
+
+        /// <summary>
+        /// FACT Group Info 가져오거나 설정 합니다.
+        /// </summary>
+        public FACTGroupInfo SelectFACTGroupInfo
+        {
+            get { return m_SelectFACTGroupInfo; }
+            set { m_SelectFACTGroupInfo = value; }
+        }
+
+        /// <summary>
+        /// 모델 이름 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public string ModelName
+        {
+            get { return m_ModelName; }
+            set { m_ModelName = value; }
+        }	
+
+
+        /// <summary>
+        /// Check Permission 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public bool IsCheckPermission
+        {
+            get { return m_IsCheckPermission; }
+            set { m_IsCheckPermission = value; }
+        }	
+
+        /// <summary>
+        /// User ID 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public int UserID
+        {
+            get { return m_UserID; }
+            set { m_UserID = value; }
+        }	
+
+
+        /// <summary>
+        /// 장비 모델 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public int DeviceModel
+        {
+            get { return m_DeviceModel; }
+            set { m_DeviceModel = value; }
+        }	
+
+        /// <summary>
+        /// 장비 분류 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public int DevicePart
+        {
+            get { return m_DevicePart; }
+            set { m_DevicePart = value; }
+        }	
+
+        /// <summary>
+        /// Device Name 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public string DeviceName
+        {
+            get { return m_DeviceName; }
+            set { m_DeviceName = value; }
+        }	
+        /// <summary>
+        /// Device IP 속성을 가져오거나 설정합니다.
+        /// </summary>
+        public string DeviceIPAddress
+        {
+            get { return m_DeviceIPAddress; }
+            set { m_DeviceIPAddress = value; }
+        }
+    }
+
+
+}

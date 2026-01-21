@@ -1,0 +1,681 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.Xml;
+using System.IO;
+using System.Net;
+using System.Web;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Threading;
+using System.Security.Principal;
+
+namespace AutoUpdate
+{
+    
+    public partial class frmMain : Form
+    {
+        [DllImport("kernel32")]
+        private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileString(int Section, string Key, string Value, [MarshalAs(UnmanagedType.LPArray)] byte[] Result, int Size, string FileName);
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileString(string Section, int Key, string Value, [MarshalAs(UnmanagedType.LPArray)] byte[] Result, int Size, string FileName);
+        [DllImport("kernel32.dll")]
+        private static extern uint GetPrivateProfileSection(string IpAppName, byte[] IpPairValues, uint nSize, string IpFileName);
+
+        public delegate void HandlerArgument1<UnknownType>(UnknownType aValue1);
+        public delegate void HandlerArgument2<UnknownType1, UnknownType2>(UnknownType1 aValue1, UnknownType2 aValue2);
+
+        ModUpdate Updater;
+        List<XmlNode> UpdateInfos;
+        Thread DownloadThread = null;
+        public String appPath;
+
+        //public string keyname;
+        //public string infoname;
+        //public string infopath;
+
+        bool bCancel;
+
+        static _Log log;
+        public frmMain(ModUpdate Updater)
+        {
+            log = new _Log("AutoUpdate", Application.StartupPath + "\\Log");
+            log.setDebugState(true);
+            
+            InitializeComponent();
+            this.Updater = Updater;
+            bCancel = false;
+
+            UpdateInfos = new List<XmlNode>();
+
+            appPath = Updater.appExecutablePath + "\\" + Updater.appInfofilename;
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            try
+            {
+                DirectoryInfo directory = new DirectoryInfo(Updater.tempPath);
+                foreach (FileInfo file in directory.GetFiles())
+                {
+                    file.Delete();
+                }
+                //Directory.Delete("Tmp", true);
+            }
+            catch
+            {
+            }
+            base.OnClosed(e);
+        }
+
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            //업데이트 파일 체크 진행 후 리스트 초기화하는게 좋을 듯.
+            UpdateCheck();
+
+            if(Updater.filecount <= 0)
+            {
+                log.SetLog("Update : Update File Count Zero, Try To Strat Update.exe Program");
+                UpdateAppInfo();
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+            
+            lblTitle.Text = "업데이트 : ";
+            lblTotal.Text = "전체파일 : 0 Bytes / " + Updater.totalFileSize + " Bytes";
+            this.progTotal.Value = 0;
+            this.progTotal.Maximum = 100;
+
+            //스레드로 다운로드 진행하도록 
+            DownloadThread = new Thread(new ThreadStart(StartDownLoad));
+            DownloadThread.Start();
+
+        }
+
+        /// <summary>
+        /// 리스트뷰를 초기화 한다.
+        /// </summary>
+        private void UpdateCheck()
+        {
+            //string filename = "";
+            //XmlDocument xd;
+
+            //UpdateInfos.Clear();
+
+            //filename = Updater.updateProfileURL;
+            //xd = new XmlDocument();
+            log.SetLog("Update InitList : Start");
+            XmlNode xmlNode;
+            try
+            {
+                //xd.Load(filename);
+                //XmlNodeList nodeList = xd.GetElementsByTagName("File");
+
+                long fsize = 0;
+                //for (int i = 0; i < nodeList.Count; i++)
+                for (int i = 0; i < Updater.UpdateInfos.Count; i++)
+                {
+                    xmlNode = Updater.UpdateInfos[i];
+                    if (CheckProgram(xmlNode) == false)
+                    {
+                        /*
+                        ListViewItem item = new ListViewItem(nodeList[i]["OrgFileName"].InnerText);
+
+                        fsize = 0;
+                        fsize = long.Parse(nodeList[i]["FileSize"].InnerText);
+
+                        item.SubItems.Add(fsize.ToString("#,###"));
+
+                        listViewEx1.Items.Add(item);
+                        */
+
+                        UpdateInfos.Add(xmlNode);
+                    }
+                    else
+                    {
+                        fsize = long.Parse(xmlNode["FileSize"].InnerText);
+                        Updater.totalFileSize -= fsize;
+                        Updater.filecount -= 1;
+                    }
+                }
+                log.SetLog("Update InitList : End");
+            }
+            catch (Exception ie)
+            {
+                throw new ApplicationException(ie.Message);
+            }
+        }
+
+        private bool CheckProgram(XmlNode Node)
+        {
+            String FilePath = Node["UpdatePath"].InnerText.Replace("%AppPath%", Application.StartupPath) + "\\" + Node["OrgFileName"].InnerText;
+            
+            FileInfo fi = new FileInfo(FilePath);
+            log.SetLog("Update CheckProgram : File " + fi.Name);
+
+            //1.FileInfo.Exists로 파일 존재유무 확인
+            if (!fi.Exists)
+            {
+                log.SetLog("Update CheckProgram : File Exists False");
+                return false;
+            }
+            else
+            {
+                log.SetLog("Update CheckProgram : File Exists True");
+            }
+
+            //2.GetFileVersion
+            string mVersion = Node["FileVersion"].InnerText;
+            FileVersionInfo info = FileVersionInfo.GetVersionInfo(FilePath);
+
+            if (info.FileVersion != null)
+            {
+                if (int.Parse(mVersion.Replace(".", "")) <= int.Parse(info.FileVersion.Replace(".", "")))
+                {
+                    log.SetLog("Update CheckProgram : File Version True");
+                    return true;
+                }
+                else
+                {
+                    log.SetLog("Update CheckProgram : File Version False");
+                    return false;
+                }
+            }
+
+            //3.GetFileSize
+            if (fi != null)
+            {
+               if (fi.Length.Equals(long.Parse(Node["FileSize"].InnerText)) )
+                {
+                    log.SetLog("Update CheckProgram : File Size True");
+                    return true;
+                }
+                else
+                {
+                    log.SetLog("Update CheckProgram : File Size False");
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 업데이트 프로그램을 중료하고, 원래 프로그램을 실행시킨다.
+        /// </summary>
+        private void ApplicationLoad(string filename, string filsargs)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new HandlerArgument2<string,string>(ApplicationLoad), new string[] { filename, filsargs });
+                return;
+            }
+
+            this.Close();
+
+            if (IsAdministrator() == false)
+            {
+                try
+                {
+                    ProcessStartInfo procInfo = new ProcessStartInfo();
+                    procInfo.UseShellExecute = true;
+                    procInfo.FileName = filename;
+                    procInfo.Arguments = filsargs;
+                    procInfo.WorkingDirectory = Environment.CurrentDirectory;
+                    procInfo.Verb = "runas";
+                    Process.Start(procInfo);
+
+                }
+                catch (Exception ex)
+                {
+                    log.SetLog("Update ApplicationLoad : Error " + ex.Message);
+                    //MessageBox.Show(ex.Message.ToString());
+                }
+            }else
+                System.Diagnostics.Process.Start(Application.StartupPath + "\\" + filename, filsargs);
+        }
+
+        /// <summary>
+        /// 업데이트 시작을 눌렀을때
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            int result;
+            //btnStart.Enabled = false;
+            result=FileDownLoad();
+
+            // 사용자가 중지
+            if (result== 0)
+            {
+                MessageBox.Show("업데이트를 중지했습니다.","중지", MessageBoxButtons.OK,MessageBoxIcon.Stop);
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+
+            // 다운로드 중 에러
+            if(result==-1)
+            {
+                MessageBox.Show("파일 다운로드중 에러가 발생했습니다.", "에러", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+
+            // 다운로드 완료
+            if (result == 1)
+            {
+                try
+                {
+                    UpdatePatch();
+                    UpdateAppInfo();
+                    DirectoryInfo directory = new DirectoryInfo(Updater.tempPath);
+                    foreach (FileInfo file in directory.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    MessageBox.Show("업데이트가 완료되었습니다.", "업데이트 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ie)
+                {
+                    log.SetLog(""+ie.Message);
+                    MessageBox.Show("업데이트 중 에러가 발생했습니다.: "+ ie.Message,"에러", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                }
+
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+        }
+
+        private void StartDownLoad()
+        {
+            log.SetLog("Update StartDownLoad : Strat");
+            int result;
+            //btnStart.Enabled = false;
+            result = FileDownLoad();
+
+            // 사용자가 중지
+            if (result == 0)
+            {
+                log.SetLog("Update StartDownLoad : Update Stop");
+                //MessageBox.Show("업데이트를 중지했습니다.", "중지", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+
+            // 다운로드 중 에러
+            if (result == -1)
+            {
+                log.SetLog("Update StartDownLoad : Update Error");
+                //MessageBox.Show("파일 다운로드중 에러가 발생했습니다.", "에러", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+
+            // 다운로드 완료
+            if (result == 1)
+            {
+                try
+                {
+                    UpdatePatch();
+                    UpdateAppInfo();
+                    DirectoryInfo directory = new DirectoryInfo(Updater.tempPath);
+                    foreach (FileInfo file in directory.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                    //Directory.Delete("Tmp", true);
+                    log.SetLog("Update StartDownLoad : Update Complete");
+                    //MessageBox.Show("업데이트가 완료되었습니다.", "업데이트 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ie)
+                {
+                    log.SetLog("Update StartDownLoad : Update Error " + ie.Message);
+                    //MessageBox.Show("업데이트 중 에러가 발생했습니다.: " + ie.Message, "에러", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                ApplicationLoad(Updater.exeFileName, Updater.exeFileArgs);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// 업데이트 완료후 파일을 변경한다.
+        /// </summary>
+        private void UpdateAppInfo()
+        {
+            File.Copy(appPath, appPath + "_bak", true);
+            
+            try
+            {
+                iniWriteValue("Program", "PatchVersion", Updater.appVersion);
+                iniWriteValue("Program", "PatchTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+            catch (Exception ie)
+            {
+                throw new ApplicationException(ie.Message);
+            }
+            finally
+            {
+                File.Delete(Updater.appExecutablePath + "\\" + Updater.appInfofilename + "_bak");
+            }
+        }
+
+        /// <summary>
+        /// 다운받은 파일을 profile.xml 의 설정에 따라, 패치한다.
+        /// </summary>
+        private void UpdatePatch()
+        {
+            SetLabelText(lblTitle, "업데이트 : ");
+            SetLabelText(lblTotal, "전체파일 : 1/" + Updater.filecount + " 파일을 업데이트합니다.");
+            SetProgressValue(progTotal, 0);
+
+            Application.DoEvents();
+
+            //XmlDocument xd;
+            //xd = new XmlDocument();
+            XmlNode xmlNode;
+            try
+            {
+                //xd.Load("Tmp/Profile.xml");
+                //XmlNodeList nodeList = xd.GetElementsByTagName("File");
+
+                //keyname = iniReadValue("CLParam", "KEY NAME");
+                //infoname = iniReadValue("CLParam", "APP NAME");
+                //infopath = iniReadValue("CLParam", "INFO PATH");
+
+                for (int i = 0; i < UpdateInfos.Count; i++)
+                {
+                    string orgfilename = "", filename = "", update_path = "";
+                    xmlNode = null;
+
+                    xmlNode = UpdateInfos[i];
+
+                    orgfilename = xmlNode["OrgFileName"].InnerText; // 원래파일이름(패치될)
+                    filename = xmlNode["FileName"].InnerText;       // 서버에 올려진 파일이름
+                    update_path = xmlNode["UpdatePath"].InnerText; // 실제업데이트 할 경로
+
+                    // 업데이트 경로명 변경
+                    update_path = update_path.Replace("%AppPath%", Application.StartupPath);
+                    update_path = update_path.Replace("%SystemRoot%", Environment.GetFolderPath(Environment.SpecialFolder.System));
+                    update_path = update_path.Replace("%WinDir%", Environment.GetEnvironmentVariable("windir"));
+                    update_path = update_path.Replace("%ProgramFiles%", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
+                    update_path = update_path.Replace("%StartMenu%", Environment.GetFolderPath(Environment.SpecialFolder.StartMenu));
+
+                    Application.DoEvents();
+                   
+                    //config 파일을 업데이트 할때 경로 지정
+                    /*
+                    if (orgfilename.Equals(infoname) || orgfilename.Equals(keyname))
+                    {
+                        update_path = update_path + "\\" + infopath;
+                    }
+                    */
+                    // 파일이동
+                    Directory.CreateDirectory(update_path);
+                    File.Copy(Updater.tempPath + "\\" + filename, update_path + "\\" + orgfilename, true);
+                    Application.DoEvents();
+                    SetLabelText(lblTotal, "전체파일 : " + (i + 1) + "/" + Updater.filecount + " 파일을 업데이트합니다.");
+                    Application.DoEvents();
+                    SetProgressValue(progTotal, (int)((i + 1) * 100 / Updater.filecount));
+                    //this.progTotal.Value = (int)((i + 1) * 100 / Updater.filecount);
+                    Application.DoEvents();
+                    /*
+                    if (listViewEx1.InvokeRequired)
+                    {
+                        listViewEx1.Invoke(new MethodInvoker(delegate { listViewEx1.Items[i].SubItems[2].Text = "업데이트 완료"; }));
+                    }
+                    else
+                    {
+                        listViewEx1.Items[i].SubItems[2].Text = "업데이트 완료";
+                    }
+                    */
+                    Application.DoEvents();
+                    log.SetLog("Update UpdatePatch : FileName " + filename);
+                }
+            }
+            catch (Exception ie)
+            {
+                throw new ApplicationException(ie.Message);
+            }
+                     
+        }
+
+       
+        /// <summary>
+        /// Profile XML을 읽어 업데이트 파일을 다운로드한다.
+        /// </summary>
+        /// <returns>1 : 전체 다운로드 성공, 0 : 사용자 중지 , -1 : 에러발생</returns>
+        private int FileDownLoad()
+        {
+            bool isError = false;   // 에러발생 했는지 체크
+            long downloadSize = 0;  // 다운로드 받은 파일크기 체크
+            //XmlDocument xd;
+            //xd = new XmlDocument();
+            XmlNode xmlNode;
+            try
+            {
+                // profile xml 파일을 읽는다.
+                //xd.Load("Tmp/Profile.xml");
+                //XmlNodeList nodeList = xd.GetElementsByTagName("File");
+
+                // 업데이트할 파일 숫자만큼 다운로드 수행
+                //for (int i = 0; i < nodeList.Count; i++)
+                for (int i = 0; i < UpdateInfos.Count; i++)
+                {
+                    // profile을 읽어 초기변수 초기화
+                    string orgfilename = "", filename = "", update_path = "", file_url = "";
+                    long filesize = 0;
+                    xmlNode = null;
+
+                    xmlNode = UpdateInfos[i];
+
+                    orgfilename = xmlNode["OrgFileName"].InnerText; // 원래파일이름(패치될)
+                    filename = xmlNode["FileName"].InnerText;       // 서버에 올려진 파일이름
+                    update_path = xmlNode["UpdatePath"].InnerText; // 실제업데이트 할 경로
+                    filesize = long.Parse(xmlNode["FileSize"].InnerText);
+                    file_url = Updater.updateURL.Trim() + "/" + Updater.appVersion.Trim() + "/File/" + filename;
+
+                    // 리스트뷰에 progress bar 삽입
+                    //ProgressBar progbar = new ProgressBar();
+                    //progbar.Minimum = 0;
+                    //progbar.Maximum = 100;
+                    /*
+                    if (listViewEx1.InvokeRequired)
+                    {
+                        listViewEx1.Invoke(new MethodInvoker(delegate { listViewEx1.AddEmbeddedControl(progbar, 2, i); listViewEx1.Refresh(); }));
+                    }
+                    else
+                    { 
+                        listViewEx1.AddEmbeddedControl(progbar, 2, i);
+                        listViewEx1.Refresh();
+                    }
+                    */
+                    // 파일다운로드.
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(file_url.Trim());
+                    HttpWebResponse result = null;
+                    Stream ReceiveStream = null;
+                    FileStream fs = null;
+                    //progbar.Maximum = 100;
+
+                    // 현재 진행되는 목록이 보이도록 스크롤 이동
+                    /*
+                    if (listViewEx1.InvokeRequired)
+                    {
+                        listViewEx1.Invoke(new MethodInvoker(delegate { listViewEx1.EnsureVisible(i); }));
+                    }
+                    else
+                    {
+                        listViewEx1.EnsureVisible(i);
+                    }
+                    */
+                    try
+                    {
+                        result = (HttpWebResponse)request.GetResponse();
+                        ReceiveStream = result.GetResponseStream(); // Response로 부터 Stream 얻음.
+                        int read = 0;
+                        long total_read = 0;
+                        byte[] buffer = new byte[8192]; // 버퍼설정
+
+                        if (!Directory.Exists(Updater.tempPath))
+                            Directory.CreateDirectory(Updater.tempPath);
+                        fs = new FileStream(Updater.tempPath + "\\" + filename, FileMode.Create);
+                        while ((read = ReceiveStream.Read(buffer, 0, buffer.Length - 1)) > 0)
+                        {
+                            Application.DoEvents();
+                            fs.Write(buffer, 0, read);  // buffer에서 0부터 read byte만큼 fs에 기록한다.
+
+                            // progressbar 를 위한 다운로드 사이즈 계산
+                            total_read = total_read + read;
+                            downloadSize = downloadSize + read;
+
+                            //Application.DoEvents();
+                            //SetProgressValue(progbar, (int)(total_read * 100 / filesize));                                                     
+                            Application.DoEvents();
+                            SetProgressValue(progTotal, (int)(downloadSize * 100 / Updater.totalFileSize));
+                            Application.DoEvents();
+                            // 다운로드 상태 TEXT 변경
+                            SetLabelText(lblTotal, "전체파일 : " + downloadSize.ToString("#,###") + " bytes / " +
+                                                Updater.totalFileSize.ToString("#,###") + " bytes (" + progTotal.Value + "% 진행)");
+                            SetLabelText(lblTitle, "업데이트 : " + (i + 1) + "/" + Updater.filecount + " 개 파일을 다운로드 중 입니다.");
+
+                            // 중지 버튼을 눌렀는지 체크
+                            Application.DoEvents();
+                            if (bCancel == true) break; 
+                        }
+                        log.SetLog("Update FileDownLoad : FileName " + filename);
+                    }
+                    catch (Exception e)
+                    {
+                        log.SetLog("Update FileDownLoad : HttpWebResponse Error " + e.Message);                        
+                        isError = true;
+                    }
+                    finally  // 사용했던 자원을 해제한다.
+                    {
+                        if (fs != null) fs.Close();
+                        if (ReceiveStream != null) ReceiveStream.Close();
+                        if(result != null) request.Abort();
+                        if(request != null) request.Abort();
+                    }
+                    /*
+                    // 리스트뷰에 있는 프로그레스바 삭제
+                    if (listViewEx1.InvokeRequired)
+                    {
+                        listViewEx1.Invoke(new MethodInvoker(delegate { listViewEx1.RemoveEmbeddedControl(progbar); listViewEx1.Refresh(); }));
+                    }
+                    else
+                    {
+                        listViewEx1.RemoveEmbeddedControl(progbar);
+                        listViewEx1.Refresh();
+                    }
+                    */
+                    Application.DoEvents();
+
+                    if (bCancel != true && isError != true) // 에러나 중지 없으면
+                    {
+                        /*
+                        if (listViewEx1.InvokeRequired)
+                        {
+                            listViewEx1.Invoke(new MethodInvoker(delegate { listViewEx1.Items[i].SubItems.Add("다운로드 완료"); }));
+                        }
+                        else
+                        {
+                            listViewEx1.Items[i].SubItems.Add("다운로드 완료");
+                        }
+                        */
+                        // 다운로드 상태 TEXT 변경
+                        SetLabelText(lblTotal, "전체파일 : " + downloadSize.ToString("#,###") + " bytes / " +
+                            Updater.totalFileSize.ToString("#,###") + " bytes (" + progTotal.Value + "% 완료)");
+                        SetLabelText(lblTitle, "업데이트 : " + (i + 1) + "/" + Updater.filecount + " 개 파일을 다운로드 중 입니다.");
+                       
+                    }
+                    else
+                    {
+                        /*
+                        if (listViewEx1.InvokeRequired)
+                        {
+                            listViewEx1.Invoke(new MethodInvoker(delegate { listViewEx1.Items[i].SubItems.Add("다운로드 중지"); }));
+                        }
+                        else
+                        {
+                            listViewEx1.Items[i].SubItems.Add("다운로드 중지");
+                        }   
+                        */
+                        break;
+                    }
+                }       // end of for
+            }
+            catch (Exception e)
+            {
+                log.SetLog("Update FileDownLoad : Error " + e.Message);
+                isError = true;
+            }
+
+            if (isError == true) return -1;
+            if(bCancel==true) return 0;
+            else return 1;
+          
+        }
+        
+        public void iniWriteValue(string Section, string Key, string Value)
+        {
+            WritePrivateProfileString(Section, Key, Value, this.appPath);
+        }
+
+        public string iniReadValue(string Section, string Key)
+        {
+            StringBuilder temp = new StringBuilder(1000);
+            int i = GetPrivateProfileString(Section, Key, "", temp, 1000, this.appPath);
+            return temp.ToString();
+        }
+               
+
+        public void SetLabelText(Label aLabel, string aText)
+        {
+            if (aLabel.InvokeRequired)
+            {
+
+                aLabel.Invoke(new HandlerArgument2<Label, string>(SetLabelText), new object[] { aLabel, aText });
+            }
+            else
+            {
+                aLabel.Text = aText;
+            }
+        }
+
+        public void SetProgressValue(ProgressBar aProgBar, int aValue)
+        {
+            if (aProgBar.InvokeRequired)
+            {
+
+                aProgBar.Invoke(new HandlerArgument2<ProgressBar, int>(SetProgressValue), new object[] { aProgBar, aValue });
+            }
+            else
+            {
+                aProgBar.Value = aValue;
+            }
+        }
+
+        public static bool IsAdministrator()
+        {
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+            if (identity != null)
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            return false;
+        }
+
+    }
+    
+}

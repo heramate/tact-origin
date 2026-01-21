@@ -1,0 +1,427 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+using System.IO;
+//using IWshRuntimeLibrary;
+//using MCUpdateLauncherCommon;
+using System.Reflection;
+using System.Text.RegularExpressions;
+
+namespace RACTClient
+{
+    static class Program
+    {
+        /// <summary>
+        /// 해당 응용 프로그램의 주 진입점입니다.
+        /// </summary>
+        [STAThread]
+        static void Main(string[] arg)
+        {
+
+//#if DEBUG
+//            if (arg.Length != 3)
+//            {
+//                //바탕화면 바로가기에서 실행하는 경우.
+//                Application.Run(new ClientMain());
+//            }
+//            else
+//            {
+//                //웹에서 실행하는 경우.
+//                Application.Run(new ClientMain(arg[0], arg[1], arg[2]));
+//            }
+//#else
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            //2013-01-21 hanjiyeon 추가 - TACT 업데이트
+
+            //2016-02-03 서영응 현재 사용되지 않는 기능이라 주석 처리함
+            /*try
+            {
+                CheckUpdateVersion(arg);
+            }
+            catch (BadImageFormatException ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }*/
+
+            //2013-01-16 hanjiyeon 추가 - TACT 바탕화면 바로가기 아이콘 생성... 
+            //2023-03-31 주석 처리 
+            //CreateLink(); 
+
+            //if (AppGlobal.s_FileLogProcessor == null)
+            //    AppGlobal.s_FileLogProcessor = new FileLogProcess(Application.StartupPath + "\\Log\\SystemLog\\", "ClientSystem");
+            //MessageBox.Show("1.0.0.1");
+            string programArg = "";
+            string[] programArgs;
+            if (arg.Length > 0)
+            {
+                if (arg.Length == 1)
+                {
+                    string tmpArg = null;
+                    tmpArg = arg[0];
+                    //MessageBox.Show("인자가 값 확인 :" + tmpArg);
+                    if (tmpArg.ToLower().Contains("skbtact://"))
+                    {
+                        tmpArg = Regex.Replace(tmpArg, "skbtact://", "", RegexOptions.IgnoreCase).TrimEnd('/');
+                        programArg = tmpArg.Replace("%20", " ");
+                        //MessageBox.Show("인자가 처리 후 값 확인 :" + programArg);
+                    }
+                    else
+                    {
+                        programArg = tmpArg;
+                    }
+
+                }
+                else
+                {
+                    for (int i = 0; i < arg.Length; i++)
+                    {
+                        if (i == 0)
+                        {
+                            programArg = arg[i];
+                        }
+                        else
+                        {
+                            programArg = programArg + " " + arg[i];
+                        }
+                    }
+                }
+            }
+
+            programArgs = programArg.Split(' ');
+
+            try
+            {
+
+                //if (AppGlobal.s_FileLogProcessor != null) AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "RACTClient 업데이트 확인.");
+
+
+                ModUpdate update = new ModUpdate(Application.StartupPath);
+                update.GetAppInfo();
+                update.GetUpdateAppInfo(ModUpdate.E_ExeType.Install);
+                //MessageBox.Show("업데이트 확인 1 :");
+                DirectoryInfo directory = new DirectoryInfo(Application.StartupPath + "\\Tmp");
+
+                // 업데이트 필요여부 확인
+                if (update.IsUpdate(ModUpdate.E_ExeType.Install) == true)
+                {
+                    //Directory.Delete("Tmp", true);
+                    foreach (FileInfo file in directory.GetFiles())
+                    {
+                        file.Delete();
+                    }
+
+                    //TACTClient or RACTOneTerminal를 실행 할 수 있어 각 해당 프로세스의 Program에서 ProgramName을 Write해준다 
+                    update.iniWriteValue("Program", "ProgramName", "TACTClient.exe");
+                    //if (arg.Length >= 4)
+                    if (programArgs.Length >= 4)
+                        update.iniWriteValue("Program", "ProgramArgs", programArg);
+                    else
+                        update.iniWriteValue("Program", "ProgramArgs", "118.217.79.41");
+
+
+                    //로그기록 사용시 자원해제하지 않으면 프로세스가 정상종료 되지 않음
+                    //AppGlobal.s_FileLogProcessor.Stop();
+                    System.Diagnostics.Process.Start(Application.StartupPath +"\\"+ update.exeInstallName);
+                    //MessageBox.Show("실행 후 킬 이전1 :");
+                    KillProcess();
+                    //MessageBox.Show("실행 후 킬 다음1 :");
+                    return;
+                }
+                else
+                {                    
+                    foreach (FileInfo file in directory.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                }
+
+                update.GetUpdateAppInfo(ModUpdate.E_ExeType.Update);
+
+                //MessageBox.Show("업데이트 확인 2 :");
+                if (update.IsUpdate(ModUpdate.E_ExeType.Update) == true)
+                {
+                    //Directory.Delete("Tmp", true);
+                    foreach (FileInfo file in directory.GetFiles())
+                    {
+                        file.Delete();
+                    }
+
+                    update.iniWriteValue("Program", "ProgramName", "TACTClient.exe");
+                    //if (arg.Length >= 4)
+                    if (programArgs.Length >= 4)
+                        update.iniWriteValue("Program", "ProgramArgs", programArg);
+                    else
+                        update.iniWriteValue("Program", "ProgramArgs", "118.217.79.41");
+
+                    //AppGlobal.s_FileLogProcessor.Stop();
+                   
+                    System.Diagnostics.Process.Start(Application.StartupPath + "\\" + update.exeUpdateName);
+
+                    //MessageBox.Show("실행 후 킬 이전 2:");
+                    KillProcess();
+                    //MessageBox.Show("실행 후 킬 다음 2:");
+                    return;
+                }
+                else
+                {                    
+                    foreach (FileInfo file in directory.GetFiles())
+                    {
+                        file.Delete();
+                    }
+                }
+
+                foreach (FileInfo file in directory.GetFiles())
+                {
+                    file.Delete();
+                }
+            }
+            catch (Exception ex)
+            {
+                //if (AppGlobal.s_FileLogProcessor != null)
+                //{
+                //    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "RACTClient 업데이트 실패." + ex.ToString());
+                //    AppGlobal.s_FileLogProcessor.Stop();
+                //}
+                System.Diagnostics.Debug.WriteLine("업데이트 오류" + ex.ToString());
+            }
+
+
+            //if (arg.Length != 4)
+            if (programArgs.Length != 4)
+            {
+                //바탕화면 바로가기에서 실행하는 경우.
+                //2025-06-18 보안 이슈로 직접실행하는 기능 임시 방어
+                MessageBox.Show("★보안 강화로 직접 실행을 금지 합니다.\r\n★Console Mode만 가능 합니다.\r\n★FACT Web 사이트를 통하여 실행 시켜주세요");
+                Application.Run(new ClientMain());
+                
+            }
+            else
+            { 
+                //웹에서 실행하는 경우.
+                EncryptGlobal.s_shaYN = "1";
+                Application.Run(new ClientMain(programArgs[0], programArgs[1], programArgs[2]));
+            }
+
+            KillProcess();
+
+//#endif
+
+        }
+/*
+        /// <summary>
+        /// UpdateLauncher Config를 로드합니다.
+        /// </summary>
+        /// <param name="aCommonConfigInfo"></param>
+        private static CommonConfigInfo LoadConfigInfo()
+        {
+            try
+            {
+                CommonConfigInfo tCommonConfigInfo = MCUpdateLauncherCommon.CommonConfig.LoadUserInfo(Application.StartupPath + "\\ConfigInfo.xml");
+
+                return tCommonConfigInfo;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+*/
+        /// <summary>
+        /// 버전 업데이트 체크를 진행합니다.
+        /// </summary>
+        //private static void CheckUpdateVersion(string [] args)
+        //{
+        //    #region 업데이트
+        //    CommonConfigInfo tConfigInfo = LoadConfigInfo();
+        //    if (tConfigInfo == null)
+        //    {
+        //        string tMsgLauncherNotExists = string.Concat("UpdateLauncher의 환경설정 정보를 로드할 수 없습니다.",
+        //            "\n프로그램 최신버전을 실행하시려면,",
+        //           "\n프로그램 종료 후 웹에서 TACT원격제어를 실행하여 ConfigInfo.XML 파일이 다운로드 되도록 해 주십시오.",
+        //            "\n\n기존의 버전으로 실행하시려면 '예' 버튼을, 프로그램을 종료하시려면 '아니오'버튼을 클릭해 주십시오.");
+
+        //        if (MessageBox.Show(tMsgLauncherNotExists, "UpdateLauncherClient", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1)
+        //            == DialogResult.No)
+        //        {
+        //            KillProcess();
+        //        }
+        //    }
+
+        //    if (tConfigInfo != null)
+        //    {
+        //        string tRemoteObjectUrl = string.Concat("tcp://", tConfigInfo.RemoteServerIP, ":", tConfigInfo.RemoteServerPort, "/", tConfigInfo.ChannelName);
+        //        UpdateUtil tUpdateUtil = new UpdateUtil(tRemoteObjectUrl, args);
+                
+        //        string tUpdateAppPath = string.Concat(Application.StartupPath, "\\UpdateLauncherClient.exe");
+
+        //        FileInfo tFinfo = new FileInfo(tUpdateAppPath);
+        //        if (!tFinfo.Exists)
+        //        {
+        //            string tMsgLauncherNotExists = string.Concat("UpdateLauncherClient 프로그램이 존재하지 않습니다. ",
+        //                "\n프로그램 최신버전을 실행하시려면,",
+        //               "\n프로그램 종료 후 웹에서 TACT원격제어를 실행하여 UpdateLauncherClient 파일이 다운로드 되도록 해 주십시오.",
+        //                "\n\n기존의 버전으로 실행하시려면 '예' 버튼을, 프로그램을 종료하시려면 '아니오'버튼을 클릭해 주십시오.");
+
+        //            if (MessageBox.Show(tMsgLauncherNotExists, "UpdateLauncherClient", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1)
+        //                == DialogResult.No)
+        //            {
+        //                KillProcess();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            E_UpdateStatus tUpdateStatus = tUpdateUtil.Update();
+
+        //            if (tUpdateStatus == E_UpdateStatus.ServerNotConnected)
+        //            {
+        //                string tMsgUpdateLauncherServerNotConnected = string.Concat("UpdateLauncher 서버에 접속할 수 없습니다. 접속 정보를 확인해주십시오.[", tRemoteObjectUrl, "]",
+        //                     "\n프로그램 종료 후 웹에서 TACT원격제어를 실행하여 최신버전의 UpdateLauncher 서버 정보가 있는 ConfigInfo.XML 파일이 다운로드 되도록 해 주십시오.",
+        //                    "\n\n기존의 버전으로 실행하시려면 '예' 버튼을, 프로그램을 종료하시려면 '아니오'버튼을 클릭해 주십시오.");
+
+        //                if (MessageBox.Show(tMsgUpdateLauncherServerNotConnected, "UpdateLauncherClient", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1)
+        //                    == DialogResult.No)
+        //                {
+        //                    KillProcess();
+        //                }
+        //            }
+        //            else if (tUpdateStatus == E_UpdateStatus.OldLauncher)
+        //            {
+        //                string tMsgUpdateLauncherOldVersion = string.Concat("UpdateLauncher 프로그램이 최신버전이 아닙니다.",
+        //                    "\n프로그램 최신버전을 실행하시려면,",
+        //               "\n프로그램 종료 후 웹에서 TACT원격제어를 실행하여 UpdateLauncherClient 파일이 다운로드 되도록 해 주십시오.",
+        //                "\n\n기존의 버전으로 실행하시려면 '예' 버튼을, 프로그램을 종료하시려면 '아니오'버튼을 클릭해 주십시오.");
+        //                if (MessageBox.Show(tMsgUpdateLauncherOldVersion, "UpdateLauncherClient", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1)
+        //                    == DialogResult.No)
+        //                {
+        //                    KillProcess();
+        //                }
+        //            }
+        //            else if (tUpdateStatus == E_UpdateStatus.OldProgram)
+        //            {                        
+        //                KillProcess();                        
+        //            }
+        //        }
+        //    }
+        //    #endregion
+        //}
+
+        /// <summary>
+        /// 프로세스를 강제종료합니다.
+        /// </summary>
+        private static void KillProcess()
+        {            
+            Application.Exit();
+
+            //정상적으로 종료되지 않는 현상이 있어 강제로 프로세스를 죽입니다.
+            System.Diagnostics.Process[] tProcesses = System.Diagnostics.Process.GetProcessesByName("TACTClient");
+            foreach (System.Diagnostics.Process tProcess in tProcesses)
+            {
+                tProcess.Kill();
+            }
+        }
+
+        /// <summary>
+        /// 바탕화면 바로가기 아이콘을 생성. 이미 존재하면 덮어쓰기.
+        /// [20고도화(.NET업그레이드)] IWshRuntimeLibrary.dll 참조 삭제로 수정됨(참고:https://m.blog.naver.com/xyz37/220000390812)
+        /// </summary>
+        private static void CreateLink()
+        {
+            try
+            {
+                String linkFileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\TACTClient.lnk";
+                String targetPath = Application.StartupPath + "\\TACTClient.exe";
+                int shortcutWindowStyles = 7;//ShortcutWindowStyles.WshNormalFocus
+                String iconLocation = Application.StartupPath + "\\Main.ico";
+                String workingDirectory = Application.StartupPath; ;
+
+                if (Environment.Version.Major >= 4) //.NET 4이상
+                {
+                    Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+                    dynamic shell = Activator.CreateInstance(shellType);
+                    dynamic shortcut = shell.CreateShortcut(linkFileName);//◀CS0656발생: 프레임워크>Microsoft.CSharp 참조 추가
+                    shortcut.TargetPath = targetPath;
+                    shortcut.WindowStyle = shortcutWindowStyles;
+                    shortcut.IconLocation = iconLocation;
+                    shortcut.WorkingDirectory = workingDirectory;
+
+                    shortcut.Save();
+                }
+                else
+                {
+                    Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+                    object shell = Activator.CreateInstance(shellType);
+                    object shortcut = shellType.InvokeMethod("CreateShortcut", shell, linkFileName);
+
+                    Type shortcutType = shortcut.GetType();
+                    shortcutType.InvokeSetMember("TargetPath", shortcut, targetPath);
+                    shortcutType.InvokeSetMember("WorkingDirectory", shortcut, workingDirectory);
+                    shortcutType.InvokeSetMember("WindowStyle", shortcut, shortcutWindowStyles);
+                    shortcutType.InvokeSetMember("IconLocation", shortcut, iconLocation);
+
+                    shortcutType.InvokeMethod("Save", shortcut);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        private static object InvokeSetMember(this Type type, string methodName, object targetInstance, params object[] arguments)
+        {
+            return type.InvokeMember(
+            methodName,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty,
+            null,
+            targetInstance,
+            arguments);
+        }
+
+        private static object InvokeMethod(this Type type, string methodName, object targetInstance, params object[] arguments)
+        {
+            return type.InvokeMember(
+            methodName,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod,
+            null,
+            targetInstance,
+            arguments);
+        }
+/* 
+ * ▼ Interop.IWshRuntimeLibrary.dll 참조 제거전
+        /// <summary>
+        /// 바탕화면 바로가기 아이콘을 생성하는 클래스입니다. 이미 존재하면 덮어쓰기 됩니다.
+        /// </summary>
+        /// <param name="aArgs"></param>
+        private static void CreateLink()
+        {
+            WshShellClass tShell = new WshShellClass();
+            try
+            {
+                //바탕화면 바로가기 아이콘은 보안상 자동로그인을 지원하지 않는다. 
+                //string tArgs = "";
+
+                //if (aArgs.Length == 3)
+                //{
+                //    for (int i = 0; i < aArgs.Length; i++)
+                //    {
+                //        tArgs = string.Concat(tArgs, aArgs[i], " ");
+                //    }
+                //}
+
+                IWshShortcut tLnk = (IWshShortcut)tShell.CreateShortcut(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\TACTClient.lnk");
+                tLnk.TargetPath = Application.StartupPath + "\\TACTClient.exe";
+                tLnk.WindowStyle = 7;                                
+                tLnk.IconLocation = Application.StartupPath + "\\Main.ico"; // System.Reflection.Assembly.GetExecutingAssembly().Location + "\\..\\..\\Resources\\Main.ico"; //Application.StartupPath + "\\Main.ico";                
+                //tLnk.Arguments = tArgs.Trim();
+                tLnk.Save();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+*/
+    }
+}

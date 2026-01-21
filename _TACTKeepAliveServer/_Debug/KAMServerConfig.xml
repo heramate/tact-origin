@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="no"?>
+<SystemConfig>
+  <ServerID>33</ServerID>
+  <ServerIP>118.217.79.48</ServerIP>
+  <ServerChannel>RemoteKAMServer</ServerChannel>
+  <ServerPort>40001</ServerPort>
+  <DBServerIP>118.217.79.49,43218</DBServerIP>
+  <DBName>FACT_MAIN</DBName>
+  <UserID>sa</UserID>
+  <Password>inds106!1</Password>
+  <DBConnectionCount>3</DBConnectionCount>
+  <DServerIP>118.217.79.48</DServerIP>
+  <DServerChannel>RemoteKAMServer</DServerChannel>
+  <DServerPort>40009</DServerPort>
+  <SSHServerIP>118.217.79.48</SSHServerIP>
+  <SSHServerPort>40002</SSHServerPort>
+  <SSHUserID>ssh-tunnel</SSHUserID>
+  <SSHPassword>aug@201908</SSHPassword>
+  <SSHTunnelPortRange>40101,40300</SSHTunnelPortRange>
+  <SSHTunnelUseTimeoutSeconds>60</SSHTunnelUseTimeoutSeconds>
+  <TunnelRequestTimeoutSeconds>30</TunnelRequestTimeoutSeconds>
+  <DaemonRequestTimeoutSeconds>90</DaemonRequestTimeoutSeconds>
+  <KeepAliveBase64Encode>true</KeepAliveBase64Encode>
+  <FileLogDetailYN>false</FileLogDetailYN>
+  <TunnelRequestSendPeriodSeconds>5</TunnelRequestSendPeriodSeconds>
+  <TunnelRequestCount>3</TunnelRequestCount>
+</SystemConfig>

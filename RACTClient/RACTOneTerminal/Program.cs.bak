@@ -1,0 +1,86 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using RACTClient;
+
+namespace RACTOneTerminal
+{
+    static class Program
+    {
+        /// <summary>
+        /// 해당 응용 프로그램의 주 진입점입니다.
+        /// </summary>
+        [STAThread]
+        static void Main(string[] args)
+        {
+
+            Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+
+            //2017.06.21 - NoSeungPil - RCCS 로그인 기능추가
+            //if (args.Length != 4)
+            if (!((args.Length == 4) || (args.Length == 5) || (args.Length == 7)))
+            {
+                MessageBox.Show("인자가 잘 못 되었습니다.");
+                return;
+            }
+
+            //if (args[1].Trim().Length == 0 || args[2].Trim().Length == 0 || args[3].Trim().Length == 0)
+            foreach (string arg in args)
+            {
+                if (arg.Trim().Length == 0)
+                {
+                    MessageBox.Show("인자가 잘 못 되었습니다.");
+                    return;
+                }
+             }
+
+            
+            if (args.Length == 7)
+            {
+                //RCCS 로그인의 경우
+                if (args[4] == "1")
+                {
+                    AppGlobal.s_ConnectionMode = int.Parse(args[4]);
+                    AppGlobal.s_RCCSIP = args[5];
+                    if (!int.TryParse(args[6], out AppGlobal.s_RCCSPort))
+                    {
+                        MessageBox.Show("인자(RCCS Port)를 확인해 주십시요.");
+                        return;
+                    }
+                }
+                else if (args[4] == "2")
+                {
+                    AppGlobal.s_ConnectionMode = int.Parse(args[4]);
+                    AppGlobal.s_RPCSIP = args[5];
+                    if (!int.TryParse(args[6], out AppGlobal.s_RPCSPort))
+                    {
+                        MessageBox.Show("인자(RPCS Port)를 확인해 주십시요.");
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("인자(접속구분)를 확인해 주십시요.");
+                    return;
+                }
+            }
+            else if (args.Length == 5)
+            {
+                AppGlobal.s_ConnectionMode = int.Parse(args[4]);
+            }
+
+            //RPCS 접속 시도시 사용자로 하여금 한번더 체크하도록
+            if (AppGlobal.s_ConnectionMode == 3)
+            {
+                if (MessageBox.Show("RPCS(무선) 장비 접속시 LTE망 과금이 발생합니다.\r\n접속 하시겠습니까?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    Application.Run(new ucOneTerminal(args[0], args[1], args[2], args[3]));
+                }
+            }
+            else
+                Application.Run(new ucOneTerminal(args[0], args[1], args[2], args[3]));
+    
+        }
+    }
+}

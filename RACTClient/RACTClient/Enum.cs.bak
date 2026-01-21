@@ -1,0 +1,398 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RACTClient
+{
+    /// <summary>
+    /// 트리 타입 열거형 입니다.
+    /// </summary>
+    public enum E_TreeType
+    {
+        /// <summary>
+        /// 시스템 권한 그룹 입니다.
+        /// </summary>
+        SystemGroup,
+        /// <summary>
+        /// 사용자 그룹 입니다.
+        /// </summary>
+        UserGroup,
+        /// <summary>
+        /// 사용자 그룹 조회
+        /// </summary>
+        DisplayUserGroup,
+        /// <summary>
+        /// 사용자 그룹과 하위 장비리스트 조회
+        /// </summary>
+        DisplayUserGroupList,
+        /// <summary>
+        /// 사용자 그룹과 하위 장비리스트 조회
+        /// </summary>
+        UserGroupList,
+    }
+    /// <summary>
+    /// 터미널 화면 텍스트 처리 타입 입니다.
+    /// </summary>
+    public enum E_TerminalScreenTextEditType
+    {
+        /// <summary>
+        /// 복사 처리 입니다.
+        /// </summary>
+        Copy,
+        /// <summary>
+        /// 붙여 넣기 입니다.
+        /// </summary>
+        Paste,
+        /// <summary>
+        /// 엔터포함 붙여 넣기 입니다.
+        /// </summary>
+        PasteCR,
+        /// <summary>
+        /// 찾기 입니다.
+        /// </summary>
+        Find,
+        /// <summary>
+        /// 모두 선택 입니다.
+        /// </summary>
+        SelectAll,
+        /// <summary>
+        /// 화면 지움 입니다.
+        /// </summary>
+        Clear,
+        /// <summary>
+        /// 명령어 지움 입니다.
+        /// </summary>
+        CmdClear,
+        /// <summary>
+        /// 자동 완성 입니다.
+        /// </summary>
+        AutoC,
+        /// <summary>
+        /// 기본 명령 조회 입니다.
+        /// </summary>
+        SearchCmd
+    }
+    /// <summary>
+    /// 터미널 종료 타입 입니다.
+    /// </summary>
+    public enum E_TerminalSessionCloseType
+    {
+        /// <summary>
+        /// 모든 세션을 종료 합니다.
+        /// </summary>
+        All,
+        /// <summary>
+        /// Daemon과 연결된 세션을 종료 합니다.
+        /// </summary>
+        DaemonSesion
+    }
+    /// <summary>
+    /// 클라이언트 메인 화면 종류 입니다.
+    /// </summary>
+    public enum E_ClientDefaultMainControlType
+    {
+        /// <summary>
+        /// 장비 일괄 등록 입니다.
+        /// </summary>
+        BatchRegister = 0,
+        /// <summary>
+        /// 터미널 입니다.
+        /// </summary>
+        Terminal
+    }
+
+    /// <summary>
+    /// 터미널 연결 팝업 타입 입니다.
+    /// </summary>
+    public enum E_DefaultTerminalPopupType
+    {
+        /// <summary>
+        /// 탭으로 연결 합니다.
+        /// </summary>
+        Tab = 0,
+        /// <summary>
+        /// 팝업창을 오픈 합니다.
+        /// </summary>
+        Popup
+    }
+
+    /// <summary>
+    /// 2013-01-17 - 메모장 실행 팝업 타입입니다.
+    /// </summary>
+    public enum E_DefaultNotePadPopupType
+    {
+        /// <summary>
+        /// 탭으로 연결합니다.
+        /// </summary>
+        Tab = 0,
+        /// <summary>
+        /// 팝업창을 오픈합니다.
+        /// </summary>
+        Popup,
+    }
+
+    /// <summary>
+    /// 장비 연결 표시 이름입니다.
+    /// </summary>
+    public enum E_TerminalDisplayNameType
+    {
+        /// <summary>
+        /// IP Address 입니다.
+        /// </summary>
+        IPAddress = 0,
+        /// <summary>
+        /// TID 입니다.
+        /// </summary>
+        TID
+    }
+
+    /// <summary>
+    /// 트리노드 라인 유형 입니다.
+    /// </summary>
+    public enum NodeLineType
+    {
+        None,
+        Straight,
+        WithChildren
+    }
+    /// <summary>
+    /// 접근제어 클라이언트 실행 모드 입니다.
+    /// </summary>
+    public enum E_RACTClientMode
+    {
+        /// <summary>
+        /// Online 모드 입니다.
+        /// </summary>
+        Online = 0,
+        /// <summary>
+        /// 콘솔 모드 입니다.
+        /// </summary>
+        Console = 1
+    }
+
+    /// <summary>
+    /// 2013-01-11 - shinyn - 장비등록 형태 입니다.
+    /// </summary>
+    public enum E_AddDeviceType
+    {
+        /// <summary>
+        /// 사용자 그룹 추가
+        /// </summary>
+        AddUserGroup = 0,
+        /// <summary>
+        /// 장비 목록 파일 저장
+        /// </summary>
+        SaveDeviceList = 1,
+    }
+
+    /// <summary>
+    /// 터미널 팝업 타입 입니다.
+    /// </summary>
+    public enum E_TerminalPopupType
+    {
+        /// <summary>
+        /// 선택 안함 입니다.
+        /// </summary>
+        None,
+        /// <summary>
+        /// 팝업 표시 입니다.
+        /// </summary>
+        PopUp,
+        /// <summary>
+        /// 복사 붙여넣기 입니다.
+        /// </summary>
+        CopyPaste
+    }
+
+    /// <summary>
+    /// 단축/스크립트 명령 대상입니다.
+    /// </summary>
+    public enum E_ShortenCommandTagret
+    {
+        /// <summary>
+        /// 활성화된 터미널 입니다.
+        /// </summary>
+        ActiveTerminal,
+        /// <summary>
+        /// 모든 터미널 입니다.
+        /// </summary>
+        AllTerminal
+    }
+
+    /// <summary>
+    /// 터미널 상태 입니다.
+    /// </summary>
+    public enum E_TerminalStatus
+    {
+        /// <summary>
+        /// 연결 입니다.
+        /// </summary>
+        Connection = 0,
+        /// <summary>
+        /// 연결 종료 입니다.
+        /// </summary>
+        Disconnected,
+        /// <summary>
+        /// 연결 중 입니다.
+        /// </summary>
+        TryConnection,
+        /// <summary>
+        /// 레코딩 중 입니다.
+        /// </summary>
+        Recording,
+        /// <summary>
+        /// 스크립트 실행 중 입니다.
+        /// </summary>
+        RunScript,
+        /// <summary>
+        /// 새로 추가 되었습니다.
+        /// </summary>
+        Add,
+        /// <summary>
+        /// 삭제 되엇습니다.
+        /// </summary>
+        Delete,
+        /// <summary>
+        /// Log 저장 중입니다.
+        /// </summary>
+        RecLog
+    }
+
+
+    /// <summary>
+    /// 2013-01-17 - shinyn - 메모장 상태입니다.
+    /// </summary>
+    public enum E_NotePadStatus
+    {
+        /// <summary>
+        /// 새로 추가 되었습니다.
+        /// </summary>
+        New,
+        /// <summary>
+        /// 파일 저장 되었습니다.
+        /// </summary>
+        Save,
+        /// <summary>
+        /// 파일 열었습니다.
+        /// </summary>
+        Open,
+    }
+
+    /// <summary>
+    /// 버튼 타입 입니다.
+    /// </summary>
+    public enum E_ButtonType : int
+    {
+        /// <summary>
+        /// 확인
+        /// </summary>
+        OK = 0,
+        /// <summary>
+        /// 취소
+        /// </summary>
+        Cancel,
+        /// <summary>
+        /// 적용
+        /// </summary>
+        Accept,
+        /// <summary>
+        /// 선택
+        /// </summary>
+        Select,
+        /// <summary>
+        /// 가져오기
+        /// </summary>
+        Import,
+        /// <summary>
+        /// 내보내기
+        /// </summary>
+        Export,
+        /// <summary>
+        /// 추가
+        /// </summary>
+        Add,
+        /// <summary>
+        /// 수정
+        /// </summary>
+        Modify,
+        /// <summary>
+        /// 삭제
+        /// </summary>
+        Delete,
+        /// <summary>
+        /// 닫기
+        /// </summary>
+        Close,
+        /// <summary>
+        /// 저장
+        /// </summary>
+        Save,
+        ///<summary>
+        /// 출력
+        ///</summary>
+        Print,
+        ///<summary>
+        /// 보기
+        ///</summary>
+        View,
+    }
+
+    /// <summary>
+    /// 버튼 표시 방향입니다.
+    /// </summary>
+    public enum E_ButtonSide
+    {
+        /// <summary>
+        /// 좌측 표시 입니다.
+        /// </summary>
+        Left,
+        /// <summary>
+        /// 우측 표시 입니다.
+        /// </summary>
+        Right
+    }
+
+    public enum E_IpType
+    {
+        /// <summary>
+        /// IPTV  망 입니다.
+        /// </summary>
+        [Description("IPTV")]
+        IPTV = 1,
+        /// <summary>
+        /// CATV  망 입니다.
+        /// </summary>
+        [Description("CATV")]
+        CATV,
+        /// <summary>
+        /// 전체 입니다.
+        /// </summary>
+        [Description("ALL")]
+        ALL,
+    }
+    /*
+        //2013-01-22 hanjiyeon UpdateLauncher 버전 체크 결과 - TACT Update
+        /// <summary>
+        /// 
+        /// </summary>
+        public enum E_UpdateStatus
+        {
+            /// <summary>
+            /// 최근버전 입니다. (UpdateLauncher & Program)
+            /// </summary>
+            RecentlyVersion = 0,
+            /// <summary>
+            /// UpdateLauncher가 최근 버전이 아닙니다.
+            /// </summary>
+            OldLauncher = 1,
+            /// <summary>
+            /// 프로그램이 최근 버전이 아닙니다.
+            /// </summary>
+            OldProgram = 2,
+            /// <summary>
+            /// 서버에 접속할 수 없습니다.
+            /// </summary>
+            ServerNotConnected = 3,
+        }
+    */
+}

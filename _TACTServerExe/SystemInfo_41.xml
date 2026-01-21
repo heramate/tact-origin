@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="no"?>
+<SystemConfig>
+  <ServerID>0</ServerID>
+  <ServerIP>118.217.79.41</ServerIP>
+  <ServerChannel>RemoteClient</ServerChannel>
+  <ServerPort>43210</ServerPort>
+  <DBServerIP>118.217.79.11,43218</DBServerIP>
+  <DBName>FACT_MAIN</DBName>
+  <UserID>sa</UserID>
+  <Password>factskB~2012</Password>
+  <DBConnectionCount>3</DBConnectionCount>
+  <DefaultDaemonRunCount>0</DefaultDaemonRunCount>
+  <DaemonUsePort>43211</DaemonUsePort>
+  <DaemonChannelName>RemoteDaemon</DaemonChannelName>
+  <ServiceManagerUsePort>23451</ServiceManagerUsePort>
+  <ServiceManagerChannelName>RemoteServiceManager</ServiceManagerChannelName>
+  <ReloadHour>0</ReloadHour>
+  <ReloadMinute>0</ReloadMinute>
+  <SSHTunnelDaemonIP>118.217.79.23,</SSHTunnelDaemonIP>
+</SystemConfig>
