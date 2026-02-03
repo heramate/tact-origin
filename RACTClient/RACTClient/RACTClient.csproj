@@ -119,6 +119,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Rebex.Telnet" Version="7.0.9209" />
+    <PackageReference Include="Rebex.SshShell" Version="7.0.9209" />
+    <PackageReference Include="Rebex.Terminal" Version="7.0.9209" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="AppGlobal.cs" />
     <Compile Include="ClientOption.cs" />
     <Compile Include="CommandExecuteLogProcess.cs" />

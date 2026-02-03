@@ -94,6 +94,10 @@
       <Project>{63E0427C-1C59-4C06-A9A6-B5D8663DE84E}</Project>
       <Name>RACTTerminal</Name>
     </ProjectReference>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
