@@ -15,6 +15,8 @@ using RACTSerialProcess;
 using MKLibrary.MKProcess;
 using DevComponents.DotNetBar;
 
+using RACTClient.Utilities; //safeinvoke 사용위해 추가
+
 // yskun rnjsdud -> 지역운용자 빠른연결시 오류 사항 확인
 namespace RACTClient
 {
@@ -1883,12 +1885,19 @@ namespace RACTClient
 
         private void terminalPanel1_OnTerminalTabChangeEvent(E_TerminalStatus aWorkType, string aTerminalName)
         {
+            /*
             if (this.InvokeRequired)
             {
                 this.Invoke(new HandlerArgument2<E_TerminalStatus, string>(terminalPanel1_OnTerminalTabChangeEvent), new object[] { aWorkType, aTerminalName });
                 return;
             }
             ucCommandLine1.TerminalChange(aWorkType, aTerminalName);
+            */
+
+            this.SafeInvoke(()=>
+            {
+                ucCommandLine1.TerminalChange(aWorkType, aTerminalName);
+            });
         }
 
 

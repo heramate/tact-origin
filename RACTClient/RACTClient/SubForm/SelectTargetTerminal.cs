@@ -14,7 +14,7 @@ namespace RACTClient
         /// <summary>
         /// 터미널 목록 입니다.
         /// </summary>
-        private List<MCTerminalEmulator> m_TerminalList = null;
+        private List<ITactTerminal> m_TerminalList = null;
         /// <summary>
         /// 기본 생성자 입니다.
         /// </summary>
@@ -38,7 +38,7 @@ namespace RACTClient
         /// <summary>
         /// 터미널 목록을 가져오거나 설정 합니다.
         /// </summary>
-        public List<MCTerminalEmulator> TerminalList
+        public List<ITactTerminal> TerminalList
         {
             get { return m_TerminalList; }
             set

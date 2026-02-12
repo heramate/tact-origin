@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -18,19 +18,20 @@ namespace RACTClient
         [STAThread]
         static void Main(string[] arg)
         {
+            Rebex.Licensing.Key = "==AIg3loZLZIQKT/29/w9AW2C9dkGKHNxnvvbH3of0tBRI==";
 
-//#if DEBUG
-//            if (arg.Length != 3)
-//            {
-//                //바탕화면 바로가기에서 실행하는 경우.
-//                Application.Run(new ClientMain());
-//            }
-//            else
-//            {
-//                //웹에서 실행하는 경우.
-//                Application.Run(new ClientMain(arg[0], arg[1], arg[2]));
-//            }
-//#else
+            //#if DEBUG
+            //            if (arg.Length != 3)
+            //            {
+            //                //바탕화면 바로가기에서 실행하는 경우.
+            //                Application.Run(new ClientMain());
+            //            }
+            //            else
+            //            {
+            //                //웹에서 실행하는 경우.
+            //                Application.Run(new ClientMain(arg[0], arg[1], arg[2]));
+            //            }
+            //#else
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 

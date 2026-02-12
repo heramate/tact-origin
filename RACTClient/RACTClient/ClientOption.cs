@@ -24,7 +24,8 @@ namespace RACTClient
 
         //private string m_ServerIP = "192.168.10.3";
         //private string m_ServerIP = "118.217.79.48";
-        private string m_ServerIP = "118.217.79.41";
+        //private string m_ServerIP = "118.217.79.41";
+        private string m_ServerIP = "10.248.35.129";
         //private string m_ServerIP = "118.217.79.15";
 
         /// <summary>
@@ -464,6 +465,13 @@ namespace RACTClient
             get { return m_ConnectionHistoryList; }
             set { m_ConnectionHistoryList = value; }
         }
+
+        public int ProxyType { get; internal set; }
+        public bool UseProxy { get; internal set; }
+        public string ProxyHost { get; internal set; }
+        public int ProxyPort { get; internal set; }
+        public string ProxyUser { get; internal set; }
+        public string ProxyPass { get; internal set; }
 
         /// <summary>
         /// 기본 생성자 입니다.

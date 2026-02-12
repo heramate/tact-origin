@@ -107,6 +107,27 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
     </Reference>
+    <Reference Include="Rebex.Common, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.Common.7.0.9448\lib\net46\Rebex.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Networking, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.Networking.7.0.9448\lib\net46\Rebex.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.SshShell, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.SshShell.7.0.9448\lib\net46\Rebex.SshShell.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Telnet, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.Telnet.7.0.9448\lib\net46\Rebex.Telnet.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Terminal, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.Terminal.7.0.9448\lib\net46\Rebex.Terminal.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Terminal.Control, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.Terminal.Control.7.0.9448\lib\net46\Rebex.Terminal.Control.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Terminal.SerialPort, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebex.Terminal.SerialPort.7.0.9448\lib\net46\Rebex.Terminal.SerialPort.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -119,6 +140,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\IRebexConnection.cs" />
+    <Compile Include="Adapters\RebexProxyFactory.cs" />
+    <Compile Include="Adapters\SshConnectionAdapter.cs" />
+    <Compile Include="Adapters\TelnetConnectionAdapter.cs" />
     <Compile Include="AppGlobal.cs" />
     <Compile Include="ClientOption.cs" />
     <Compile Include="CommandExecuteLogProcess.cs" />
@@ -434,12 +459,16 @@
     <Compile Include="TerminalControl\HorzScrollBar.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TerminalControl\ITactTerminal.cs" />
     <Compile Include="TerminalControl\LogWriter.cs" />
     <Compile Include="TerminalControl\MCSmallTerminal.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="TerminalControl\MCTerminalControl.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\TactTerminalControl.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="TerminalControl\TelnetFindForm.cs">
       <SubType>Form</SubType>
@@ -510,6 +539,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\ControlExtensions.cs" />
+    <Compile Include="Utilities\UIThreadDispatcher.cs" />
     <EmbeddedResource Include="ClientMain.resx">
       <SubType>Designer</SubType>
       <DependentUpon>ClientMain.cs</DependentUpon>
@@ -776,6 +807,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

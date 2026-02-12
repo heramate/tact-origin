@@ -62,7 +62,8 @@ namespace RACTClient
 
             //txtServerIP.Text = "118.217.79.48";
 
-            txtServerIP.Text = "118.217.79.41";
+            //txtServerIP.Text = "118.217.79.41";
+            txtServerIP.Text = "10.248.35.129";
             //txtServerIP.Text = "118.217.79.36";
             //txtServerIP.Text = "118.217.79.15";
 

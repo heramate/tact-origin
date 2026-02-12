@@ -1,33 +1,33 @@
 <?xml version="1.0" standalone="no"?>
 <ClientOption>
-  <ServerIP>118.217.79.41</ServerIP>
+  <ServerIP>10.248.35.129</ServerIP>
   <DefaultMainControl>BatchRegister</DefaultMainControl>
   <TerminalPopupType>PopUp</TerminalPopupType>
   <NotePadWindowsPopupType>Tab</NotePadWindowsPopupType>
   <ShortenCommandTaget>ActiveTerminal</ShortenCommandTaget>
-  <LogPath>D:\Source\TACTApp\_TACTClientExe\_Debug\Log\</LogPath>
-  <ScriptSavePath>D:\Source\TACTApp_Update\_TACTClientExe\_Debug\Script\</ScriptSavePath>
+  <LogPath>C:\skbb\demo\src\tact-origin\_TACTClientExe\_Debug\Log\</LogPath>
+  <ScriptSavePath>C:\skbb\demo\src\tact-origin\_TACTClientExe\_Debug\Script\</ScriptSavePath>
   <IsUseTerminalAutoLogin>True</IsUseTerminalAutoLogin>
   <IsUseTerminalClose>False</IsUseTerminalClose>
   <IsUseTerminalAutoMoreString>True</IsUseTerminalAutoMoreString>
   <TerminalDisplayNameType>IPAddress</TerminalDisplayNameType>
   <TerminalWindowsPopupType>Tab</TerminalWindowsPopupType>
-  <PopupSizeHeight>529</PopupSizeHeight>
-  <PopupSizeWidth>653</PopupSizeWidth>
+  <PopupSizeHeight>653</PopupSizeHeight>
+  <PopupSizeWidth>529</PopupSizeWidth>
   <TerminalColumnCount>80</TerminalColumnCount>
-  <TerminalBackGroundColor>255.0.0.0</TerminalBackGroundColor>
+  <TerminalBackGroundColor>255.132.162.198</TerminalBackGroundColor>
   <TerminalFontColor>255.173.255.47</TerminalFontColor>
   <TerminalBoldColor>255.255.255.255</TerminalBoldColor>
   <TerminalBlinkColor>255.255.0.0</TerminalBlinkColor>
   <TerminalFontName>굴림체</TerminalFontName>
   <TerminalFontSize>9</TerminalFontSize>
   <TerminalFontStyle>Regular</TerminalFontStyle>
-  <HighlightBackGroundColor>255.0.0.0</HighlightBackGroundColor>
+  <HighlightBackGroundColor>255.214.224.236</HighlightBackGroundColor>
   <HighlightFontColor>255.255.0.0</HighlightFontColor>
   <HighlightBoldColor>255.255.255.255</HighlightBoldColor>
   <HighlightBlinkColor>255.255.0.0</HighlightBlinkColor>
   <HighlightFontName>굴림체</HighlightFontName>
-  <HighlightFontSize>9</HighlightFontSize>
+  <HighlightFontSize>15</HighlightFontSize>
   <HighlightFontStyle>Regular</HighlightFontStyle>
   <IsTerminalTextClear>False</IsTerminalTextClear>
   <IsAutoSaveLog>False</IsAutoSaveLog>
@@ -49,24 +49,6 @@
   </ConnectionInfo>
   <ConnectionHistoryMaxCount>5</ConnectionHistoryMaxCount>
   <ConnectionHistoryList ValueType="Object">
-    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
-      <ConnectionInfo>
-        <ID />
-        <Password />
-        <TelnetPort>23</TelnetPort>
-        <IPAddress>100.72.241.46</IPAddress>
-        <SerialConfig>
-          <Handshake>None</Handshake>
-          <StopBits>One</StopBits>
-          <Parity>None</Parity>
-          <DataBits>8</DataBits>
-          <BaudRate>9600</BaudRate>
-          <PortName />
-        </SerialConfig>
-        <ConnectionProtocol>TELNET</ConnectionProtocol>
-      </ConnectionInfo>
-      <ConncetTime>2024-03-13 오후 5:30:39</ConncetTime>
-    </Value>
     <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
       <ConnectionInfo>
         <ID />
@@ -139,5 +121,29 @@
       </ConnectionInfo>
       <ConncetTime>2025-08-04 오후 5:20:11</ConncetTime>
     </Value>
+    <Value AssemblyQualifiedName="RACTClient.ConnectionHistoryInfo,TACTClient">
+      <ConnectionInfo>
+        <ID />
+        <Password />
+        <TelnetPort>23</TelnetPort>
+        <IPAddress>100.69.164.208</IPAddress>
+        <SerialConfig>
+          <Handshake>None</Handshake>
+          <StopBits>One</StopBits>
+          <Parity>None</Parity>
+          <DataBits>8</DataBits>
+          <BaudRate>9600</BaudRate>
+          <PortName />
+        </SerialConfig>
+        <ConnectionProtocol>TELNET</ConnectionProtocol>
+      </ConnectionInfo>
+      <ConncetTime>2026-02-12 오후 7:19:25</ConncetTime>
+    </Value>
   </ConnectionHistoryList>
+  <ProxyType>0</ProxyType>
+  <UseProxy>False</UseProxy>
+  <ProxyHost />
+  <ProxyPort>0</ProxyPort>
+  <ProxyUser />
+  <ProxyPass />
 </ClientOption>

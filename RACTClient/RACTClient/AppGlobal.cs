@@ -133,7 +133,8 @@ namespace RACTClient
         /// 서버 IP 입니다.
         /// </summary>
         //public static string s_ServerIP = "118.217.79.48";
-        public static string s_ServerIP = "118.217.79.41";
+        //public static string s_ServerIP = "118.217.79.41";
+        public static string s_ServerIP = "10.248.35.129";
         //public static string s_ServerIP = "118.217.79.15";
         //public static string s_ServerIP = "192.168.10.3";
 
