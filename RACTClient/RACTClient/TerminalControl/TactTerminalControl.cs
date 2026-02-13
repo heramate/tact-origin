@@ -1,5 +1,6 @@
 using DevComponents.DotNetBar;
 using RACTClient.Adapters;
+using RACTClient.Utilities.Extensions;
 using RACTClient.Utilities;
 using RACTCommonClass;
 using RACTSerialProcess;
@@ -11,6 +12,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
@@ -18,7 +20,7 @@ using ColorScheme = Rebex.TerminalEmulation.ColorScheme;
 
 namespace RACTClient
 {
-    internal class TactTerminalControl : TerminalControl, ITactTerminal
+    internal class TactTerminalControl : TerminalControl, ITactTerminal, ISenderObject
     {        
         private IRebexConnection _currentConnection; // 현재 연결 객체 관리
 
@@ -37,6 +39,14 @@ namespace RACTClient
         private DevComponents.DotNetBar.ButtonItem mnuSaveTerminal;
         private DevComponents.DotNetBar.ButtonItem mnuCmdClear;
         private DevComponents.DotNetBar.ButtonItem mnuOption;
+
+        // 동기화 객체
+        private ManualResetEvent m_MRE = new ManualResetEvent(false);
+
+        // [수정] 수신 데이터 타입 명시 (ISenderObject 호환)
+        private ResultCommunicationData m_Result;
+
+        private FACT_DefaultConnectionCommandSet m_ConnectionCommandSet;
 
         public TactTerminalControl()
         {
@@ -141,52 +151,124 @@ namespace RACTClient
             // TerminalStatus = E_TerminalStatus.Connection;
         }
 
+        /// <summary>
+        /// 터미널 옵션(색상 및 폰트)을 장비 타입에 따라 적용합니다.
+        /// </summary>
         public void ApplyOption()
         {
-            // 2019-11-10
-            if (DeviceInfo.DevicePartCode == 1 || /* 집선스위치 */
-                DeviceInfo.DevicePartCode == 6 || /* G-PON-OLT */
-                DeviceInfo.DevicePartCode == 31 /* NG-PON-OLT */ )
+            Color targetBackColor;
+            Color targetForeColor;
+            string targetFontName;
+            float targetFontSize;
+            FontStyle targetFontStyle;
+
+            // 1. 장비 중요도에 따라 설정값 분기 처리
+            // 2019-11-10: 집선스위치(1), G-PON-OLT(6), NG-PON-OLT(31)는 강조 색상 사용
+            if (DeviceInfo.DevicePartCode == 1 ||
+                DeviceInfo.DevicePartCode == 6 ||
+                DeviceInfo.DevicePartCode == 31)
             {
-                // 장비 파트 코드나 전역 설정을 읽어 테마 결정
-                //ApplySecureCrtTheme();
-
-                this.BackColor = AppGlobal.s_ClientOption.HighlightBackGroundColor;
-                this.ForeColor = AppGlobal.s_ClientOption.HighlightFontColor;
-                //ApplyCustomColors();
-                ApplySecureCrtTheme();
-                string tTempFont = AppGlobal.s_ClientOption.HighlightFontName;
-                if (tTempFont.Equals("굴림")
-                    || tTempFont.Equals("돋움")
-                    || tTempFont.Equals("궁서")
-                    || tTempFont.Equals("바탕"))
-                {
-                    tTempFont += "체";
-                }
-
-                string fontName = AppGlobal.s_ClientOption.TerminalFontName ?? "Consolas";
-                this.Font = new Font(fontName, AppGlobal.s_ClientOption.HighlightFontSize, AppGlobal.s_ClientOption.HighlightFontStyle, GraphicsUnit.Point, ((byte)(0)));
-                this.TerminalFont = new TerminalFont(fontName, AppGlobal.s_ClientOption.TerminalFontSize);
+                // [중요 장비 설정]
+                targetBackColor = AppGlobal.s_ClientOption.HighlightBackGroundColor;
+                targetForeColor = AppGlobal.s_ClientOption.HighlightFontColor;
+                targetFontName = AppGlobal.s_ClientOption.HighlightFontName;
+                targetFontSize = AppGlobal.s_ClientOption.HighlightFontSize;
+                targetFontStyle = AppGlobal.s_ClientOption.HighlightFontStyle;
             }
             else
             {
-                
-                this.ForeColor = AppGlobal.s_ClientOption.TerminalFontColor;
-                this.BackColor = AppGlobal.s_ClientOption.TerminalBackGroundColor;
-                string tTempFont = AppGlobal.s_ClientOption.TerminalFontName;
-                if (tTempFont.Equals("굴림")
-                    || tTempFont.Equals("돋움")
-                    || tTempFont.Equals("궁서")
-                    || tTempFont.Equals("바탕"))
-                {
-                    tTempFont += "체";
-                }
+                // [일반 장비 설정]
+                targetBackColor = AppGlobal.s_ClientOption.TerminalBackGroundColor;
+                targetForeColor = AppGlobal.s_ClientOption.TerminalFontColor;
+                targetFontName = AppGlobal.s_ClientOption.TerminalFontName;
+                targetFontSize = AppGlobal.s_ClientOption.TerminalFontSize;
+                targetFontStyle = AppGlobal.s_ClientOption.TerminalFontStyle;
+            }
 
-                this.Font = new Font(tTempFont, AppGlobal.s_ClientOption.TerminalFontSize, AppGlobal.s_ClientOption.TerminalFontStyle, GraphicsUnit.Point, ((byte)(0)));
-                this.TerminalFont = new TerminalFont(tTempFont, AppGlobal.s_ClientOption.TerminalFontSize);
+            // 2. 폰트 이름 보정 (한글 폰트명 처리)
+            if (string.IsNullOrEmpty(targetFontName))
+            {
+                targetFontName = "Consolas"; // 기본값
+            }
+            else if (targetFontName.Equals("굴림") || targetFontName.Equals("돋움") ||
+                     targetFontName.Equals("궁서") || targetFontName.Equals("바탕"))
+            {
+                targetFontName += "체";
+            }
+
+            // 3. 색상 적용 (Rebex Palette 적용)
+            ApplyTerminalTheme(targetBackColor, targetForeColor);
+
+            // 4. 폰트 적용
+            // 폰트 생성 실패 방지를 위한 예외처리 포함
+            try
+            {
+                this.Font = new Font(targetFontName, targetFontSize, targetFontStyle, GraphicsUnit.Point, ((byte)(0)));
+                this.TerminalFont = new TerminalFont(targetFontName, targetFontSize);
+            }
+            catch (Exception)
+            {
+                // 폰트 생성 실패 시 기본 폰트로 대체
+                this.Font = new Font("Consolas", 10, FontStyle.Regular);
+                this.TerminalFont = new TerminalFont("Consolas", 10);
             }
 
             this.Refresh();
+        }
+
+        /// <summary>
+        /// Rebex 터미널의 팔레트와 옵션을 수정하여 지정된 배경/글자색을 적용합니다.
+        /// (기존 ApplyCustomColors 개선)
+        /// </summary>
+        /// <param name="backColor">적용할 배경색</param>
+        /// <param name="foreColor">적용할 글자색</param>
+        private void ApplyTerminalTheme(Color backColor, Color foreColor)
+        {
+            // 1. [옵션 준비] 현재 옵션 가져오기
+            TerminalOptions options = this.Options;
+            options.ColorScheme = ColorScheme.Custom;
+
+            // 2. [팔레트 생성]
+            TerminalPalette newPalette = new TerminalPalette();
+
+            // 3. [기본 색상 채우기] 0~13번은 표준 ANSI 색상 유지 (명령어 출력 등 가독성 보장)
+            newPalette.SetColor(0, Color.Black);
+            newPalette.SetColor(1, Color.Maroon);
+            newPalette.SetColor(2, Color.Green);
+            newPalette.SetColor(3, Color.Olive);
+            newPalette.SetColor(4, Color.Navy);
+            newPalette.SetColor(5, Color.Purple);
+            newPalette.SetColor(6, Color.Teal);
+            newPalette.SetColor(7, Color.Silver);
+            newPalette.SetColor(8, Color.Gray);
+            newPalette.SetColor(9, Color.Red);
+            newPalette.SetColor(10, Color.Lime);
+            newPalette.SetColor(11, Color.Yellow);
+            newPalette.SetColor(12, Color.Blue);
+            newPalette.SetColor(13, Color.Magenta);
+
+            // 4. [사용자 색상 검증]
+            // 색상이 설정되지 않았거나(Empty) 투명한 경우 기본값 처리
+            if (backColor == Color.Empty || backColor == Color.Transparent) backColor = Color.White;
+            if (foreColor == Color.Empty || foreColor == Color.Transparent) foreColor = Color.Black;
+
+            // 5. [핵심] 14번을 배경, 15번을 글자색으로 정의
+            newPalette.SetColor(14, backColor); // 14번 슬롯: 배경
+            newPalette.SetColor(15, foreColor); // 15번 슬롯: 글자
+
+            // 6. [옵션 연결] 터미널에게 14번과 15번을 쓰라고 지시
+            options.SetColorIndex(SchemeColorName.Background, 14);
+            options.SetColorIndex(SchemeColorName.Foreground, 15);
+
+            // 7. [최종 적용] 
+            this.Palette = newPalette;
+            this.Options = options;
+
+            // 8. WinForm 컨트롤 배경색 동기화 (여백 처리)
+            this.BackColor = backColor;
+            this.ForeColor = foreColor; // WinForm 컨트롤 속성도 맞춰줌
+
+            this.Invalidate();
         }
 
         /// <summary>
@@ -363,10 +445,11 @@ namespace RACTClient
                         );
                     }
 
+
                     // 3-2. 연결 수행 (내부적으로 RebexProxyFactory를 통해 프록시 자동 적용)
                     // [Source Reference: Connect 메서드 내부에서 Factory 호출]
                     int port = (DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
-                               ? DeviceInfo.TerminalConnectInfo.SSHPort
+                               ? 22
                                : DeviceInfo.TerminalConnectInfo.TelnetPort;
 
                     _currentConnection.Connect(DeviceInfo.IPAddress, port);
@@ -402,7 +485,7 @@ namespace RACTClient
                         // 바인딩이 완료된 후 실행해야 하므로 UI 업데이트가 끝날 때까지 기다리거나
                         // SafeInvoke 내부 로직이 완료된 시점에 호출되어야 함.
                         // SafeInvoke는 비동기(Post)이므로, 순차 보장을 위해 별도 메서드 호출
-                        PerformTelnetLogin(DeviceInfo.TelnetID1, DeviceInfo.TelnetPwd1);
+                        //PerformTelnetLogin(DeviceInfo.TelnetID1, DeviceInfo.TelnetPwd1);
                     }
                 }
                 catch (Exception ex)
@@ -438,11 +521,206 @@ namespace RACTClient
                     m_TerminalStatus = value;
                     if (m_TerminalStatus == E_TerminalStatus.Connection && AppGlobal.s_ClientOption.IsUseTerminalAutoLogin)
                     {
-                        //StartLoginProcess();
+                        StartLoginProcess();
                     }
                 }
                 ChangeStatusIcon();
             }
+        }
+
+        // =============================================================
+        // 1. ISenderObject 인터페이스 구현 (이름 수정됨: SetCommunicationResult -> ResultReceiver)
+        // =============================================================
+
+        /// <summary>
+        /// AppGlobal(서버)로부터 응답이 왔을 때 호출되는 콜백입니다.
+        /// </summary>
+        public void ResultReceiver(ResultCommunicationData vResult)
+        {
+            this.m_Result = vResult;
+
+            // 대기 중인 스레드(WaitOne)를 깨웁니다.
+            try
+            {
+                m_MRE.Set();
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// CommandResultItem 수신용 (인터페이스 요구사항, 사용 안 함)
+        /// </summary>
+        public void ResultReceiver(CommandResultItem vResult)
+        {
+            // 필요 시 구현, 현재는 비워둠
+        }
+
+        // =============================================================
+        // 2. StartLoginProcess (메인 로직)
+        // =============================================================
+
+        private void StartLoginProcess()
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    var protocol = m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol;
+
+                    // Telnet 또는 SSH 접속이고, 자동 로그인이 필요한 상황인지 체크
+                    if ((protocol == E_ConnectionProtocol.TELNET || protocol == E_ConnectionProtocol.SSHTelnet) &&
+                        AppGlobal.s_RACTClientMode == E_RACTClientMode.Online &&
+                        m_DeviceInfo.IsRegistered &&
+                        m_ConnectionCommandSet == null)
+                    {
+                        LogInfo("기본 접속 정보를 로드합니다.");
+
+                        // [수정] 분리된 헬퍼 메서드 호출
+                        if (!RequestConnectionCommandSet())
+                        {
+                            return; // 로드 실패 시 중단
+                        }
+
+                        // SSH는 정보만 로드하고 스크립트 실행은 안 함 (SshConnectionAdapter에서 처리)
+                        if (protocol == E_ConnectionProtocol.SSHTelnet) return;
+
+                        // TELNET 스크립트 실행
+                        ExecuteTelnetLoginScript();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogError("StartLoginProcess Error: " + ex.Message);
+                }
+            });
+        }
+
+        // =============================================================
+        // 3. RequestConnectionCommandSet (통신 및 대기 로직 분리)
+        // =============================================================
+
+        private bool RequestConnectionCommandSet()
+        {
+            try
+            {
+                // 1. 요청 패킷 생성
+                RequestCommunicationData tRequestData = AppGlobal.MakeDefaultRequestData();
+                tRequestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
+                tRequestData.RequestData = m_DeviceInfo;
+
+                // TL1 포트(1023) 특수 처리
+                if (m_DeviceInfo.TerminalConnectInfo.TelnetPort == 1023)
+                {
+                    tRequestData.UserData = "TL1";
+                }
+
+                // 2. 초기화 (결과 비우기, 신호등 빨간불)
+                m_Result = null;
+                m_MRE.Reset();
+
+                // 3. 요청 전송 (this는 ISenderObject이므로 에러 없음)
+                AppGlobal.SendRequestData(this, tRequestData);
+
+                // 4. 대기 (타임아웃 적용)
+                if (!m_MRE.WaitOne(AppGlobal.s_RequestTimeOut))
+                {
+                    LogWarning($"기본 접속 명령 로드 시간 초과. (IP: {m_DeviceInfo.IPAddress})");
+                    return false;
+                }
+
+                // 5. 결과 유효성 검사
+                if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
+                {
+                    LogWarning($"기본 접속 명령 로드 실패. (IP: {m_DeviceInfo.IPAddress})");
+                    return false;
+                }
+
+                // 6. 데이터 캐스팅 및 저장
+                m_ConnectionCommandSet = m_Result.ResultData as FACT_DefaultConnectionCommandSet;
+
+                if (m_ConnectionCommandSet == null || m_ConnectionCommandSet.CommandList.Count == 0)
+                {
+                    LogWarning("접속 명령 정보가 비어 있습니다.");
+                    return false;
+                }
+
+                // 7. 에러 메시지 초기화 (기존 로직 유지)
+                foreach (var cmd in m_ConnectionCommandSet.CommandList)
+                {
+                    cmd.ErrorString = "Login incorrect";
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError("RequestConnectionCommandSet Exception: " + ex.Message);
+                return false;
+            }
+        }
+
+        // =============================================================
+        // 4. ExecuteTelnetLoginScript (스크립트 실행 로직)
+        // =============================================================
+
+        private void ExecuteTelnetLoginScript()
+        {
+            // UI 제어 (화면 갱신 중지, 입력 차단)
+            this.RunSync(() =>
+            {
+                this.SetDataProcessingMode(DataProcessingMode.None);
+                this.UserInputEnabled = false;
+                TerminalStatus = E_TerminalStatus.RunScript;
+            });
+
+            try
+            {
+                // [확장 메서드 사용] RebexScriptingExtensions에 구현된 로직 호출
+                // 1023 포트 여부는 내부에서 m_DeviceInfo를 통해 판단됨
+                this.Scripting.ExecuteConnectionCommand(m_ConnectionCommandSet, m_DeviceInfo);
+
+                LogInfo("자동 로그인 완료.");
+            }
+            catch (Exception ex)
+            {
+                LogError("Script Execution Failed: " + ex.Message);
+            }
+            finally
+            {
+                // UI 복구
+                this.SafeInvoke(() =>
+                {
+                    if (!this.IsDisposed)
+                    {
+                        this.SetDataProcessingMode(DataProcessingMode.Automatic);
+                        this.UserInputEnabled = true;
+                        TerminalStatus = E_TerminalStatus.Connection;
+                        this.Focus();
+                    }
+                });
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 로그 헬퍼 메서드
+        // ---------------------------------------------------------------------
+        private void LogInfo(string msg)
+        {
+            this.SafeInvoke(() => AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, msg));
+        }
+
+        private void LogWarning(string msg)
+        {
+            this.SafeInvoke(() => {
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, msg);
+                // 필요 시 연결 종료 처리
+                // TerminalStatus = E_TerminalStatus.Disconnected; 
+            });
+        }
+
+        private void LogError(string msg)
+        {
+            this.SafeInvoke(() => AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, msg));
         }
 
         private void ChangeStatusIcon()

@@ -45,17 +45,11 @@ namespace RACTCommonClass
         /// 2013-01-28 SSH 연결 비밀번호
         /// </summary>
         private string m_Password = string.Empty;
-        
 
         public string Password
         {
             get { return m_Password; }
             set { m_Password = value; }
-        }
-
-        public int SSHPort
-        {
-            get { return 23; }
         }
 
 

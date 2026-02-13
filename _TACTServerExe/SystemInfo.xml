@@ -1,13 +1,13 @@
 <?xml version="1.0" standalone="no"?>
 <SystemConfig>
-  <ServerID>123</ServerID>
-  <ServerIP>10.248.35.129</ServerIP>
+  <ServerID>0</ServerID>
+  <ServerIP>118.217.79.41</ServerIP>
   <ServerChannel>RemoteClient</ServerChannel>
   <ServerPort>43210</ServerPort>
-  <DBServerIP>118.217.79.15,43218</DBServerIP>
+  <DBServerIP>118.217.79.10,43218</DBServerIP>
   <DBName>FACT_MAIN</DBName>
   <UserID>sa</UserID>
-  <Password>inds106!1</Password>
+  <Password>factskB~2012</Password>
   <DBConnectionCount>3</DBConnectionCount>
   <DefaultDaemonRunCount>0</DefaultDaemonRunCount>
   <DaemonUsePort>43211</DaemonUsePort>

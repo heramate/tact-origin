@@ -13,14 +13,14 @@
   </docksite>
   <docksite size="246" dockingside="Left" originaldocksitesize="0">
     <dockcontainer orientation="1" w="0" h="0">
-      <barcontainer w="243" h="237">
+      <barcontainer w="243" h="238">
         <bar name="barGroup" dockline="0" layout="2" dockoffset="0" state="2" dockside="1" visible="true">
           <items>
             <item name="dockContainerItem1" origBar="" origPos="-1" pos="0" />
           </items>
         </bar>
       </barcontainer>
-      <barcontainer w="243" h="297">
+      <barcontainer w="243" h="296">
         <bar name="barDeviceSearch" dockline="0" layout="2" dockoffset="100" state="2" dockside="1" visible="true">
           <items>
             <item name="dockContainerItem7" origBar="" origPos="-1" pos="0" />
