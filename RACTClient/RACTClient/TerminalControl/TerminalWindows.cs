@@ -12,11 +12,11 @@ namespace RACTClient
     public partial class TerminalWindows : Office2007Form
     {
         /// <summary>
-        /// ´İ±â ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ë‹«ê¸° ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsClose = true;
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public TerminalWindows()
         {
@@ -24,7 +24,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Æû ´İ±â Ã³¸® ÀÔ´Ï´Ù.
+        /// í¼ ë‹«ê¸° ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         private void TerminalWindows_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -34,7 +34,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// Æû ÃÖ¼ÒÈ­ ÀÔ´Ï´Ù.
+        /// í¼ ìµœì†Œí™” ì…ë‹ˆë‹¤.
         /// </summary>
         private void TerminalWindows_MinimumSizeChanged(object sender, EventArgs e)
         {
@@ -47,23 +47,23 @@ namespace RACTClient
             if (this.WindowState == FormWindowState.Minimized)
             {
                 m_IsClose = false;
-                ((ClientMain)AppGlobal.s_ClientMainForm).AddTerminalTab((MCTerminalEmulator)this.Controls[0]);
+                ((ClientMain)AppGlobal.s_ClientMainForm).AddTerminalTab((ITerminal)this.Controls[0]);
                 this.Close();
 
             }
         }
 
-        internal void AddTerminalControl(MCTerminalEmulator tEmulator)
+        internal void AddTerminalControl(ITerminal tEmulator)
         {
-            this.Controls.Add(tEmulator);
-            tEmulator.OnTerminalStatusChange += new HandlerArgument2<MCTerminalEmulator, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
+            this.Controls.Add((Control)tEmulator);
+            tEmulator.OnTerminalStatusChange += new HandlerArgument2<object, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
         }
 
-        void tEmulator_OnTerminalStatusChange(MCTerminalEmulator aValue1, E_TerminalStatus aValue2)
+        void tEmulator_OnTerminalStatusChange(object aValue1, E_TerminalStatus aValue2)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new HandlerArgument2<MCTerminalEmulator, E_TerminalStatus>(tEmulator_OnTerminalStatusChange), aValue1, aValue2);
+                this.Invoke(new HandlerArgument2<object, E_TerminalStatus>(tEmulator_OnTerminalStatusChange), aValue1, aValue2);
                 return;
             }
 

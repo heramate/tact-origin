@@ -16,59 +16,59 @@ namespace RACTClient
 {
 
     /// <summary>
-    /// ÅÍ¹Ì³Î º¯°æ¿¡ »ç¿ëÇÒ ÇÚµé·¯ ÀÔ´Ï´Ù.
+    /// í„°ë¯¸ë„ ë³€ê²½ì— ì‚¬ìš©í•  í•¸ë“¤ëŸ¬ ì…ë‹ˆë‹¤.
     /// </summary>
     /// <param name="aTerminalName"></param>
     public delegate void TerminalTabChangeHandler(E_TerminalStatus aStatus, string aTerminalName);
     /// <summary>
-    /// ÅÍ¹Ì³Î Tab ÆĞ³Î ÀÔ´Ï´Ù.
+    /// í„°ë¯¸ë„ Tab íŒ¨ë„ ì…ë‹ˆë‹¤.
     /// </summary>
     public partial class TerminalPanel : SenderControl, IMainPanel
     {
         /// <summary>
-        /// ÅÍ¹Ì³Î ¿¬°á ½º·¹µå Ç® ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ ì—°ê²° ìŠ¤ë ˆë“œ í’€ ì…ë‹ˆë‹¤.
         /// </summary>
         private MKThreadPool m_TerminalConnectThreadPool;
         /// <summary>
-        /// Àåºñ ¼öÁ¤ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì¥ë¹„ ìˆ˜ì • ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event ModifyDeviceHandler OnModifyDeviceEvent;
 
 
         /// <summary>
-        /// 2013-01-18 - shinyn - ¼öµ¿ Àåºñ ¼öÁ¤ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// 2013-01-18 - shinyn - ìˆ˜ë™ ì¥ë¹„ ìˆ˜ì • ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event ModifyUsrDeviceHandler OnModifyUsrDeviceEvent;
 
         /// <summary>
-        /// ÅÍ¹Ì³Î ÅÇ º¯°æ½Ã ¹ßÇÒ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ íƒ­ ë³€ê²½ì‹œ ë°œí•  ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event TerminalTabChangeHandler OnTerminalTabChangeEvent;
         /// <summary>
-        /// È°¼ºÈ­ ÁßÀÎ ÅÍ¹Ì³Î ¸ñ·ÏÀÔ´Ï´Ù.
+        /// í™œì„±í™” ì¤‘ì¸ í„°ë¯¸ë„ ëª©ë¡ì…ë‹ˆë‹¤.
         /// </summary>
-        private List<MCTerminalEmulator> m_EmulatorList = new List<MCTerminalEmulator>();
+        private List<ITerminal> m_EmulatorList = new List<ITerminal>();
 
         /// <summary>
-        /// 2013-05-02- shinyn - ¸µÅ©ÀåºñÁ¤º¸ÀÔ´Ï´Ù.
+        /// 2013-05-02- shinyn - ë§í¬ì¥ë¹„ì •ë³´ì…ë‹ˆë‹¤.
         /// </summary>
         private DeviceInfo m_LinkDeviceInfo = null;
 
         /// <summary>
-        /// 2013-05-16- shinyn - ºü¸¥ ¿¬°á½ÇÇàÇÒ ¿¬°á ÇüÅÂ¸¦ ºñ±³ÇÑ´Ù.
+        /// 2013-05-16- shinyn - ë¹ ë¥¸ ì—°ê²°ì‹¤í–‰í•  ì—°ê²° í˜•íƒœë¥¼ ë¹„êµí•œë‹¤.
         /// </summary>
         private TerminalConnectInfo m_ConnectInfo = null;
 
         /// <summary>
-        /// 2013-01-11 - shinyn - ÇöÀç ¿­·ÁÀÖ´Â ¿¡¹Ä·¹ÀÌÅÍ ¼ö¸¦ °¡Á®¿Í¼­ ±×ÀÌ»ó ¿¡¹Ä·¹ÀÌÅÍ ¿­¼ö ¾øµµ·Ï ¼öÁ¤
+        /// 2013-01-11 - shinyn - í˜„ì¬ ì—´ë ¤ìˆëŠ” ì—ë®¬ë ˆì´í„° ìˆ˜ë¥¼ ê°€ì ¸ì™€ì„œ ê·¸ì´ìƒ ì—ë®¬ë ˆì´í„° ì—´ìˆ˜ ì—†ë„ë¡ ìˆ˜ì •
         /// </summary>
-        public List<MCTerminalEmulator> EmulatorList
+        public List<ITerminal> EmulatorList
         {
             get { return m_EmulatorList; }
         }
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public TerminalPanel()
         {
@@ -91,7 +91,7 @@ namespace RACTClient
             ucShortenScript.OnSendScript += new HandlerArgument1<Script>(ShortenScript_OnSendScript);
         }
         /// <summary>
-        /// ½ºÅ©¸³Æ® ¸í·É ÀÌº¥Æ®¸¦ Ã³¸® ÇÕ´Ï´Ù. 
+        /// ìŠ¤í¬ë¦½íŠ¸ ëª…ë ¹ ì´ë²¤íŠ¸ë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤. 
         /// </summary>
         /// <param name="aValue1"></param>
         void ShortenScript_OnSendScript(Script aValue1)
@@ -110,7 +110,7 @@ namespace RACTClient
             }
             else
             {
-                foreach (MCTerminalEmulator tTelnet in m_EmulatorList)
+                foreach (ITerminal tTelnet in m_EmulatorList)
                 {
                     if (tTelnet.TerminalStatus != E_TerminalStatus.Disconnected)
                     {
@@ -120,7 +120,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ´ÜÃà ¸í·É ÀÌº¥Æ®¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ ì´ë²¤íŠ¸ë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aValue1"></param>
         void ShortenCommand_OnSendShortenCommand(ShortenCommandInfo aValue1)
@@ -128,8 +128,10 @@ namespace RACTClient
             //if (tabTerminal.SelectedTabIndex < 0) return;
             if (AppGlobal.s_ClientOption.ShortenCommandTaget == E_ShortenCommandTagret.ActiveTerminal)
             {
-                m_TerminalSelectForm.TerminalList = m_EmulatorList;
-                MCTerminalEmulator tSelectedTerminal = null;
+                // m_TerminalSelectForm.TerminalList expects List<ITerminal> or similar?
+                // Assuming TerminalSelectForm is updated or handles ITerminal generic list
+                m_TerminalSelectForm.TerminalList = m_EmulatorList; 
+                ITerminal tSelectedTerminal = null;
                 if (m_TerminalSelectForm.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
                 {
                     tSelectedTerminal = m_TerminalSelectForm.SelectedTerminal;
@@ -147,7 +149,7 @@ namespace RACTClient
             }
             else
             {
-                foreach (MCTerminalEmulator tTelnet in m_EmulatorList)
+                foreach (ITerminal tTelnet in m_EmulatorList)
                 {
                     //tTelnet.DispatchMessage(this, aValue1.Command + "\r\n");
                     tTelnet.IsLimitCmdForShortenCommand(this, aValue1.Command + "\r\n");
@@ -156,7 +158,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÅÍ¹Ì³ÎÀ» Ãß°¡ ÇÒ ¼ö ÀÖ´ÂÁö È®ÀÎ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ì„ ì¶”ê°€ í•  ìˆ˜ ìˆëŠ”ì§€ í™•ì¸ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="tCount"></param>
         /// <returns></returns>
@@ -166,7 +168,7 @@ namespace RACTClient
 
             if (m_EmulatorList.Count >= 20)
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÃÖ´ë ¿¬°á °³¼ö´Â 20°³ ÀÔ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ìµœëŒ€ ì—°ê²° ê°œìˆ˜ëŠ” 20ê°œ ì…ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             DeviceInfo tDeviceInfo;
@@ -184,7 +186,7 @@ namespace RACTClient
                     {
                         if (tTabName.Contains("("))
                         {
-                            // 2013-05-02 - ¾ÆÀÌÇÇ°¡ °ãÄ¡´Â °æ¿ì µÚ¿¡ ÀÌ¸§ Ãß°¡
+                            // 2013-05-02 - ì•„ì´í”¼ê°€ ê²¹ì¹˜ëŠ” ê²½ìš° ë’¤ì— ì´ë¦„ ì¶”ê°€
                             try
                             {
                                 tTempNumber = int.Parse(tTabName.Substring(tTabName.IndexOf("(") + 1, tTabName.Length - tTabName.IndexOf(")")));
@@ -208,7 +210,7 @@ namespace RACTClient
                 else if (aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
 
-                    // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ°æ¿ì ºĞ±â Ã³¸® Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ê²½ìš° ë¶„ê¸° ì²˜ë¦¬ ì¶”ê°€
                     if (tDeviceInfo.IPAddress.Equals(aDeviceInfo.IPAddress))
                     {
                         if (tTabName.Contains("("))
@@ -256,39 +258,38 @@ namespace RACTClient
             return true;
         }
         /// <summary>
-        /// ÅÍ¹Ì³ÎÀ» »ı¼º ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ì„ ìƒì„± í•©ë‹ˆë‹¤.
         /// </summary>
-        private MCTerminalEmulator MakeEmulator(DeviceInfo aDeviceInfo, bool aIsQuickConnection)
+        private ITerminal MakeEmulator(DeviceInfo aDeviceInfo, bool aIsQuickConnection)
         {
-            MCTerminalEmulator tEmulator = new MCTerminalEmulator(aIsQuickConnection);
-            tEmulator.OnTelnetFindString += new DefaultHandler(Emulator_OnTelnetFindString);
-            tEmulator.OnTerminalStatusChange += new HandlerArgument2<MCTerminalEmulator, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
-            tEmulator.Modes = new Mode();
-            tEmulator.Modes.Flags = tEmulator.Modes.Flags |= Mode.s_AutoWrap;
-            tEmulator.Dock = DockStyle.Fill;
+            ITerminal tEmulator = null;
+            
+            // Check protocol to decide which terminal control to use
+            if (aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET ||
+                aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSH || 
+                aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL)
+            {
+                 tEmulator = new RebexTerminalControl();
+            }
+            else
+            {
+                 tEmulator = new MCTerminalEmulator();
+            }
+            
+            ((Control)tEmulator).Dock = DockStyle.Fill;
             tEmulator.DeviceInfo = aDeviceInfo;
 
-            AppGlobal.s_ClientOption.AddConnectionHistory(aDeviceInfo);
-
-            if (aDeviceInfo.DevicePartCode == 1 || /* Áı¼±½ºÀ§Ä¡ */
-                aDeviceInfo.DevicePartCode == 6 || /* G-PON-OLT */
-                aDeviceInfo.DevicePartCode == 31 /* NG-PON-OLT */ )
-            {
-				// 2019-11-10 °³¼±»çÇ× (¿É¼Ç ¼³Á¤ °³¼±)
-                tEmulator.ApplyOption();
-                    //tEmulator.SetFontColor(AppGlobal.s_ClientOption.HighlightFontColor);
-                    //tEmulator.SetBackGroundColor(AppGlobal.s_ClientOption.HighlightBackGroundColor);
-
-            }
-
-            m_EmulatorList.Add(tEmulator);
+            tEmulator.OnTerminalStatusChange += new HandlerArgument2<object, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
+            tEmulator.OnTelnetFindString += new DefaultHandler(tEmulator_OnTelnetFindString);
+            tEmulator.CallOptionHandlerEvent += new DefaultHandler(tEmulator_CallOptionHandlerEvent);
+            tEmulator.ProgreBarHandlerEvent += new HandlerArgument3<string, eProgressItemType, bool>(tEmulator_ProgreBarHandlerEvent);
 
             return tEmulator;
         }
         /// <summary>
-        /// ÆĞ³ÎÀ» »ı¼º ÇÕ´Ï´Ù.
+        /// íŒ¨ë„ì„ ìƒì„± í•©ë‹ˆë‹¤.
         /// </summary>
-        private SuperTabItem MakeTabPanel(MCTerminalEmulator aMCTerminalEmulator, int aCount)
+        private SuperTabItem MakeTabPanel(ITerminal aMCTerminalEmulator, int aCount)
         {
 
             SuperTabControlPanel tTabPanel;
@@ -315,7 +316,7 @@ namespace RACTClient
             }
             else if (aMCTerminalEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                 if (AppGlobal.s_ClientOption.TerminalDisplayNameType == E_TerminalDisplayNameType.IPAddress)
                 {
                     tTabItem.Name = aCount > 0 ? aMCTerminalEmulator.DeviceInfo.IPAddress + "(" + aCount.ToString() + ")" : aMCTerminalEmulator.DeviceInfo.IPAddress;
@@ -332,7 +333,7 @@ namespace RACTClient
             tTabItem.Text = tTabItem.Name;
             aMCTerminalEmulator.DeviceInfo.TerminalName = tTabItem.Name;
             tTabItem.Image = (Image)global::RACTClient.Properties.Resources.TryConnect;
-            aMCTerminalEmulator.Name = tTabItem.Name;
+            ((Control)aMCTerminalEmulator).Name = tTabItem.Name;
 
             tTabItem.Tag = aMCTerminalEmulator.DeviceInfo;
             tTabItem.Tooltip = aMCTerminalEmulator.ToolTip;
@@ -343,14 +344,14 @@ namespace RACTClient
             tTabPanel.TabIndex = 1;
             tTabPanel.TabItem = tTabItem;
 
-            aMCTerminalEmulator.Name = tTabItem.Text;
+            ((Control)aMCTerminalEmulator).Name = tTabItem.Text;
 
 
             return tTabItem;
 
         }
 
-        internal void AddTerminal(MCTerminalEmulator mCTerminalEmulator)
+        internal void AddTerminal(ITerminal mCTerminalEmulator)
         {
             int tCount = 0;
 
@@ -365,10 +366,10 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÅÍ¹Ì³ÎÀ» Ãß°¡ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ì„ ì¶”ê°€ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aDeviceInfo">Àåºñ Á¤º¸ ÀÔ´Ï´Ù.</param>
-        /// <param name="aIsQuickConnection">ºü¸¥ ¿¬°á ¿©ºÎ</param>
+        /// <param name="aDeviceInfo">ì¥ë¹„ ì •ë³´ ì…ë‹ˆë‹¤.</param>
+        /// <param name="aIsQuickConnection">ë¹ ë¥¸ ì—°ê²° ì—¬ë¶€</param>
         public void AddTerminal(DeviceInfo aDeviceInfo, bool aIsQuickConnection, DaemonProcessInfo aDaemonProcessInfo)
         {
             if (this.InvokeRequired)
@@ -379,67 +380,12 @@ namespace RACTClient
 
             if (aDaemonProcessInfo == null)
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                 return;
             }
             int tCount = 0;
             if (!CheckTerminalCount(aDeviceInfo, out tCount)) return;
-
-            MCTerminalEmulator tEmulator = MakeEmulator(aDeviceInfo, aIsQuickConnection);
-            if (AppGlobal.s_ClientOption.TerminalWindowsPopupType == E_DefaultTerminalPopupType.Tab)
-            {
-                tEmulator.DaemonProcessInfo = aDaemonProcessInfo;
-                SuperTabItem tTabItem = MakeTabPanel(tEmulator, tCount);
-                tabTerminal.Tabs.AddRange(new DevComponents.DotNetBar.BaseItem[] { tTabItem });
-                tabTerminal.ReorderTabsEnabled = true;
-
-                tabTerminal.SelectedTab = tTabItem;
-            }
-            else
-            {
-                TerminalWindows tForm = new TerminalWindows();
-                tEmulator.Dock = DockStyle.Fill;
-                tForm.AddTerminalControl(tEmulator);
-
-                tForm.Size = new Size(AppGlobal.s_ClientOption.PopupSizeWidth, AppGlobal.s_ClientOption.PopupSizeHeight);
-
-
-                if (tEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
-                {
-                    tEmulator.Name = tEmulator.DeviceInfo.IPAddress;
-                    if (tCount > 0)
-                    {
-                        tEmulator.Name += "(" + tCount.ToString() + ")";
-                    }
-                }
-                else if (tEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
-                {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
-                    tEmulator.Name = tEmulator.DeviceInfo.IPAddress;
-                    if (tCount > 0)
-                    {
-                        tEmulator.Name += "(" + tCount.ToString() + ")";
-                    }
-                }
-                else
-                {
-                    tEmulator.Name = "Serial-" + tEmulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName;
-                }
-
-
-
-                tForm.Text = tEmulator.Name;
-                tForm.MaximizeBox = false;
-
-                tForm.Show();
-            }
-
-            // 2013-05-02 - shinyn - ÅÍ¹Ì³Î ¿¬°á½Ã ¿¬°á¾ÈµÇ´Â ¿À·ù¸¦ ¼öÁ¤ÇÏ±â À§ÇØ, ÅÚ³İ ¿¬°á½Ã WorkItemÀ» °°ÀÌ º¸³»¼­ ¿¬°áÇÏµµ·Ï ¼öÁ¤ÇÕ´Ï´Ù.
-            //m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(tEmulator.ConnectDevice)));
-
-            MKWorkItem tWorkItem = new MKWorkItem(new WorkItemParmeterMethod(tEmulator.ConnectDevice), new DeviceInfo(tEmulator.DeviceInfo));
-            m_TerminalConnectThreadPool.ExecuteWork(tWorkItem);
 
 
             if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(E_TerminalStatus.Add, tEmulator.Name);
@@ -447,13 +393,13 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ÅÍ¹Ì³ÎÀ» Ãß°¡ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ì„ ì¶”ê°€ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aDeviceInfo">Àåºñ Á¤º¸ ÀÔ´Ï´Ù.</param>
-        /// <param name="aIsQuickConnection">ºü¸¥ ¿¬°á ¿©ºÎ</param>
+        /// <param name="aDeviceInfo">ì¥ë¹„ ì •ë³´ ì…ë‹ˆë‹¤.</param>
+        /// <param name="aIsQuickConnection">ë¹ ë¥¸ ì—°ê²° ì—¬ë¶€</param>
         public void AddTerminal(DeviceInfo aDeviceInfo, bool aIsQuickConnection)
         {
-            // 2013-05-02 - shinyn - ºü¸¥¿¬°á Ã³¸®½Ã Àç½Ãµµ Á¦¿ÜÃ³¸®
+            // 2013-05-02 - shinyn - ë¹ ë¥¸ì—°ê²° ì²˜ë¦¬ì‹œ ì¬ì‹œë„ ì œì™¸ì²˜ë¦¬
             if (this.InvokeRequired)
             {
                 this.Invoke(new HandlerArgument2<DeviceInfo, bool>(AddTerminal), new object[] { aDeviceInfo, aIsQuickConnection });
@@ -485,7 +431,7 @@ namespace RACTClient
                 }
                 else if (tEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                     tEmulator.Name = tEmulator.DeviceInfo.IPAddress;
                 }
                 else
@@ -497,7 +443,7 @@ namespace RACTClient
                 tForm.Show();
             }
 
-            // 2013-05-02 - shinyn - ÅÍ¹Ì³Î ¿¬°á½Ã ¿¬°á¾ÈµÇ´Â ¿À·ù¸¦ ¼öÁ¤ÇÏ±â À§ÇØ, ÅÚ³İ ¿¬°á½Ã WorkItemÀ» °°ÀÌ º¸³»¼­ ¿¬°áÇÏµµ·Ï ¼öÁ¤ÇÕ´Ï´Ù.
+            // 2013-05-02 - shinyn - í„°ë¯¸ë„ ì—°ê²°ì‹œ ì—°ê²°ì•ˆë˜ëŠ” ì˜¤ë¥˜ë¥¼ ìˆ˜ì •í•˜ê¸° ìœ„í•´, í…”ë„· ì—°ê²°ì‹œ WorkItemì„ ê°™ì´ ë³´ë‚´ì„œ ì—°ê²°í•˜ë„ë¡ ìˆ˜ì •í•©ë‹ˆë‹¤.
             //m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(tEmulator.ConnectDevice)));
 
             MKWorkItem tWorkItem = new MKWorkItem(new WorkItemParmeterMethod(tEmulator.ConnectDevice), new DeviceInfo(tEmulator.DeviceInfo));
@@ -505,8 +451,8 @@ namespace RACTClient
 
             m_TerminalConnectThreadPool.ExecuteWork(tWorkItem);
 
-            //2013-05-02 - shinyn - ÅÍ¹Ì³Î ¿¬°á ½º·¹µå Ç®¿äÃ»°ú ¹Ş´Â °ÍÀ» Á¦´ë·Î ¹Ş¾Ò´ÂÁö Ã¼Å©ÇÑ´Ù.
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "AddTerminal : ThreadPool ½ÃÀÛ : " + tEmulator.DeviceInfo.IPAddress);
+            //2013-05-02 - shinyn - í„°ë¯¸ë„ ì—°ê²° ìŠ¤ë ˆë“œ í’€ìš”ì²­ê³¼ ë°›ëŠ” ê²ƒì„ ì œëŒ€ë¡œ ë°›ì•˜ëŠ”ì§€ ì²´í¬í•œë‹¤.
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "AddTerminal : ThreadPool ì‹œì‘ : " + tEmulator.DeviceInfo.IPAddress);
 
 
 
@@ -514,7 +460,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2014-10-14 - ½ÅÀ±³² - Ã¢´İÈ÷´Â °æ¿ì ¿¡¹Ä·¹ÀÌÅÍ ¸®½ºÆ®¿¡¼­ »èÁ¦
+        /// 2014-10-14 - ì‹ ìœ¤ë‚¨ - ì°½ë‹«íˆëŠ” ê²½ìš° ì—ë®¬ë ˆì´í„° ë¦¬ìŠ¤íŠ¸ì—ì„œ ì‚­ì œ
         /// </summary>
         /// <param name="aValue1"></param>
         /// <param name="aValue2"></param>
@@ -539,7 +485,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ºü¸¥ ¿¬°á Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¹ ë¥¸ ì—°ê²° ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="quickConnectInfo"></param>
         internal void QuickConnect(TerminalConnectInfo aConnectInfo)
@@ -552,7 +498,7 @@ namespace RACTClient
             {
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
-                    //¼­¹ö¿¡ »ç¿ëÇÒ ¼ö ÀÖ´Â ÀåºñÀÎÁö È®ÀÎÇÕ´Ï´Ù.
+                    //ì„œë²„ì— ì‚¬ìš©í•  ìˆ˜ ìˆëŠ” ì¥ë¹„ì¸ì§€ í™•ì¸í•©ë‹ˆë‹¤.
 
                     RequestCommunicationData tRequestData = null;
                     DeviceSearchInfo tSearchInfo = new DeviceSearchInfo();
@@ -586,8 +532,8 @@ namespace RACTClient
                 /*
                 if (m_Result == null)
                 {
-                    //Å¸ÀÓ ¾Æ¿ô Ã³¸® ÄÜ¼Ö ¸ğµå·Î º¯°æ ÇØ¾ß ÇÏ³ª?
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Å¸ÀÓ ¾Æ¿ô ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //íƒ€ì„ ì•„ì›ƒ ì²˜ë¦¬ ì½˜ì†” ëª¨ë“œë¡œ ë³€ê²½ í•´ì•¼ í•˜ë‚˜?
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "íƒ€ì„ ì•„ì›ƒ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
 
                     //tDeviceInfo = new DeviceInfo();
@@ -612,7 +558,7 @@ namespace RACTClient
                         {
                             if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
                             {
-                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇØ´ç Àåºñ¿¡ Á¢¼Ó ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í•´ë‹¹ ì¥ë¹„ì— ì ‘ì† ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 return;
                             }
                         }
@@ -626,10 +572,10 @@ namespace RACTClient
             }
             else if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
-                    //¼­¹ö¿¡ »ç¿ëÇÒ ¼ö ÀÖ´Â ÀåºñÀÎÁö È®ÀÎÇÕ´Ï´Ù.
+                    //ì„œë²„ì— ì‚¬ìš©í•  ìˆ˜ ìˆëŠ” ì¥ë¹„ì¸ì§€ í™•ì¸í•©ë‹ˆë‹¤.
 
                     RequestCommunicationData tRequestData = null;
                     DeviceSearchInfo tSearchInfo = new DeviceSearchInfo();
@@ -663,8 +609,8 @@ namespace RACTClient
                 /*
                 if (m_Result == null)
                 {
-                    //Å¸ÀÓ ¾Æ¿ô Ã³¸® ÄÜ¼Ö ¸ğµå·Î º¯°æ ÇØ¾ß ÇÏ³ª?
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Å¸ÀÓ ¾Æ¿ô ¹ß»ıÇß½À´Ï´Ù.",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    //íƒ€ì„ ì•„ì›ƒ ì²˜ë¦¬ ì½˜ì†” ëª¨ë“œë¡œ ë³€ê²½ í•´ì•¼ í•˜ë‚˜?
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "íƒ€ì„ ì•„ì›ƒ ë°œìƒí–ˆìŠµë‹ˆë‹¤.",MessageBoxButtons.OK,MessageBoxIcon.Error);
                     return;
                 }
                 else
@@ -684,7 +630,7 @@ namespace RACTClient
                         {
                             if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
                             {
-                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇØ´ç Àåºñ¿¡ Á¢¼Ó ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í•´ë‹¹ ì¥ë¹„ì— ì ‘ì† ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 return;
                             }
                         }
@@ -704,7 +650,7 @@ namespace RACTClient
             */
             }
             else if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL_PORT)
-            {//2020-10-05 TACT ±â´É°³¼± Console Á¢¼Ó ½Ã ÅÍ¹Ì³Î(COM-PORT)Á¢¼Ó ½ÇÇà ºÒ°¡ ¼öÁ¤ 
+            {//2020-10-05 TACT ê¸°ëŠ¥ê°œì„  Console ì ‘ì† ì‹œ í„°ë¯¸ë„(COM-PORT)ì ‘ì† ì‹¤í–‰ ë¶ˆê°€ ìˆ˜ì • 
                 if (tDeviceInfo == null)
                     tDeviceInfo = new DeviceInfo();
                 tDeviceInfo.IsRegistered = false;
@@ -719,7 +665,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-11 - shinyn - ¸ñ·ÏºÒ·¯¿À±â·Î Àåºñ¿¬°á½Ã »ç¿ëµÊ.
+        /// 2013-01-11 - shinyn - ëª©ë¡ë¶ˆëŸ¬ì˜¤ê¸°ë¡œ ì¥ë¹„ì—°ê²°ì‹œ ì‚¬ìš©ë¨.
         /// </summary>
         /// <param name="aDeviceInfo"></param>
         /// <param name="aConnectInfo"></param>
@@ -734,7 +680,7 @@ namespace RACTClient
             }
             else if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSHÅÚ³İ ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                // 2013-03-06 - shinyn - SSHí…”ë„· ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                 aDeviceInfo.IsRegistered = false;
                 aDeviceInfo.TerminalConnectInfo = aConnectInfo;
             }
@@ -747,7 +693,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÅÇ ¸¶¿ì½º up Ã³¸® ÇÕ´Ï´Ù.
+        /// íƒ­ ë§ˆìš°ìŠ¤ up ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -761,11 +707,11 @@ namespace RACTClient
                 m_SelectedEmulator = tEmulator;
                 mnuModifyDevice.Enabled = tEmulator.DeviceInfo.IsRegistered;
 
-                // 2013-01-11 - shinyn - º¹¿ø ¸í·É ½ÇÇà ¸Ş´º Ãß°¡
+                // 2013-01-11 - shinyn - ë³µì› ëª…ë ¹ ì‹¤í–‰ ë©”ë‰´ ì¶”ê°€
                 mnuRestoreCfgCmd.Enabled = tEmulator.IsConnected;
 
                 mnuDisConnect.Enabled = tEmulator.IsConnected;
-                //2013-05-02 - shinyn - ¸µÅ© Àåºñ ¿¬°áÀº ¿¬°áµÈ »óÅÂ¿¡¼­ ÇØ¾ßÇÔ.
+                //2013-05-02 - shinyn - ë§í¬ ì¥ë¹„ ì—°ê²°ì€ ì—°ê²°ëœ ìƒíƒœì—ì„œ í•´ì•¼í•¨.
                 mnuLinkConnect.Enabled = tEmulator.IsConnected;
                 mnuReConnect.Enabled = !tEmulator.IsConnected;
 
@@ -773,12 +719,12 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ¼±ÅÃµÈ Emulator ÀÔ´Ï´Ù.
+        /// ì„ íƒëœ Emulator ì…ë‹ˆë‹¤.
         /// </summary>
-        private MCTerminalEmulator m_SelectedEmulator = null;
+        private ITerminal m_SelectedEmulator = null;
         //public MCTerminalEmulator m_SelectedEmulator = null;
         /// <summary>
-        /// ÆË¾÷ ¸Ş´º¸¦ Ç¥½Ã ÇÕ´Ï´Ù.
+        /// íŒì—… ë©”ë‰´ë¥¼ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="cm"></param>
         private void ShowContextMenu(ButtonItem aPopup)
@@ -787,7 +733,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Ã£±â Ã¢À» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// ì°¾ê¸° ì°½ì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         void Emulator_OnTelnetFindString()
         {
@@ -819,7 +765,7 @@ namespace RACTClient
             ((MCTerminalEmulator)(tabTerminal.SelectedTab.AttachedControl.Controls[0])).FindForm_Close();
         }
         /// <summary>
-        /// Ã£±â Ã³¸® ÇÕ´Ï´Ù.
+        /// ì°¾ê¸° ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         void TelnetFindForm_OnTelnetStringFind(TelnetStringFindHandlerArgs aStringArgs)
         {
@@ -828,11 +774,11 @@ namespace RACTClient
             ((MCTerminalEmulator)(tabTerminal.SelectedTab.AttachedControl.Controls[0])).FindForm_OnTelnetStringFind(aStringArgs);
         }
         /// <summary>
-        /// ´İ±â Ã³¸®µÈ ÄÁÆ®·Ñ ÀÔ´Ï´Ù.
+        /// ë‹«ê¸° ì²˜ë¦¬ëœ ì»¨íŠ¸ë¡¤ ì…ë‹ˆë‹¤.
         /// </summary>
         private MCTerminalEmulator m_CloseEmulator = null;
         /// <summary>
-        /// ÅÇ ´İ±â Ã³¸® ÇÕ´Ï´Ù.
+        /// íƒ­ ë‹«ê¸° ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void tabTerminal_TabItemClose(object sender, SuperTabStripTabItemCloseEventArgs e)
         {
@@ -840,7 +786,7 @@ namespace RACTClient
 
             MCTerminalEmulator tCloseEmulator = ((SuperTabItem)e.Tab).AttachedControl.Controls[0] as MCTerminalEmulator;
 
-            // 2014-08-19 - ½ÅÀ±³² - Á¾·á Å¬¸¯½Ã¿¡´Â »óÀ§ Parent¸¦ Á¾·áÇÏÁö ¾Êµµ·Ï ÇÑ´Ù.
+            // 2014-08-19 - ì‹ ìœ¤ë‚¨ - ì¢…ë£Œ í´ë¦­ì‹œì—ëŠ” ìƒìœ„ Parentë¥¼ ì¢…ë£Œí•˜ì§€ ì•Šë„ë¡ í•œë‹¤.
             tCloseEmulator.Tag = "TabItemClose";
 
             if (tCloseEmulator.IsConnected)
@@ -850,7 +796,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ÅÇ ¼±ÅÃ º¯°æ Ã³¸® ÇÕ´Ï´Ù.
+        /// íƒ­ ì„ íƒ ë³€ê²½ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void tabTerminal_SelectedTabChanged(object sender, SuperTabStripSelectedTabChangedEventArgs e)
         {
@@ -868,7 +814,7 @@ namespace RACTClient
             if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(tEmulator.TerminalStatus, tabTerminal.SelectedTab.Name);
         }
         /// <summary>
-        /// Àç Á¢¼Ó Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¬ ì ‘ì† ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void mnuReConnect_Click(object sender, EventArgs e)
         {
@@ -878,17 +824,17 @@ namespace RACTClient
                 m_SelectedEmulator.DeviceInfo.IsRegistered = false;
             }
             //MCTerminalEmulator tMCTerminalEmulator = (MCTerminalEmulator)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0];
-            // 2013-05-02 - shinyn - ÅÍ¹Ì³Î ¿¬°á½Ã ¿¬°á¾ÈµÇ´Â ¿À·ù¸¦ ¼öÁ¤ÇÏ±â À§ÇØ, ÅÚ³İ ¿¬°á½Ã WorkItemÀ» °°ÀÌ º¸³»¼­ ¿¬°áÇÏµµ·Ï ¼öÁ¤ÇÕ´Ï´Ù.
+            // 2013-05-02 - shinyn - í„°ë¯¸ë„ ì—°ê²°ì‹œ ì—°ê²°ì•ˆë˜ëŠ” ì˜¤ë¥˜ë¥¼ ìˆ˜ì •í•˜ê¸° ìœ„í•´, í…”ë„· ì—°ê²°ì‹œ WorkItemì„ ê°™ì´ ë³´ë‚´ì„œ ì—°ê²°í•˜ë„ë¡ ìˆ˜ì •í•©ë‹ˆë‹¤.
             //m_SelectedEmulator.ConnectDevice();
             m_SelectedEmulator.ConnectDevice(m_SelectedEmulator.DeviceInfo);
 
             m_EmulatorList.Add(m_SelectedEmulator);
 
-            // Àç¿¬°á½Ã ¹Ù·Î ÅÍ¹Ì³Î¿¡¼­ Å°º¸µå ÀÔ·ÂÇÒ ¼ö ÀÖµµ·Ï Æ÷Ä¿½º Ã³¸®
+            // ì¬ì—°ê²°ì‹œ ë°”ë¡œ í„°ë¯¸ë„ì—ì„œ í‚¤ë³´ë“œ ì…ë ¥í•  ìˆ˜ ìˆë„ë¡ í¬ì»¤ìŠ¤ ì²˜ë¦¬
             m_SelectedEmulator.Focus();
         }
         /// <summary>
-        /// Á¢¼Ó Á¾·á Ã³¸® ÇÕ´Ï´Ù.
+        /// ì ‘ì† ì¢…ë£Œ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void mnuDisConnect_Click(object sender, EventArgs e)
         {
@@ -897,7 +843,7 @@ namespace RACTClient
             m_SelectedEmulator.Disconnect();
         }
         /// <summary>
-        /// »õ·Î¿î ÅÇ ¿¬°á Ã³¸® ÇÕ´Ï´Ù.
+        /// ìƒˆë¡œìš´ íƒ­ ì—°ê²° ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void mnuNewTab_Click(object sender, EventArgs e)
         {
@@ -906,14 +852,14 @@ namespace RACTClient
             AddTerminal(m_SelectedEmulator.DeviceInfo, m_SelectedEmulator.IsQuickConnection);
         }
         /// <summary>
-        /// Àåºñ ¼öÁ¤ Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¥ë¹„ ìˆ˜ì • ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void mnuModifyDevice_Click(object sender, EventArgs e)
         {
             if (m_SelectedEmulator == null) return;
             DeviceInfo tDeviceInfo = m_SelectedEmulator.DeviceInfo;
 
-            // 2013-01-18 - shinyn - ¼öµ¿, ÀÏ¹İÀåºñ ¼öÁ¤ÇÕ´Ï´Ù.
+            // 2013-01-18 - shinyn - ìˆ˜ë™, ì¼ë°˜ì¥ë¹„ ìˆ˜ì •í•©ë‹ˆë‹¤.
             switch (tDeviceInfo.DeviceType)
             {
                 case E_DeviceType.NeGroup:
@@ -931,31 +877,31 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ÅÍ¹Ì³Î °³¼ö¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ ê°œìˆ˜ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public int TerminalCount
         {
             get { return m_EmulatorList.Count; }
         }
         /// <summary>
-        /// º¯°æµÈ È¯°æ Á¤º¸¸¦ Àû¿ëÇÕ´Ï´Ù.
+        /// ë³€ê²½ëœ í™˜ê²½ ì •ë³´ë¥¼ ì ìš©í•©ë‹ˆë‹¤.
         /// </summary>
         internal void ChangeOption()
         {
-            foreach (MCTerminalEmulator tEmulator in m_EmulatorList)
+            foreach (ITerminal tEmulator in m_EmulatorList)
             {
                 tEmulator.ApplyOption();
             }
         }
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ½ÃÅµ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” ì‹œí‚µë‹ˆë‹¤.
         /// </summary>
         public void InitializeControl()
         {
-            m_EmulatorList = new List<MCTerminalEmulator>();
+            m_EmulatorList = new List<ITerminal>();
         }
         /// <summary>
-        /// ÅÇ ÀÌ¸§ º¯°æ Ã³¸® ÇÕ´Ï´Ù.
+        /// íƒ­ ì´ë¦„ ë³€ê²½ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void mnuReName_Click(object sender, EventArgs e)
         {
@@ -967,18 +913,18 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ÅÍ¹Ì³Î ¼±ÅÃ È­¸é ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ ì„ íƒ í™”ë©´ ì…ë‹ˆë‹¤.
         /// </summary>
         private SelectTargetTerminal m_TerminalSelectForm = new SelectTargetTerminal();
         /// <summary>
-        /// ½ºÅ©¸³Æ® Ã³¸® ÇÕ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         internal void ScriptWork(E_ScriptWorkType aScriptWorkType)
         {
             if (m_EmulatorList.Count == 0) return;
 
             m_TerminalSelectForm.TerminalList = m_EmulatorList;
-            MCTerminalEmulator tSelectedTerminal = null;
+            ITerminal tSelectedTerminal = null;
             if (m_TerminalSelectForm.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
             {
                 tSelectedTerminal = m_TerminalSelectForm.SelectedTerminal;
@@ -994,7 +940,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ½ºÅ©¸³Æ® Ã³¸® ÇÕ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         internal void ScriptWork(E_ScriptWorkType e_ScriptWorkType, Script aScript)
         {
@@ -1006,7 +952,7 @@ namespace RACTClient
             if (m_EmulatorList.Count == 0) return;
 
             m_TerminalSelectForm.TerminalList = m_EmulatorList;
-            MCTerminalEmulator tSelectedTerminal = null;
+            ITerminal tSelectedTerminal = null;
             if (m_TerminalSelectForm.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
             {
 
@@ -1024,11 +970,11 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Á¾·á Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¢…ë£Œ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         internal void Stop(E_TerminalSessionCloseType aCloseType)
         {
-            MCTerminalEmulator tTelnet;
+            ITerminal tTelnet;
             if (aCloseType == E_TerminalSessionCloseType.All)
             {
                 for (int i = m_EmulatorList.Count - 1; i > -1; i--)
@@ -1068,7 +1014,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ¸ğµå º¯°æÀ» Àû¿ë ÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ëª¨ë“œ ë³€ê²½ì„ ì ìš© í•©ë‹ˆë‹¤.
         /// </summary>
         public void ChangeClientMode()
         {
@@ -1085,18 +1031,18 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ¸ŞÀÎÈ­¸éÀÇ ÆíÁı Ã³¸® ÇÕ´Ï´Ù.
+        /// ë©”ì¸í™”ë©´ì˜ í¸ì§‘ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aEditType"></param>
         internal void ExecTerminalScreen(E_TerminalScreenTextEditType aEditType)
         {
             if (tabTerminal.SelectedTabIndex < 0) 
                 return;
-            ((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0].Focus();
-            ((MCTerminalEmulator)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0]).ExecTerminalScreen(aEditType);
+            ((Control)tabTerminal.SelectedTab.AttachedControl).Controls[0].Focus();
+            ((ITerminal)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0]).ExecTerminalScreen(aEditType);
         }
 
-        internal void ExecTerminalScreenTest(MCTerminalEmulator m,E_TerminalScreenTextEditType aEditType)
+        internal void ExecTerminalScreenTest(ITerminal m,E_TerminalScreenTextEditType aEditType)
         {
 
             m.ExecTerminalScreen(aEditType);
@@ -1108,7 +1054,7 @@ namespace RACTClient
 
             for (int i = tabTerminal.Tabs.Count - 1; i > -1; i--)
             {
-                if (((MCTerminalEmulator)((SuperTabControlPanel)((SuperTabItem)tabTerminal.Tabs[i]).AttachedControl).Controls[0]).ConnectedSessionID != m_SelectedEmulator.ConnectedSessionID)
+                if (((ITerminal)((SuperTabControlPanel)((SuperTabItem)tabTerminal.Tabs[i]).AttachedControl).Controls[0]).ConnectedSessionID != m_SelectedEmulator.ConnectedSessionID)
                 {
                     m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(((SuperTabItem)tabTerminal.Tabs[i]).Close)));
                 }
@@ -1117,7 +1063,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÅÇ ºĞ¸® ÀÔ´Ï´Ù.
+        /// íƒ­ ë¶„ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1149,7 +1095,7 @@ namespace RACTClient
             }
             else if (m_SelectedEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ°æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                 switch (AppGlobal.s_ClientOption.TerminalDisplayNameType)
                 {
                     case E_TerminalDisplayNameType.IPAddress:
@@ -1182,7 +1128,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-01-11 - shinyn - º¹¿ø¸í·É ½ÇÇà
+        /// 2013-01-11 - shinyn - ë³µì›ëª…ë ¹ ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1193,12 +1139,12 @@ namespace RACTClient
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
 
-                    if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Configº¹¿ø¸í·ÉÀº ·Î±×ÀÎÈÄ root °æ·Î¿¡¼­ ½ÇÇàµË´Ï´Ù. \r\nConfigº¹¿ø¸í·ÉÀ» ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                    if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Configë³µì›ëª…ë ¹ì€ ë¡œê·¸ì¸í›„ root ê²½ë¡œì—ì„œ ì‹¤í–‰ë©ë‹ˆë‹¤. \r\nConfigë³µì›ëª…ë ¹ì„ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     {
                         return;
                     }
 
-                    //¼­¹ö¿¡ »ç¿ëÇÒ ¼ö ÀÖ´Â ÀåºñÀÎÁö È®ÀÎÇÕ´Ï´Ù.
+                    //ì„œë²„ì— ì‚¬ìš©í•  ìˆ˜ ìˆëŠ” ì¥ë¹„ì¸ì§€ í™•ì¸í•©ë‹ˆë‹¤.
                     RequestCommunicationData tRequestData = null;
                     CfgRestoreCommandRequestInfo tRequest = new CfgRestoreCommandRequestInfo();
 
@@ -1223,15 +1169,15 @@ namespace RACTClient
 
                     //if (m_Result == null)
                     //{
-                    //    //Å¸ÀÓ ¾Æ¿ô Ã³¸® ÄÜ¼Ö ¸ğµå·Î º¯°æ ÇØ¾ß ÇÏ³ª?
-                    //    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Å¸ÀÓ ¾Æ¿ô ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //    //íƒ€ì„ ì•„ì›ƒ ì²˜ë¦¬ ì½˜ì†” ëª¨ë“œë¡œ ë³€ê²½ í•´ì•¼ í•˜ë‚˜?
+                    //    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "íƒ€ì„ ì•„ì›ƒ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //    return;
                     //}
                     //else
                     //{
                     //    if (m_Result.Error.Error != E_ErrorType.NoError)
                     //    {
-                    //        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "¿À·ù ¹ß»ı:" + m_Result.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì˜¤ë¥˜ ë°œìƒ:" + m_Result.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //        return;
                     //    }
 
@@ -1241,7 +1187,7 @@ namespace RACTClient
 
                     //    if (tCfgSaveInfos == null)
                     //    {
-                    //        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "º¹¿øÇÒ CFG ¹ÙÀÌ³Ê¸® ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ë³µì›í•  CFG ë°”ì´ë„ˆë¦¬ íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //        return;
                     //    }
                     //    else
@@ -1249,7 +1195,7 @@ namespace RACTClient
 
                     //        if (tCfgSaveInfos.Count == 0)
                     //        {
-                    //            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÃÖ±Ù Config º¹¿ø ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ìµœê·¼ Config ë³µì› íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //            return;
                     //        }
 
@@ -1259,7 +1205,7 @@ namespace RACTClient
 
                     //        if (tCfgSaveInfo.FileName == "")
                     //        {
-                    //            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÃÖ±Ù Config º¹¿ø ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ìµœê·¼ Config ë³µì› íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     //            return;
                     //        }
                     //        else
@@ -1270,14 +1216,14 @@ namespace RACTClient
 
                     //            if (tOpenRestoreCommand.ShowDialog() != DialogResult.OK) return;
 
-                    //            // ¼±ÅÃ°á°ú¿¡ ´ëÇØ¼­ CFG º¹¿ø¸í·É ¿¹¾à¾î¸¦ ¸ÅÇÎ Ã³¸®
+                    //            // ì„ íƒê²°ê³¼ì— ëŒ€í•´ì„œ CFG ë³µì›ëª…ë ¹ ì˜ˆì•½ì–´ë¥¼ ë§¤í•‘ ì²˜ë¦¬
                     //            CfgSaveInfoCollection tSelectCfgSaveInfos = tOpenRestoreCommand.CfgSaveInfos;
 
                     //            string tConfigFileName = string.Empty;
 
                     //            SetTelnetReservedString(tSelectCfgSaveInfos);
 
-                    //            // ½ºÅ©¸³Æ® ¸í·É ½ÇÇà
+                    //            // ìŠ¤í¬ë¦½íŠ¸ ëª…ë ¹ ì‹¤í–‰
                     //            CfgSaveInfo tSelectCfgSaveInfo = (CfgSaveInfo)tSelectCfgSaveInfos.InnerList[0];
                     //            Script tScript = new Script(AppGlobal.GetScript(tSelectCfgSaveInfo.CfgRestoreCommands));
 
@@ -1290,7 +1236,7 @@ namespace RACTClient
                 else if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Console)
                 {
 
-                    if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Configº¹¿ø¸í·ÉÀº ·Î±×ÀÎÈÄ root °æ·Î¿¡¼­ ½ÇÇàµË´Ï´Ù. \r\nConfigº¹¿ø¸í·ÉÀ» ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                    if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Configë³µì›ëª…ë ¹ì€ ë¡œê·¸ì¸í›„ root ê²½ë¡œì—ì„œ ì‹¤í–‰ë©ë‹ˆë‹¤. \r\nConfigë³µì›ëª…ë ¹ì„ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     {
                         return;
                     }
@@ -1299,7 +1245,7 @@ namespace RACTClient
 
                     if (tDeviceInfo.CfgSaveInfos.Count == 0)
                     {
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Àåºñ Config º¹¿ø ¸í·ÉÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì¥ë¹„ Config ë³µì› ëª…ë ¹ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
@@ -1307,7 +1253,7 @@ namespace RACTClient
 
                     if (tCfgSaveInfo.FullFileName == "")
                     {
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Àåºñ Config º¹¿ø ¸í·ÉÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì¥ë¹„ Config ë³µì› ëª…ë ¹ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
@@ -1317,10 +1263,10 @@ namespace RACTClient
 
                     if (tOpenRestoreCommand.ShowDialog() != DialogResult.OK) return;
 
-                    // ¼±ÅÃ°á°ú¿¡ ´ëÇØ¼­ CFG º¹¿ø¸í·É ¿¹¾à¾î¸¦ ¸ÅÇÎ Ã³¸®
+                    // ì„ íƒê²°ê³¼ì— ëŒ€í•´ì„œ CFG ë³µì›ëª…ë ¹ ì˜ˆì•½ì–´ë¥¼ ë§¤í•‘ ì²˜ë¦¬
                     CfgSaveInfoCollection tSelectCfgSaveInfos = tOpenRestoreCommand.CfgSaveInfos;
 
-                    // ½ºÅ©¸³Æ® ¸í·É½ÇÇà
+                    // ìŠ¤í¬ë¦½íŠ¸ ëª…ë ¹ì‹¤í–‰
                     CfgSaveInfo tSelectCfgSaveInfo = (CfgSaveInfo)tSelectCfgSaveInfos.InnerList[0];
                     Script tScript = new Script(tSelectCfgSaveInfo.CfgRestoreScript);
 
@@ -1338,7 +1284,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-11 - shinyn - ÅÚ³İ ¿¹¾à¾î ¸ÅÄªÃ³¸®
+        /// 2013-01-11 - shinyn - í…”ë„· ì˜ˆì•½ì–´ ë§¤ì¹­ì²˜ë¦¬
         /// </summary>
         /// <param name="tSelectCfgSaveInfos"></param>
         private void SetTelnetReservedString(CfgSaveInfoCollection tSelectCfgSaveInfos)
@@ -1403,7 +1349,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-05-02 - shinyn - ¸µÅ©Àåºñ¿¬°á Á¢¼Ó
+        /// 2013-05-02 - shinyn - ë§í¬ì¥ë¹„ì—°ê²° ì ‘ì†
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1434,12 +1380,12 @@ namespace RACTClient
 
         private void RequestConnectionCommand()
         {
-            // »ç¿ëÀÚµî·ÏÀåºñÀÎ °æ¿ì ±âº»Á¢¼Ó ¸í·ÉÀ» DeviceInfo¿¡ °°ÀÌ °¡Áö°í ÀÖÀ½.
+            // ì‚¬ìš©ìë“±ë¡ì¥ë¹„ì¸ ê²½ìš° ê¸°ë³¸ì ‘ì† ëª…ë ¹ì„ DeviceInfoì— ê°™ì´ ê°€ì§€ê³  ìˆìŒ.
             RequestCommunicationData tRequestData = null;
 
             tRequestData = AppGlobal.MakeDefaultRequestData();
             tRequestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
-            //2013-05-02- shinyn - ¼öµ¿ÀåºñÀÎ °æ¿ì ±âº»Á¢¼Ó Á¤º¸´Â DeviceInfo¿¡ ÀÖÀ¸¹Ç·Î DeviceInfo¸¦ º¸³»°í ±âº»Á¢¼Ó Á¤º¸¸¦ ·ÎµåÇÑ´Ù.
+            //2013-05-02- shinyn - ìˆ˜ë™ì¥ë¹„ì¸ ê²½ìš° ê¸°ë³¸ì ‘ì† ì •ë³´ëŠ” DeviceInfoì— ìˆìœ¼ë¯€ë¡œ DeviceInfoë¥¼ ë³´ë‚´ê³  ê¸°ë³¸ì ‘ì† ì •ë³´ë¥¼ ë¡œë“œí•œë‹¤.
             tRequestData.RequestData = m_LinkDeviceInfo;
             m_Result = null;
             m_MRE.Reset();
@@ -1449,13 +1395,13 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-05-02 - shinyn - ±âº»Á¢¼Ó ¸í·ÉÀ» ¿äÃ»ÈÄ ½ºÅ©¸³Æ®¸¦ ½ÇÇàÇÑ´Ù.
+        /// 2013-05-02 - shinyn - ê¸°ë³¸ì ‘ì† ëª…ë ¹ì„ ìš”ì²­í›„ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì‹¤í–‰í•œë‹¤.
         /// </summary>
         /// <param name="vResult"></param>
         public override void ResultReceiver(ResultCommunicationData vResult)
         {
 
-            // 2013-05-02- shinyn - °á°ú°ª ¿Ã¶§±îÁö °è¼Ó ½ÇÇàÇÑ´Ù.
+            // 2013-05-02- shinyn - ê²°ê³¼ê°’ ì˜¬ë•Œê¹Œì§€ ê³„ì† ì‹¤í–‰í•œë‹¤.
             if (this.InvokeRequired)
             {
                 this.Invoke(new HandlerArgument1<ResultCommunicationData>(ResultReceiver), vResult);
@@ -1466,11 +1412,11 @@ namespace RACTClient
 
             if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
             {
-                // 2013-05-02 - shinyn - ±âº»Á¢¼Ó ¸í·É ·Îµå ½ÇÆĞ½Ã Àåºñ ¾ÆÀÌÇÇ ·Î±×¿¡ ÀúÀå
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TerminalPanel : ResultReceiver : ±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù. IP : " + m_LinkDeviceInfo.IPAddress);
+                // 2013-05-02 - shinyn - ê¸°ë³¸ì ‘ì† ëª…ë ¹ ë¡œë“œ ì‹¤íŒ¨ì‹œ ì¥ë¹„ ì•„ì´í”¼ ë¡œê·¸ì— ì €ì¥
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TerminalPanel : ResultReceiver : ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. IP : " + m_LinkDeviceInfo.IPAddress);
                 if (vResult.CommType == E_CommunicationType.RequestDefaultConnectionCommand)
                 {
-                    MessageBox.Show("Á¢¼ÓÁ¤º¸¸¦ °¡Á®¿ÀÁö ¸øÇß½À´Ï´Ù.");
+                    MessageBox.Show("ì ‘ì†ì •ë³´ë¥¼ ê°€ì ¸ì˜¤ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.");
                 }
                 return;
             }
@@ -1489,7 +1435,7 @@ namespace RACTClient
                 object tObject = AppGlobal.DecompressObject((CompressData)tResult);
                 DeviceInfo tDeviceInfo = null;
 
-                // Àåºñ¿¬°áÀÎ °æ¿ì ¿¬°á ½ÇÇàÇÏµµ·Ï ¼öÁ¤
+                // ì¥ë¹„ì—°ê²°ì¸ ê²½ìš° ì—°ê²° ì‹¤í–‰í•˜ë„ë¡ ìˆ˜ì •
                 if (tObject.GetType().Equals(typeof(DeviceInfoCollection)))
                 {
                     if (m_ConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
@@ -1515,7 +1461,7 @@ namespace RACTClient
                                 {
                                     if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
                                     {
-                                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇØ´ç Àåºñ¿¡ Á¢¼Ó ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í•´ë‹¹ ì¥ë¹„ì— ì ‘ì† ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                         return;
                                     }
                                 }
@@ -1559,7 +1505,7 @@ namespace RACTClient
                                 {
                                     if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
                                     {
-                                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇØ´ç Àåºñ¿¡ Á¢¼Ó ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í•´ë‹¹ ì¥ë¹„ì— ì ‘ì† ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                         return;
                                     }
                                 }
@@ -1594,7 +1540,7 @@ namespace RACTClient
 
                 if (tCfgSaveInfos == null)
                 {
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "º¹¿øÇÒ CFG ¹ÙÀÌ³Ê¸® ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ë³µì›í•  CFG ë°”ì´ë„ˆë¦¬ íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 else
@@ -1602,7 +1548,7 @@ namespace RACTClient
 
                     if (tCfgSaveInfos.Count == 0)
                     {
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÃÖ±Ù Config º¹¿ø ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ìµœê·¼ Config ë³µì› íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
 
@@ -1612,7 +1558,7 @@ namespace RACTClient
 
                     if (tCfgSaveInfo.FileName == "")
                     {
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÃÖ±Ù Config º¹¿ø ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ìµœê·¼ Config ë³µì› íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                     else
@@ -1623,14 +1569,14 @@ namespace RACTClient
 
                         if (tOpenRestoreCommand.ShowDialog() != DialogResult.OK) return;
 
-                        // ¼±ÅÃ°á°ú¿¡ ´ëÇØ¼­ CFG º¹¿ø¸í·É ¿¹¾à¾î¸¦ ¸ÅÇÎ Ã³¸®
+                        // ì„ íƒê²°ê³¼ì— ëŒ€í•´ì„œ CFG ë³µì›ëª…ë ¹ ì˜ˆì•½ì–´ë¥¼ ë§¤í•‘ ì²˜ë¦¬
                         CfgSaveInfoCollection tSelectCfgSaveInfos = tOpenRestoreCommand.CfgSaveInfos;
 
                         string tConfigFileName = string.Empty;
 
                         SetTelnetReservedString(tSelectCfgSaveInfos);
 
-                        // ½ºÅ©¸³Æ® ¸í·É ½ÇÇà
+                        // ìŠ¤í¬ë¦½íŠ¸ ëª…ë ¹ ì‹¤í–‰
                         CfgSaveInfo tSelectCfgSaveInfo = (CfgSaveInfo)tSelectCfgSaveInfos.InnerList[0];
                         Script tScript = new Script(AppGlobal.GetScript(tSelectCfgSaveInfo.CfgRestoreCommands));
 

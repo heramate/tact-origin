@@ -15,45 +15,45 @@ using RACTSerialProcess;
 using MKLibrary.MKProcess;
 using DevComponents.DotNetBar;
 
-// yskun rnjsdud -> Áö¿ª¿î¿ëÀÚ ºü¸¥¿¬°á½Ã ¿À·ù »çÇ× È®ÀÎ
+// yskun rnjsdud -> ì§€ì—­ìš´ìš©ì ë¹ ë¥¸ì—°ê²°ì‹œ ì˜¤ë¥˜ ì‚¬í•­ í™•ì¸
 namespace RACTClient
 {
     public partial class ClientMain : SenderForm
     {
         /// <summary>
-        /// ·Î±×ÀÎ Ã¢ÀÔ´Ï´Ù.
+        /// ë¡œê·¸ì¸ ì°½ì…ë‹ˆë‹¤.
         /// </summary>
         public SplashControl m_SplashControl;
         /// <summary>
-        /// °á°ú Ã³¸®¿¡¼­ »ç¿ëÇÒ ½º·¹µå ÀÔ´Ï´Ù.
+        /// ê²°ê³¼ ì²˜ë¦¬ì—ì„œ ì‚¬ìš©í•  ìŠ¤ë ˆë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Thread m_ProcessResultThread = null;
         /// <summary>
-        /// °á°ú ¾ò±â ½º·¡µå ÀÔ´Ï´Ù.
+        /// ê²°ê³¼ ì–»ê¸° ìŠ¤ë˜ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Thread m_GetResultThread = null;
         /// <summary>
-        /// °á°ú Å¥ ÀÔ´Ï´Ù.
+        /// ê²°ê³¼ í ì…ë‹ˆë‹¤.
         /// </summary>
         private Queue m_ResultQueue = new Queue();
         /// <summary>
-        /// ¿äÃ» Àü¼Û ½º·¡µå ÀÔ´Ï´Ù.
+        /// ìš”ì²­ ì „ì†¡ ìŠ¤ë˜ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Thread m_RequestSendThread = null;
         /// <summary>
-        /// ±×·ì ¼öÁ¤ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ê·¸ë£¹ ìˆ˜ì • ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event ModifyGroupHandler OnModifyGroupEvent;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ClientMain()
         {
             InitializeComponent();
             AppGlobal.m_DirectConnect = true;
 
-            //2016-04-06 ¼­¿µÀÀ ¹Ù·Î°¡±â·Î ½ÇÇà ÇßÀ» °æ¿ì ¿À·ù³ª´Â °æ¿ì ¼öÁ¤
+            //2016-04-06 ì„œì˜ì‘ ë°”ë¡œê°€ê¸°ë¡œ ì‹¤í–‰ í–ˆì„ ê²½ìš° ì˜¤ë¥˜ë‚˜ëŠ” ê²½ìš° ìˆ˜ì •
             AppGlobal.s_RACTClientMode = E_RACTClientMode.Console;
 
             AppGlobal.terminalPanel1 = terminalPanel1;
@@ -70,7 +70,7 @@ namespace RACTClient
             m_SplashControl.SetLoginInfo(aIPAddress, aID, aPass);
             timNow.Start();
 
-            //2016-04-01 ¼­¿µÀÀ ÅÇ Æ÷Ä¿½º¸¦ Ã£±âÀ§ÇØ Ãß°¡
+            //2016-04-01 ì„œì˜ì‘ íƒ­ í¬ì»¤ìŠ¤ë¥¼ ì°¾ê¸°ìœ„í•´ ì¶”ê°€
             AppGlobal.terminalPanel1 = terminalPanel1;
         }
 
@@ -78,18 +78,18 @@ namespace RACTClient
         {
             try
             {
-                //Àü¿ªº¯¼ö¿¡ ÀÚ½ÅÀ» ¼³Á¤ÇÕ´Ï´Ù.
+                //ì „ì—­ë³€ìˆ˜ì— ìì‹ ì„ ì„¤ì •í•©ë‹ˆë‹¤.
                 AppGlobal.s_ClientMainForm = this;
                 
 
                 ReadOption();
 
 
-                // 2019-11-10 °³¼±»çÇ× (·Î±× ÀúÀå °æ·Î °³¼±)
+                // 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ì €ì¥ ê²½ë¡œ ê°œì„ )
                 if (AppGlobal.s_FileLogProcessor == null)
                     AppGlobal.s_FileLogProcessor = new FileLogProcess(AppGlobal.s_ClientOption.LogPath + "SystemLog\\", "ClientSystem");
                 AppGlobal.s_FileLogProcessor.Start();
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Å¬¶óÀÌ¾ğÆ®¸¦ ½ÃÀÛ ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "í´ë¼ì´ì–¸íŠ¸ë¥¼ ì‹œì‘ í•©ë‹ˆë‹¤.");
                 m_SplashControl = new SplashControl();
                 m_SplashControl.InitalizeControl();
                 m_SplashControl.OnExit += new DefaultHandler(m_SplashControl_OnExit);
@@ -102,7 +102,7 @@ namespace RACTClient
                 this.Size = m_SplashControl.Size;
                 this.Location = new Point((Screen.PrimaryScreen.WorkingArea.Width - m_SplashControl.Size.Width) / 2,
                     (Screen.PrimaryScreen.WorkingArea.Height - m_SplashControl.Size.Height) / 2);
-                this.SetMainFormText("TACT Å¬¶óÀÌ¾ğÆ® (Ver " + AppGlobal.s_Version + ") ::: " + AppGlobal.s_RACTClientMode.ToString());
+                this.SetMainFormText("TACT í´ë¼ì´ì–¸íŠ¸ (Ver " + AppGlobal.s_Version + ") ::: " + AppGlobal.s_RACTClientMode.ToString());
 
             }
             catch (Exception ex)
@@ -111,12 +111,12 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ½ÃÀÛ Ã³¸® ½º·¡µå ÀÔ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ì‹œì‘ ì²˜ë¦¬ ìŠ¤ë˜ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Thread m_StartClientThread = null;
 
         /// <summary>
-        /// ·Î±×ÀÎ Ã³¸®¸¦ ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ì¸ ì²˜ë¦¬ë¥¼ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aValue1"></param>
         void EventProcessor_OnLoginStart(bool aValue1)
@@ -142,27 +142,27 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ½ÃÀÛÀ» Ã³¸® ÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ì‹œì‘ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ProcessStartClient()
         {
             try
             {
-                // 2013-02-20 - shinyn - ½ÇÇà¼Óµµ°¡ »¡¶ó¼­ ·Î±×ÀÎµÇÁö ¾Ê´Â °æ¿ì ¹ß»ı Ã³¸® 
+                // 2013-02-20 - shinyn - ì‹¤í–‰ì†ë„ê°€ ë¹¨ë¼ì„œ ë¡œê·¸ì¸ë˜ì§€ ì•ŠëŠ” ê²½ìš° ë°œìƒ ì²˜ë¦¬ 
                 System.Threading.Thread.Sleep(3000);
 
 
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat(AppGlobal.s_RACTClientMode.ToString(), " Mode·Î ½ÃÀÛÇÕ´Ï´Ù."));
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat(AppGlobal.s_RACTClientMode.ToString(), " Modeë¡œ ì‹œì‘í•©ë‹ˆë‹¤."));
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
 
                     if (AppGlobal.s_IsModeChangeConnect)
                     {
-                        AppGlobal.s_ModeChangeForm.m_SplashControl.ShowInitInfo("¼­¹ö¿¡ Á¢¼Ó ÁßÀÔ´Ï´Ù.");
+                        AppGlobal.s_ModeChangeForm.m_SplashControl.ShowInitInfo("ì„œë²„ì— ì ‘ì† ì¤‘ì…ë‹ˆë‹¤.");
                     }
                     else
                     {
-                        m_SplashControl.ShowInitInfo("¼­¹ö¿¡ Á¢¼Ó ÁßÀÔ´Ï´Ù.");
+                        m_SplashControl.ShowInitInfo("ì„œë²„ì— ì ‘ì† ì¤‘ì…ë‹ˆë‹¤.");
                     }
 
                     if (AppGlobal.TryServerConnect() != E_ConnectError.NoError)
@@ -178,15 +178,15 @@ namespace RACTClient
                             return;
                         }
                     }
-                    //·Î±×ÀÎÀ» Ã³¸®ÇÕ´Ï´Ù.
+                    //ë¡œê·¸ì¸ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 
                     if (AppGlobal.s_IsModeChangeConnect)
                     {
-                        AppGlobal.s_ModeChangeForm.m_SplashControl.ShowInitInfo("·Î±×ÀÎ ÇÕ´Ï´Ù.");
+                        AppGlobal.s_ModeChangeForm.m_SplashControl.ShowInitInfo("ë¡œê·¸ì¸ í•©ë‹ˆë‹¤.");
                     }
                     else
                     {
-                        m_SplashControl.ShowInitInfo("·Î±×ÀÎ ÇÕ´Ï´Ù.");
+                        m_SplashControl.ShowInitInfo("ë¡œê·¸ì¸ í•©ë‹ˆë‹¤.");
                     }
                     if (!AppGlobal.LoginConnect())
                     {
@@ -223,7 +223,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Á¾·á Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¢…ë£Œ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         void m_SplashControl_OnExit()
         {
@@ -238,11 +238,11 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// È¯°æ Á¤º¸¸¦ ·Îµå ÇÕ´Ï´Ù.
+        /// í™˜ê²½ ì •ë³´ë¥¼ ë¡œë“œ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ReadOption()
         {
-            // 2013-04-24- shinyn - È¯°æ¼³Á¤ÆÄÀÏ ÀúÀå½Ã ¿À·ùÃ¼Å©
+            // 2013-04-24- shinyn - í™˜ê²½ì„¤ì •íŒŒì¼ ì €ì¥ì‹œ ì˜¤ë¥˜ì²´í¬
 
 
             try
@@ -261,15 +261,15 @@ namespace RACTClient
                 if (tSystemInfos == null) return;
                 if (tSystemInfos.Count == 0) return;
                 AppGlobal.s_ClientOption = (ClientOption)tSystemInfos[0];
-                // 2021-04-21 TerminalColumnCount 80À¸·Î ÀÏ´Ü °íÁ¤
-                // 2021-11-04 °íÁ¤»çÀÌÁî »èÁ¦
+                // 2021-04-21 TerminalColumnCount 80ìœ¼ë¡œ ì¼ë‹¨ ê³ ì •
+                // 2021-11-04 ê³ ì •ì‚¬ì´ì¦ˆ ì‚­ì œ
                 //AppGlobal.s_ClientOption.TerminalColumnCount = 80;
-                // 2019-11-10 °³¼±»çÇ× (·Î±× ÀúÀå °æ·Î °³¼±)
+                // 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ì €ì¥ ê²½ë¡œ ê°œì„ )
                 DirectoryInfo ScriptDinfo = new DirectoryInfo(AppGlobal.s_ClientOption.ScriptSavePath);
                 if (!ScriptDinfo.Exists)
                     AppGlobal.s_ClientOption.ScriptSavePath = Application.StartupPath + "\\Script\\";
 
-				// 2019-11-10 °³¼±»çÇ× (·Î±× ÀúÀå °æ·Î °³¼±)
+				// 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ì €ì¥ ê²½ë¡œ ê°œì„ )
                 DirectoryInfo LogPathinfo = new DirectoryInfo(AppGlobal.s_ClientOption.LogPath);
                 if (!LogPathinfo.Exists)
                     AppGlobal.s_ClientOption.LogPath = Application.StartupPath + "\\Log\\";
@@ -283,7 +283,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±âº» µ¥ÀÌÅÍ¸¦ ÀĞ±â ½ÃÀÛ ÇÕ´Ï´Ù.
+        /// ê¸°ë³¸ ë°ì´í„°ë¥¼ ì½ê¸° ì‹œì‘ í•©ë‹ˆë‹¤.
         /// </summary>
         public bool StartApplicationInit()
         {
@@ -295,21 +295,21 @@ namespace RACTClient
 
             try
             {
-                //½Ã¸®¾ó ÀÛ¾÷ ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛ ÇÕ´Ï´Ù.
+                //ì‹œë¦¬ì–¼ ì‘ì—… í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘ í•©ë‹ˆë‹¤.
                 if (AppGlobal.s_SerialProcessor == null)
                 {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Serial ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛÇÕ´Ï´Ù.");
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Serial í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.");
                     AppGlobal.s_SerialProcessor = new SerialProcess();
                     AppGlobal.s_SerialProcessor.Start();
                 }
 
                 if (AppGlobal.s_TelnetProcessor == null)
                 {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Telnet ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛÇÕ´Ï´Ù.");
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Telnet í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.");
                     AppGlobal.s_TelnetProcessor = new TelnetProcessor.TelnetProcessor();
-                    //2013-04-26 - shinyn - LogÀúÀå °æ·Î¸¦ Ãß°¡ÇÏ°í, ·Î±×ÀúÀåÀ» ÇÏµµ·Ï ¼öÁ¤ÇÕ´Ï´Ù.
+                    //2013-04-26 - shinyn - Logì €ì¥ ê²½ë¡œë¥¼ ì¶”ê°€í•˜ê³ , ë¡œê·¸ì €ì¥ì„ í•˜ë„ë¡ ìˆ˜ì •í•©ë‹ˆë‹¤.
                     //AppGlobal.s_TelnetProcessor.Start();
-					// 2019-11-10 °³¼±»çÇ× (·Î±× ÀúÀå °æ·Î °³¼±)
+					// 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ì €ì¥ ê²½ë¡œ ê°œì„ )
                     AppGlobal.s_TelnetProcessor.Start(AppGlobal.s_ClientOption.LogPath);
                 }
 
@@ -321,11 +321,11 @@ namespace RACTClient
                     StartRequestSend();
 
                     AppGlobal.MakeClientOption();
-                    //±âº» Á¤º¸¸¦ ·Îµå ÇÕ´Ï´Ù.
+                    //ê¸°ë³¸ ì •ë³´ë¥¼ ë¡œë“œ í•©ë‹ˆë‹¤.
                     if (!LoadBaseData())
                     {
-                        AppGlobal.ShowMessageBox(this, "Å¬¶óÀÌ¾ğÆ® ½ÇÇàÀ» À§ÇÑ ÃÊ±â ÀÛ¾÷¿¡ ½ÇÆĞ ÇÏ¿´½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "Å¬¶óÀÌ¾ğÆ® ½ÇÇàÀ» À§ÇÑ ÃÊ±â ÀÛ¾÷¿¡ ½ÇÆĞ ÇÏ¿´½À´Ï´Ù.");
+                        AppGlobal.ShowMessageBox(this, "í´ë¼ì´ì–¸íŠ¸ ì‹¤í–‰ì„ ìœ„í•œ ì´ˆê¸° ì‘ì—…ì— ì‹¤íŒ¨ í•˜ì˜€ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "í´ë¼ì´ì–¸íŠ¸ ì‹¤í–‰ì„ ìœ„í•œ ì´ˆê¸° ì‘ì—…ì— ì‹¤íŒ¨ í•˜ì˜€ìŠµë‹ˆë‹¤.");
                         Application.Exit();
                         return false;
                     }
@@ -344,7 +344,7 @@ namespace RACTClient
                 AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, ex.ToString());
             }
 
-            //ÇöÀç ÆûÀ» Ç¥½ÃÇÕ´Ï´Ù.
+            //í˜„ì¬ í¼ì„ í‘œì‹œí•©ë‹ˆë‹¤.
             this.Invoke(new ShowMainFormHandler(ShowMainForm));
 
             return true;
@@ -352,7 +352,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ÅÍ¹Ì³Î ·Î±× Ã³¸® ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ ë¡œê·¸ ì²˜ë¦¬ í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘ í•©ë‹ˆë‹¤.
         /// </summary>
         private void StopTerminalExectueLogProcess()
         {
@@ -363,7 +363,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÅÍ¹Ì³Î ·Î±× Ã³¸® ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ ë¡œê·¸ ì²˜ë¦¬ í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘ í•©ë‹ˆë‹¤.
         /// </summary>
         private void StartTerminalExectueLogProcess()
         {
@@ -375,11 +375,11 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¸ŞÀÎÆû Ç¥½Ã ÇÚµé·¯ ÀÔ´Ï´Ù.
+        /// ë©”ì¸í¼ í‘œì‹œ í•¸ë“¤ëŸ¬ ì…ë‹ˆë‹¤.
         /// </summary>
         private delegate void ShowMainFormHandler();
         /// <summary>
-        /// ÇöÀç ÆûÀ» Ç¥½ÃÇÕ´Ï´Ù.
+        /// í˜„ì¬ í¼ì„ í‘œì‹œí•©ë‹ˆë‹¤.
         /// </summary>
         private void ShowMainForm()
         {
@@ -405,7 +405,7 @@ namespace RACTClient
                 this.MinimumSize = new Size(1064, 768);
                 this.Location = new Point((Screen.PrimaryScreen.WorkingArea.Width - this.Size.Width) / 2,
                     (Screen.PrimaryScreen.WorkingArea.Height - this.Size.Height) / 2);
-                this.SetMainFormText("TACT Å¬¶óÀÌ¾ğÆ® (Ver " + AppGlobal.s_Version + ") ::: " + AppGlobal.s_RACTClientMode.ToString());
+                this.SetMainFormText("TACT í´ë¼ì´ì–¸íŠ¸ (Ver " + AppGlobal.s_Version + ") ::: " + AppGlobal.s_RACTClientMode.ToString());
                 this.Show();
                 AppGlobal.s_IsModeChangeConnect = false;
                 InitializeControl();
@@ -415,7 +415,7 @@ namespace RACTClient
                     {
                         dotNetBarManager1.LoadLayout(Application.StartupPath + AppGlobal.s_LayOutFileName);
                     }
-					// 2019-11-10 °³¼±»çÇ× (·Î±× ÀÚµ¿ÀúÀå ¼³Àå°ª ¿É¼ÇÀ¸·Î Áö¿ø ±â´É Ãß°¡ )
+					// 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ìë™ì €ì¥ ì„¤ì¥ê°’ ì˜µì…˜ìœ¼ë¡œ ì§€ì› ê¸°ëŠ¥ ì¶”ê°€ )
                     this.autoSaveSwitch.Value = AppGlobal.s_ClientOption.IsAutoSaveLog;
                 }
             }
@@ -426,7 +426,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °¢ ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ê° ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         private void InitializeControl()
         {
@@ -441,7 +441,7 @@ namespace RACTClient
                 ucShortenCommand2.InitializeControl();
                 ucBatchRegisterBasePanel.initializeControl();
 
-                // 2014-10-14 - ¼¼¼Ç Á¾·á½Ã ÅÍ¹Ì³Î ´İÈ÷¸é ÅÍ¹Ì³Î°³¼ö ÁÙÀÌµµ·Ï ¼öÁ¤
+                // 2014-10-14 - ì„¸ì…˜ ì¢…ë£Œì‹œ í„°ë¯¸ë„ ë‹«íˆë©´ í„°ë¯¸ë„ê°œìˆ˜ ì¤„ì´ë„ë¡ ìˆ˜ì •
                 AppGlobal.m_TerminalPanel = terminalPanel1;
 
                 AppGlobal.s_ClientOption.OnConnectionHistoryChange += new DefaultHandler(ConnectionHistoryChange);
@@ -452,10 +452,10 @@ namespace RACTClient
                     tsbAddDevice.Enabled = false;
                     tsbAddGroup.Enabled = false;
 
-                    // 2013-01-11 - shinyn - ¸ñ·Ï¿­±â Åø¹Ù Ãß°¡
+                    // 2013-01-11 - shinyn - ëª©ë¡ì—´ê¸° íˆ´ë°” ì¶”ê°€
                     tsbOpenDeviceList.Enabled = true;
 
-                    // 2013-01-17 - shinyn - ¸Ş¸ğÀå ±â´É Ãß°¡
+                    // 2013-01-17 - shinyn - ë©”ëª¨ì¥ ê¸°ëŠ¥ ì¶”ê°€
                     tsbNewNotePad.Enabled = true;
                     tsbOpenNotePad.Enabled = true;
                     tabNotePads.Selected = false;
@@ -485,29 +485,29 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¸Ş´º ¹× Åø¹Ù¸¦ Å¬¶óÀÌ¾ğÆ® ¸ğµå¿¡ µû¶ó º¯°æ ½ÃÅµ´Ï´Ù.
+        /// ë©”ë‰´ ë° íˆ´ë°”ë¥¼ í´ë¼ì´ì–¸íŠ¸ ëª¨ë“œì— ë”°ë¼ ë³€ê²½ ì‹œí‚µë‹ˆë‹¤.
         /// </summary>
         private void ApplyMenuEnable()
         {
-            //ÆÄÀÏ --------------------------------------------------------------------------------
+            //íŒŒì¼ --------------------------------------------------------------------------------
             mnuGroupAdd.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
             mnuDeviceAdd.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
-            // 2013-01-11 - shinyn - Àåºñ¸ñ·Ï ºÒ·¯¿À±â ±â´É Ãß°¡
+            // 2013-01-11 - shinyn - ì¥ë¹„ëª©ë¡ ë¶ˆëŸ¬ì˜¤ê¸° ê¸°ëŠ¥ ì¶”ê°€
             mnuLoadDevice.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Console;
             mnuConnectListView.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
 
-            // 2013-01-17 - shinyn - ¸Ş¸ğÀå ¿­±â, ¸Ş¸ğÀå ºÒ·¯¿À±â ±â´É Ãß°¡
+            // 2013-01-17 - shinyn - ë©”ëª¨ì¥ ì—´ê¸°, ë©”ëª¨ì¥ ë¶ˆëŸ¬ì˜¤ê¸° ê¸°ëŠ¥ ì¶”ê°€
             mnuNewNotePad.Enabled = true;
             mnuNewNotePad.Enabled = true;
 
-            //½ºÅ©¸³Æ®
+            //ìŠ¤í¬ë¦½íŠ¸
             mnuScriptManage.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
 
-            //Åø¹Ù
+            //íˆ´ë°”
             tsbAddGroup.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
             tsbAddDevice.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
 
-            // 2013-01-11 - shinyn - ¸ñ·Ï¿­±â Åø¹Ù Ãß°¡
+            // 2013-01-11 - shinyn - ëª©ë¡ì—´ê¸° íˆ´ë°” ì¶”ê°€
             tsbOpenDeviceList.Enabled = AppGlobal.s_RACTClientMode == E_RACTClientMode.Console;
 
             tabBatchRegister.Visible = AppGlobal.s_RACTClientMode == E_RACTClientMode.Online;
@@ -522,7 +522,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÆÄÀÏ ¸Ş´º Ç×¸ñÀ» ¼³Á¤ ÇÕ´Ï´Ù.
+        /// íŒŒì¼ ë©”ë‰´ í•­ëª©ì„ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         private void ApplyFileMenu()
         {
@@ -535,8 +535,8 @@ namespace RACTClient
             try
             {
                 this.mnuFile.SubItems.Clear();
-                // 2013-01-11 - shinyn - ÆÄÀÏ¸ñ·Ï ºÒ·¯¿À±â ±â´É Ãß°¡
-                // 2013-01-17 - shinyn - »õ¸Ş¸ğÀå, ¸Ş¸ğÀå ¿­±â ±â´É Ãß°¡
+                // 2013-01-11 - shinyn - íŒŒì¼ëª©ë¡ ë¶ˆëŸ¬ì˜¤ê¸° ê¸°ëŠ¥ ì¶”ê°€
+                // 2013-01-17 - shinyn - ìƒˆë©”ëª¨ì¥, ë©”ëª¨ì¥ ì—´ê¸° ê¸°ëŠ¥ ì¶”ê°€
                 this.mnuFile.SubItems.AddRange(new DevComponents.DotNetBar.BaseItem[] { 
                                                 this.buttonItem9, 
                                                 this.mnuGroupAdd, 
@@ -558,7 +558,7 @@ namespace RACTClient
                     mnuFile.SubItems.Add(tConnectList);
                 }
 
-                // 2013-01-17 - shinyn - »õ¸Ş¸ğÀå, ¸Ş¸ğÀå ¿­±â ±â´É Ãß°¡ - Á¢¼ÓÀÌ·Âº¸±â ¼öÁ¤
+                // 2013-01-17 - shinyn - ìƒˆë©”ëª¨ì¥, ë©”ëª¨ì¥ ì—´ê¸° ê¸°ëŠ¥ ì¶”ê°€ - ì ‘ì†ì´ë ¥ë³´ê¸° ìˆ˜ì •
                 if (AppGlobal.s_ClientOption.ConnectionHistoryList.Count > 0)
                 {
                     this.mnuFile.SubItems[4].BeginGroup = true;
@@ -573,7 +573,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Á¢¼Ó ¸ñ·Ï º¯°æ½Ã Ã³¸® ÀÔ´Ï´Ù.
+        /// ì ‘ì† ëª©ë¡ ë³€ê²½ì‹œ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         void ConnectionHistoryChange()
         {
@@ -581,9 +581,9 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¼­¹ö·ÎºÎÅÍ ±âº» Á¤º¸¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ì„œë²„ë¡œë¶€í„° ê¸°ë³¸ ì •ë³´ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <returns>±âº» Á¤º¸ ·ÎµåÀÇ ¼º°ø¿©ºÎ ÀÔ´Ï´Ù.</returns>
+        /// <returns>ê¸°ë³¸ ì •ë³´ ë¡œë“œì˜ ì„±ê³µì—¬ë¶€ ì…ë‹ˆë‹¤.</returns>
         public bool LoadBaseData()
         {
             try
@@ -591,8 +591,8 @@ namespace RACTClient
                 RequestCommunicationData tRequestData = null;
 
                 tRequestData = AppGlobal.MakeDefaultRequestData();
-                ShowInitInfo("FACT ±×·ì Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "FACT ±×·ì Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                ShowInitInfo("FACT ê·¸ë£¹ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "FACT ê·¸ë£¹ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 tRequestData.CommType = E_CommunicationType.RequestFactGroupInfo;
                 tRequestData.RequestData = AppGlobal.s_LoginResult.ClientID;
                 m_Result = null;
@@ -610,9 +610,9 @@ namespace RACTClient
                 MakeAllGroupInfo((FACTGroupInfo)m_Result.ResultData);
 
 
-                // ±×·ì Á¤º¸¹× ÀåºñÁ¤º¸ °¡Á®¿À±â
-                ShowInitInfo("TACT ±×·ì Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "TACT ±×·ì Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                // ê·¸ë£¹ ì •ë³´ë° ì¥ë¹„ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+                ShowInitInfo("TACT ê·¸ë£¹ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "TACT ê·¸ë£¹ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 GroupRequestInfo tRequestGroupInfo = new GroupRequestInfo();
                 tRequestGroupInfo.UserID = AppGlobal.s_LoginResult.UserID;
                 tRequestGroupInfo.WorkType = E_WorkType.Search;
@@ -639,9 +639,9 @@ namespace RACTClient
                     return false;
                 }
 
-                ShowInitInfo("¸ğµ¨ Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                ShowInitInfo("ëª¨ë¸ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 tRequestData.CommType = E_CommunicationType.RequestModelInfo;
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¸ğµ¨ Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ëª¨ë¸ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 m_Result = null;
                 m_MRE.Reset();
                 AppGlobal.SendRequestData(this, tRequestData);
@@ -655,12 +655,12 @@ namespace RACTClient
                 AppGlobal.s_ModelInfoList = (ModelInfoCollection)m_Result.ResultData;
                 AppGlobal.InitializeDevicePartList();
 
-                //2015-10-30 Á¦ÇÑ ¸í·É¾î - »ç¿ëÀÚ ±ÇÇÑ Àû¿ë.
+                //2015-10-30 ì œí•œ ëª…ë ¹ì–´ - ì‚¬ìš©ì ê¶Œí•œ ì ìš©.
                 if (AppGlobal.s_LoginResult.UserInfo.LimitedCmdUser)
                 {
-                    ShowInitInfo("Á¦ÇÑ ¸í·É¾î Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                    ShowInitInfo("ì œí•œ ëª…ë ¹ì–´ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                     tRequestData.CommType = E_CommunicationType.RequestLimitCmdInfo;
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Á¦ÇÑ ¸í·É¾î Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì œí•œ ëª…ë ¹ì–´ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                     m_Result = null;
                     m_MRE.Reset();
                     AppGlobal.SendRequestData(this, tRequestData);
@@ -683,7 +683,7 @@ namespace RACTClient
                 //        {
                 //            foreach (String str in tModelInfo.EmbagoCmd)
                 //            {
-                //                Console.Write("2340 ÀÇ Á¦ÇÑ ¸í·É¾î " + str);
+                //                Console.Write("2340 ì˜ ì œí•œ ëª…ë ¹ì–´ " + str);
                 //            }
                 //            break;
                 //        }
@@ -691,9 +691,9 @@ namespace RACTClient
 
                 //}
 
-                ShowInitInfo("±âº» ¸í·É¾î Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                ShowInitInfo("ê¸°ë³¸ ëª…ë ¹ì–´ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 tRequestData.CommType = E_CommunicationType.RequestDefaultCmdInfo;
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "±âº» ¸í·É¾î Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ê¸°ë³¸ ëª…ë ¹ì–´ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 m_Result = null;
                 m_MRE.Reset();
                 AppGlobal.SendRequestData(this, tRequestData);
@@ -707,10 +707,10 @@ namespace RACTClient
                 AppGlobal.s_DefaultCmdInfoList = (DefaultCmdInfoCollection)m_Result.ResultData;
 
 
-                ShowInitInfo("Á¢¼ÓÀÚÀÇ ÀÚµ¿¿Ï¼º Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                ShowInitInfo("ì ‘ì†ìì˜ ìë™ì™„ì„± ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 tRequestData.CommType = E_CommunicationType.RequestAutoCompleteCmd;
                 tRequestData.RequestData = AppGlobal.s_LoginResult.UserID;
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Á¢¼ÓÀÚÀÇ ÀÚµ¿¿Ï¼º Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì ‘ì†ìì˜ ìë™ì™„ì„± ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 m_Result = null;
                 m_MRE.Reset();
                 AppGlobal.SendRequestData(this, tRequestData);
@@ -726,9 +726,9 @@ namespace RACTClient
                 
                 
 
-                // ´ÜÃà ¸í·É Á¤º¸ °¡Á®¿À±â
-                ShowInitInfo("´ÜÃà ¸í·É Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "´ÜÃà ¸í·É Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                // ë‹¨ì¶• ëª…ë ¹ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+                ShowInitInfo("ë‹¨ì¶• ëª…ë ¹ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ë‹¨ì¶• ëª…ë ¹ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 ShortenCommandRequestInfo tRequestShortenCommand = new ShortenCommandRequestInfo();
                 tRequestShortenCommand.UserID = AppGlobal.s_LoginResult.UserID;
                 tRequestShortenCommand.WorkType = E_WorkType.Search;
@@ -751,9 +751,9 @@ namespace RACTClient
                 AppGlobal.s_ShortenCommandList = (ShortenCommandGroupInfoCollection)m_Result.ResultData;
 
 
-                // ½ºÅ©¸³Æ® Á¤º¸ °¡Á®¿À±â
-                ShowInitInfo("½ºÅ©¸³Æ® Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "½ºÅ©¸³Æ® Á¤º¸¸¦ ·Îµù ÇÕ´Ï´Ù.");
+                // ìŠ¤í¬ë¦½íŠ¸ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+                ShowInitInfo("ìŠ¤í¬ë¦½íŠ¸ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ìŠ¤í¬ë¦½íŠ¸ ì •ë³´ë¥¼ ë¡œë”© í•©ë‹ˆë‹¤.");
                 ScriptGroupRequestInfo tRequestScriptGroup = new ScriptGroupRequestInfo();
                 tRequestScriptGroup.UserID = AppGlobal.s_LoginResult.UserID;
                 tRequestScriptGroup.WorkType = E_WorkType.Search;
@@ -782,7 +782,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ÀüÃ¼ ±×·ì Á¤º¸¸¦ »ı¼ºÇÕ´Ï´Ù.
+        /// ì „ì²´ ê·¸ë£¹ ì •ë³´ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
         /// </summary>
         private void MakeAllGroupInfo(FACTGroupInfo aAllGroupInfo)
         {
@@ -814,7 +814,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ½Ç Á¤º¸¸¦ °¡Á®¿É´Ï´Ù.
+        /// ì‹¤ ì •ë³´ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
         /// </summary>
         /// <param name="aGroupInfo"></param>
         private void GetORG1List(FACTGroupInfo aGroupInfo, Hashtable aHashtable)
@@ -847,7 +847,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¼¾ÅÍ ¸ñ·ÏÀ» ¾ò¾î ÇØ½¬ Å×ÀÌºí¿¡ ÀúÀåÇÕ´Ï´Ù.
+        /// ì„¼í„° ëª©ë¡ì„ ì–»ì–´ í•´ì‰¬ í…Œì´ë¸”ì— ì €ì¥í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aGroupInfo"></param>
         private void GetCenterList(FACTGroupInfo aGroupInfo, Hashtable aHashtable)
@@ -877,7 +877,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÆÀ Á¤º¸ (±¸.Áö»ç Á¤º¸)¸¦ °¡Á®¿É´Ï´Ù.
+        /// íŒ€ ì •ë³´ (êµ¬.ì§€ì‚¬ ì •ë³´)ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
         /// </summary>
         /// <param name="aGroupInfo"></param>
         private void GetBranchList(FACTGroupInfo aGroupInfo, Hashtable aHashtable)
@@ -914,12 +914,12 @@ namespace RACTClient
         //private Thread m_ReceiveDevicesThread = null;
 
         ///// <summary>
-        ///// Àåºñ Á¤º¸¸¦ ºĞÇÒÇÏ¿© ¹Ş±â¸¦ ½ÃµµÇÕ´Ï´Ù.
+        ///// ì¥ë¹„ ì •ë³´ë¥¼ ë¶„í• í•˜ì—¬ ë°›ê¸°ë¥¼ ì‹œë„í•©ë‹ˆë‹¤.
         ///// </summary>
         //private bool ReceiveDeviceInfo()
         //{
-        //    ShowInitInfo("½Ã¼³ Á¤º¸¸¦ ·ÎµùÇÕ´Ï´Ù.");
-        //    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "½Ã¼³ Á¤º¸¸¦ ·ÎµùÇÕ´Ï´Ù.");
+        //    ShowInitInfo("ì‹œì„¤ ì •ë³´ë¥¼ ë¡œë”©í•©ë‹ˆë‹¤.");
+        //    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì‹œì„¤ ì •ë³´ë¥¼ ë¡œë”©í•©ë‹ˆë‹¤.");
         //    DeviceInfoCollection tDeviceInfos = null;
         //    try
         //    {
@@ -954,7 +954,7 @@ namespace RACTClient
         //            }
         //            if (m_Result.ResultData == null)
         //            {
-        //                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "½Ã¼³Á¤º¸ °á°ú°¡ NULL ÀÔ´Ï´Ù.");
+        //                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "ì‹œì„¤ì •ë³´ ê²°ê³¼ê°€ NULL ì…ë‹ˆë‹¤.");
         //                return false;
         //            }
 
@@ -976,7 +976,7 @@ namespace RACTClient
         //}
 
         ///// <summary>
-        ///// ¼­¹ö¿¡¼­ ¹ŞÀº Àåºñ Á¤º¸¸¦ ¸Ş¸ğ¸®¿¡ ¿Ã¸³´Ï´Ù.
+        ///// ì„œë²„ì—ì„œ ë°›ì€ ì¥ë¹„ ì •ë³´ë¥¼ ë©”ëª¨ë¦¬ì— ì˜¬ë¦½ë‹ˆë‹¤.
         ///// </summary>
         //private void ProcessReceiveDevices()
         //{
@@ -1025,7 +1025,7 @@ namespace RACTClient
         //}
 
         /// <summary>
-        /// ÇöÀç »óÅÂ¸¦ Ç¥½Ã ÇÑ´Ù.
+        /// í˜„ì¬ ìƒíƒœë¥¼ í‘œì‹œ í•œë‹¤.
         /// </summary>
         /// <param name="aInfo"></param>
         private void ShowInitInfo(string aInfo)
@@ -1048,23 +1048,23 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ¼­¹ö¿¡ ¿äÃ» ½º·¡µå¸¦ ½ÃÀÛÇÕ´Ï´Ù.
+        /// ì„œë²„ì— ìš”ì²­ ìŠ¤ë˜ë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
         /// </summary>
         private void StartRequestSend()
         {
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¼­¹ö ¸í·É Àü¼Û ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛÇÕ´Ï´Ù.");
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì„œë²„ ëª…ë ¹ ì „ì†¡ í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.");
             m_RequestSendThread = new Thread(new ThreadStart(ProcessRequestSendToServer));
             m_RequestSendThread.Start();
         }
 
         /// <summary>
-        /// ¼­¹ö¿¡ ¿äÃ» ½º·¡µå¸¦ ÁßÁö ÇÕ´Ï´Ù.
+        /// ì„œë²„ì— ìš”ì²­ ìŠ¤ë˜ë“œë¥¼ ì¤‘ì§€ í•©ë‹ˆë‹¤.
         /// </summary>
         private void StopRequestSend()
         {
             if (m_RequestSendThread == null) return;
 
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¼­¹ö ¸í·É Àü¼Û ÇÁ·Î¼¼¼­¸¦ Á¾·áÇÕ´Ï´Ù.");
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì„œë²„ ëª…ë ¹ ì „ì†¡ í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œí•©ë‹ˆë‹¤.");
             m_RequestSendThread.Join(10);
             if (m_RequestSendThread.IsAlive)
             {
@@ -1079,7 +1079,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¼­¹ö¿¡ ¿äÃ»À» Àü¼ÛÇÕ´Ï´Ù.
+        /// ì„œë²„ì— ìš”ì²­ì„ ì „ì†¡í•©ë‹ˆë‹¤.
         /// </summary>
         private void ProcessRequestSendToServer()
         {
@@ -1092,7 +1092,7 @@ namespace RACTClient
 
                 lock (AppGlobal.s_RequestQueue)
                 {
-                    // 2013-05-02 - shinyn - ¾ø´Â°æ¿ì 
+                    // 2013-05-02 - shinyn - ì—†ëŠ”ê²½ìš° 
                     //if (AppGlobal.s_RequestQueue.Count < 1)
                     //{
                     //    AppGlobal.m_MRE.Reset();
@@ -1120,16 +1120,16 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °á°ú ¹Ş±â ½º·¡µå¸¦ ½ÃÀÛÇÕ´Ï´Ù.
+        /// ê²°ê³¼ ë°›ê¸° ìŠ¤ë˜ë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
         /// </summary>
         private void StartGetResult()
         {
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¼­¹ö °á°ú ¹Ş±â ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛÇÕ´Ï´Ù.");
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì„œë²„ ê²°ê³¼ ë°›ê¸° í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.");
             m_GetResultThread = new Thread(new ThreadStart(ProcessGetResultFromServer));
             m_GetResultThread.Start();
         }
         /// <summary>
-        /// ¼­¹ö·ÎºÎÅÍ °á°ú ¹ŞÀ½À» Ã³¸® ÇÕ´Ï´Ù.
+        /// ì„œë²„ë¡œë¶€í„° ê²°ê³¼ ë°›ìŒì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ProcessGetResultFromServer()
         {
@@ -1192,7 +1192,7 @@ namespace RACTClient
         }
         private E_ConnectError m_ConnectError;
         /// <summary>
-        /// ¼­¹ö¿Í Àç¿¬°áÀ» ½Ãµµ ÇÕ´Ï´Ù.
+        /// ì„œë²„ì™€ ì¬ì—°ê²°ì„ ì‹œë„ í•©ë‹ˆë‹¤.
         /// </summary>
         private void TryServerConnect()
         {
@@ -1201,7 +1201,7 @@ namespace RACTClient
             m_ConnectError = AppGlobal.TryServerConnect();
             if (m_ConnectError == E_ConnectError.NoError)
             {
-                //¼­¹ö¿¡ ´Ù½Ã ·Î±×ÀÎ ÇÕ´Ï´Ù.
+                //ì„œë²„ì— ë‹¤ì‹œ ë¡œê·¸ì¸ í•©ë‹ˆë‹¤.
                 AppGlobal.LoginConnect();
 
             }
@@ -1215,23 +1215,23 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¸ŞÀÎÆûÀ» ´İ±â ÇÕ´Ï´Ù.
+        /// ë©”ì¸í¼ì„ ë‹«ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         private void MainFormClose()
         {
             switch (m_ConnectError)
             {
                 case E_ConnectError.ServerNoRun:
-                    AppGlobal.ShowMessageBox(this, "¼­¹ö¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù. ¼­¹ö°¡ Á¤»óÀûÀ¸·Î ½ÃÀÛµÇ¾ú´ÂÁö ¶Ç´Â FireWallÀÌ ÀÛµ¿ÁßÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À.\nÇÁ·Î±×·¥À» Á¾·á ÇÕ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ì„œë²„ì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì„œë²„ê°€ ì •ìƒì ìœ¼ë¡œ ì‹œì‘ë˜ì—ˆëŠ”ì§€ ë˜ëŠ” FireWallì´ ì‘ë™ì¤‘ì¸ì§€ í™•ì¸ í•˜ì‹­ì‹œì˜¤.\ní”„ë¡œê·¸ë¨ì„ ì¢…ë£Œ í•©ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case E_ConnectError.LinkFail:
-                    AppGlobal.ShowMessageBox(this, "¼­¹ö¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù. ¼­¹ö±îÁö ³×Æ®¿öÅ©°¡ Á¤»óÀûÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À.\nÇÁ·Î±×·¥À» Á¾·á ÇÕ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ì„œë²„ì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì„œë²„ê¹Œì§€ ë„¤íŠ¸ì›Œí¬ê°€ ì •ìƒì ì¸ì§€ í™•ì¸ í•˜ì‹­ì‹œì˜¤.\ní”„ë¡œê·¸ë¨ì„ ì¢…ë£Œ í•©ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case E_ConnectError.LocalFail:
-                    AppGlobal.ShowMessageBox(this, "¼­¹ö¿¡ ¿¬°áÀ» ½ÃµµÇÒ ¼ö ¾ø½À´Ï´Ù. PCÀÇ ³×Æ®¿öÅ©°¡ Á¤»óÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À.\nÇÁ·Î±×·¥À» Á¾·á ÇÕ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ì„œë²„ì— ì—°ê²°ì„ ì‹œë„í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. PCì˜ ë„¤íŠ¸ì›Œí¬ê°€ ì •ìƒì¸ì§€ í™•ì¸ í•˜ì‹­ì‹œì˜¤.\ní”„ë¡œê·¸ë¨ì„ ì¢…ë£Œ í•©ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
             }
-            if (AppGlobal.ShowMessageBox(this, "Console Mode·Î º¯È¯ ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (AppGlobal.ShowMessageBox(this, "Console Modeë¡œ ë³€í™˜ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 ShowLoadingProgress(false);
                 ChangeClientMode(E_RACTClientMode.Console);
@@ -1243,13 +1243,13 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °á°ú ¹Ş±â ½º·¡µå¸¦ ÁßÁö ÇÕ´Ï´Ù.
+        /// ê²°ê³¼ ë°›ê¸° ìŠ¤ë˜ë“œë¥¼ ì¤‘ì§€ í•©ë‹ˆë‹¤.
         /// </summary>
         private void StopGetResult()
         {
             if (m_GetResultThread != null)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¼­¹ö °á°ú ¹Ş±â ÇÁ·Î¼¼¼­¸¦ Á¾·áÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ì„œë²„ ê²°ê³¼ ë°›ê¸° í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œí•©ë‹ˆë‹¤.");
                 m_GetResultThread.Join(10);
                 if (m_GetResultThread.IsAlive)
                 {
@@ -1264,11 +1264,11 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °á°ú Ã³¸® ½º·¡µå¸¦ ½ÃÀÛÇÕ´Ï´Ù.
+        /// ê²°ê³¼ ì²˜ë¦¬ ìŠ¤ë˜ë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
         /// </summary>
         private void StartProcessResult()
         {
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¼ö½Å °á°ú Ã³¸® ÇÁ·Î¼¼¼­¸¦ ½ÃÀÛ ÇÕ´Ï´Ù.");
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ìˆ˜ì‹  ê²°ê³¼ ì²˜ë¦¬ í”„ë¡œì„¸ì„œë¥¼ ì‹œì‘ í•©ë‹ˆë‹¤.");
             m_ProcessResultThread = new Thread(new ThreadStart(ProcessServerResult));
             m_ProcessResultThread.Start();
         }
@@ -1278,7 +1278,7 @@ namespace RACTClient
 
             if (m_ProcessResultThread != null && m_ProcessResultThread.IsAlive)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "¼ö½Å °á°ú Ã³¸® ÇÁ·Î¼¼¼­¸¦ Á¾·á ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ìˆ˜ì‹  ê²°ê³¼ ì²˜ë¦¬ í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
                 try
                 {
                     m_ProcessResultThread.Abort();
@@ -1289,7 +1289,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °á°ú¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ê²°ê³¼ë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ProcessServerResult()
         {
@@ -1377,7 +1377,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// Å¸ÀÌÆ²À» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// íƒ€ì´í‹€ì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aTitle"></param>
         internal void SetMainFormText(string aTitle)
@@ -1391,7 +1391,7 @@ namespace RACTClient
         }
         //private void trvGroup_OnConnectDeviceEvent(DeviceInfo aDeviceInfo)
         //{
-        //    //Àåºñ¿¡ Á¢¼Ó ÇÕ´Ï´Ù.
+        //    //ì¥ë¹„ì— ì ‘ì† í•©ë‹ˆë‹¤.
         //    if (aDeviceInfo == null) return;
 
         //    aDeviceInfo.TerminalConnectInfo.IPAddress = aDeviceInfo.IPAddress;
@@ -1403,17 +1403,17 @@ namespace RACTClient
         //    tabTerminal.Selected = true;
         //}
         /// <summary>
-        /// 2013-05-03- shinyn - ÀåºñÁ¢¼Ó¿À·ù¸¦ ÇØ°áÇÏ±â À§ÇØ µ¥¸óÁ¤º¸¿Í ÀåºñÁ¤º¸¸¦ °°ÀÌ º¸³»¼­ Á¢¼ÓÇÑ´Ù.
-        /// ÀÌÀü¿¡´Â 1)µ¥¸ó¿¬°á 2)ÀåºñÁ¢¼Ó ¼øÂ÷ÀûÀ¸·Î °¡Á®¿À´Â°æ¿ì,
-        /// °á°ú°ªÀÌ ¿ÀÁö ¾Ê´Â Çö»óÀÌ ¹ß»ıÇÏ¿©,
-        /// µ¥¸ó¿¬°áÇÏ´Â°ÍÀ» ¸®½ºÆ®·Î °¡Á®¿Í¼­, ÀåºñÁ¢¼ÓÇÒ¶§ µ¥¸óÀ» Àåºñº°·Î ³ª´©¾îÁÖ¾î Á¢¼ÓÇÏµµ·Ï ¼öÁ¤ÇÏ´Ï,
-        /// Á¢¼ÓÀÌ ÀßµÈ´Ù.
+        /// 2013-05-03- shinyn - ì¥ë¹„ì ‘ì†ì˜¤ë¥˜ë¥¼ í•´ê²°í•˜ê¸° ìœ„í•´ ë°ëª¬ì •ë³´ì™€ ì¥ë¹„ì •ë³´ë¥¼ ê°™ì´ ë³´ë‚´ì„œ ì ‘ì†í•œë‹¤.
+        /// ì´ì „ì—ëŠ” 1)ë°ëª¬ì—°ê²° 2)ì¥ë¹„ì ‘ì† ìˆœì°¨ì ìœ¼ë¡œ ê°€ì ¸ì˜¤ëŠ”ê²½ìš°,
+        /// ê²°ê³¼ê°’ì´ ì˜¤ì§€ ì•ŠëŠ” í˜„ìƒì´ ë°œìƒí•˜ì—¬,
+        /// ë°ëª¬ì—°ê²°í•˜ëŠ”ê²ƒì„ ë¦¬ìŠ¤íŠ¸ë¡œ ê°€ì ¸ì™€ì„œ, ì¥ë¹„ì ‘ì†í• ë•Œ ë°ëª¬ì„ ì¥ë¹„ë³„ë¡œ ë‚˜ëˆ„ì–´ì£¼ì–´ ì ‘ì†í•˜ë„ë¡ ìˆ˜ì •í•˜ë‹ˆ,
+        /// ì ‘ì†ì´ ì˜ëœë‹¤.
         /// </summary>
         /// <param name="aDeviceInfo"></param>
         /// <param name="aDaemonProcessInfo"></param>
         private void trvGroup_OnConnectDeviceEvent(DeviceInfo aDeviceInfo, DaemonProcessInfo aDaemonProcessInfo)
         {
-            //Àåºñ¿¡ Á¢¼Ó ÇÕ´Ï´Ù.
+            //ì¥ë¹„ì— ì ‘ì† í•©ë‹ˆë‹¤.
             if (aDeviceInfo == null) return;
 
             aDeviceInfo.TerminalConnectInfo.IPAddress = aDeviceInfo.IPAddress;
@@ -1437,7 +1437,7 @@ namespace RACTClient
                 tForm.initializeControl();
                 tForm.ShowDialog(this);
 
-                // 2013-08-13 - shinyn - ±×·ì ¼öÁ¤ÈÄ ´Ù½Ã »ç¿ëÀÚ±×·ìÀ» ¸®½ºÆ®¾÷ÇÑ´Ù.
+                // 2013-08-13 - shinyn - ê·¸ë£¹ ìˆ˜ì •í›„ ë‹¤ì‹œ ì‚¬ìš©ìê·¸ë£¹ì„ ë¦¬ìŠ¤íŠ¸ì—…í•œë‹¤.
 
                 RequestCommunicationData tRequestData = null;
                 tRequestData = AppGlobal.MakeDefaultRequestData();
@@ -1457,12 +1457,12 @@ namespace RACTClient
 
                 if (m_Result == null)
                 {
-                    AppGlobal.ShowMessageBox(this, "±×·ìÁ¤º¸¸¦ ·ÎµùÇÏÁö ¸øÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë”©í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 else if (m_Result.Error.Error != E_ErrorType.NoError)
                 {
-                    AppGlobal.ShowMessageBox(this, "±×·ìÁ¤º¸¸¦ ·ÎµùÇÏÁö ¸øÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë”©í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
                     return;
                 }
@@ -1471,7 +1471,7 @@ namespace RACTClient
 
                 if (AppGlobal.s_GroupInfoList == null)
                 {
-                    AppGlobal.ShowMessageBox(this, "±×·ìÁ¤º¸¸¦ ·ÎµùÇÏÁö ¸øÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë”©í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     trvGroup.RefreshTree();
                     return;
                 }
@@ -1482,7 +1482,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-08-14 - shinyn - »ç¿ëÀÚ Àåºñ °øÀ¯ ÀÌº¥Æ®ÀÔ´Ï´Ù.
+        /// 2013-08-14 - shinyn - ì‚¬ìš©ì ì¥ë¹„ ê³µìœ  ì´ë²¤íŠ¸ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aGroupInfo"></param>
         private void trvGroup_OnShareDeviceEvent(GroupInfo aGroupInfo)
@@ -1494,8 +1494,8 @@ namespace RACTClient
                 tForm.InitializeControl();
                 tForm.ShowDialog(this);
 
-                // 2013-08-13 - shinyn - ±×·ì ¼öÁ¤ÈÄ ´Ù½Ã »ç¿ëÀÚ±×·ìÀ» ¸®½ºÆ®¾÷ÇÑ´Ù.
-                // 2013-09-09 - shinyn - ±×·ìÀ» ³Ñ°Ü ÁÖ´Â°ÍÀ¸·Î º¯°æµÇ¾î Àç·Îµù »èÁ¦
+                // 2013-08-13 - shinyn - ê·¸ë£¹ ìˆ˜ì •í›„ ë‹¤ì‹œ ì‚¬ìš©ìê·¸ë£¹ì„ ë¦¬ìŠ¤íŠ¸ì—…í•œë‹¤.
+                // 2013-09-09 - shinyn - ê·¸ë£¹ì„ ë„˜ê²¨ ì£¼ëŠ”ê²ƒìœ¼ë¡œ ë³€ê²½ë˜ì–´ ì¬ë¡œë”© ì‚­ì œ
                 /*
                 RequestCommunicationData tRequestData = null;
                 tRequestData = AppGlobal.MakeDefaultRequestData();
@@ -1515,12 +1515,12 @@ namespace RACTClient
 
                 if (m_Result == null)
                 {
-                    AppGlobal.ShowMessageBox(this, "±×·ìÁ¤º¸¸¦ ·ÎµùÇÏÁö ¸øÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë”©í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 else if (m_Result.Error.Error != E_ErrorType.NoError)
                 {
-                    AppGlobal.ShowMessageBox(this, "±×·ìÁ¤º¸¸¦ ·ÎµùÇÏÁö ¸øÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë”©í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
                     return;
                 }
@@ -1529,7 +1529,7 @@ namespace RACTClient
 
                 if (AppGlobal.s_GroupInfoList == null)
                 {
-                    AppGlobal.ShowMessageBox(this, "±×·ìÁ¤º¸¸¦ ·ÎµùÇÏÁö ¸øÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë”©í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     trvGroup.RefreshTree();
                     return;
                 }
@@ -1548,19 +1548,19 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ±×·ìÀ» »èÁ¦ ÇÕ´Ï´Ù.
+        /// ê·¸ë£¹ì„ ì‚­ì œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aGroupInfo"></param>
         private void DeleteGroupInfo(GroupInfo aGroupInfo)
         {
-            if (AppGlobal.ShowMessageBox(this, "±×·ìÀ» »èÁ¦ ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            if (AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì„ ì‚­ì œ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
             {
                 return;
             }
 
             //if (aGroupInfo.DeviceList.Count > 0)
             //{
-            //    AppGlobal.ShowMessageBox(this, "»èÁ¦ ÇÒ ¼ö ¾ø½À´Ï´Ù.\n(ÇØ´ç ±×·ì¿¡ µî·ÏµÈ Àåºñ°¡ Á¸ÀçÇÕ´Ï´Ù.)", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //    AppGlobal.ShowMessageBox(this, "ì‚­ì œ í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n(í•´ë‹¹ ê·¸ë£¹ì— ë“±ë¡ëœ ì¥ë¹„ê°€ ì¡´ì¬í•©ë‹ˆë‹¤.)", MessageBoxButtons.OK, MessageBoxIcon.Error);
             //    return;
             //}
 
@@ -1582,7 +1582,7 @@ namespace RACTClient
             m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
             if (m_Result == null)
             {
-                AppGlobal.ShowMessageBox(this, "¾Ë ¼ö ¾ø´Â ¿¡·¯°¡ ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, "ì•Œ ìˆ˜ ì—†ëŠ” ì—ëŸ¬ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (m_Result.Error.Error != E_ErrorType.NoError)
@@ -1612,12 +1612,12 @@ namespace RACTClient
         {
             terminalPanel1.ChangeOption();
             ucCommandLine1.sTerminalApplyOption();
-			// 2019-11-10 °³¼±»çÇ× (·Î±× ÀÚµ¿ÀúÀå ¼³Àå°ª ¿É¼ÇÀ¸·Î Áö¿ø ±â´É Ãß°¡ )
+			// 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ìë™ì €ì¥ ì„¤ì¥ê°’ ì˜µì…˜ìœ¼ë¡œ ì§€ì› ê¸°ëŠ¥ ì¶”ê°€ )
             this.autoSaveSwitch.Value = AppGlobal.s_ClientOption.IsAutoSaveLog;
         }
 
         /// <summary>
-        /// ·Î±×¾Æ¿ô ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ì•„ì›ƒ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SendRequestLogOut()
         {
@@ -1641,7 +1641,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±×·ì Ãß°¡ ¸Ş´º ±â´ÉÀ» ¼öÇàÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
+        /// ê·¸ë£¹ ì¶”ê°€ ë©”ë‰´ ê¸°ëŠ¥ì„ ìˆ˜í–‰í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1651,13 +1651,13 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Á¾·á Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¢…ë£Œ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ClientMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (AppGlobal.ShowMessageBox(this, "ÇÁ·Î±×·¥À» Á¾·á ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            if (AppGlobal.ShowMessageBox(this, "í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
             {
                 e.Cancel = true;
                 return;
@@ -1716,7 +1716,7 @@ namespace RACTClient
         {
             if (AppGlobal.s_TelnetProcessor != null)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Telnet ÇÁ·Î¼¼¼­¸¦ Á¾·á ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Telnet í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
                 AppGlobal.s_TelnetProcessor.Dispose();
             }
         }
@@ -1725,7 +1725,7 @@ namespace RACTClient
         {
             if (AppGlobal.s_SerialProcessor != null)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Serial ÇÁ·Î¼¼¼­¸¦ Á¾·á ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Serial í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
                 AppGlobal.s_SerialProcessor.Dispose();
             }
         }
@@ -1761,7 +1761,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-18 - shinyn - ¼öµ¿Àåºñµî·Ï ÀÌº¥Æ® Ãß°¡
+        /// 2013-01-18 - shinyn - ìˆ˜ë™ì¥ë¹„ë“±ë¡ ì´ë²¤íŠ¸ ì¶”ê°€
         /// </summary>
         /// <param name="aWorkType"></param>
         /// <param name="aNodeInfo"></param>
@@ -1796,14 +1796,14 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Àåºñ¸¦ »èÁ¦ ±â´ÉÀ» ¼öÇàÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
+        /// ì¥ë¹„ë¥¼ ì‚­ì œ ê¸°ëŠ¥ì„ ìˆ˜í–‰í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aDeviceInfo"></param>
         private void DeleteDevice(DeviceInfo aDeviceInfo)
         {
             if (aDeviceInfo != null)
             {
-                if (AppGlobal.ShowMessageBox(this, "Àåºñ¸¦ »èÁ¦ ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                if (AppGlobal.ShowMessageBox(this, "ì¥ë¹„ë¥¼ ì‚­ì œ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 {
                     return;
                 }
@@ -1828,7 +1828,7 @@ namespace RACTClient
 
             if (m_Result == null)
             {
-                AppGlobal.ShowMessageBox(this, "¾Ë ¼ö ¾ø´Â ¿¡·¯°¡ ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, "ì•Œ ìˆ˜ ì—†ëŠ” ì—ëŸ¬ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (m_Result.Error.Error != E_ErrorType.NoError)
@@ -1839,14 +1839,14 @@ namespace RACTClient
 
             EventProcessor.Run((DeviceInfo)m_Result.ResultData, E_WorkType.Delete);
 
-            AppGlobal.ShowMessageBox(this, "Àåºñ¸¦ »èÁ¦ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            AppGlobal.ShowMessageBox(this, "ì¥ë¹„ë¥¼ ì‚­ì œ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>
-        /// Àåºñ ¼Ó¼º Ã¢À» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// ì¥ë¹„ ì†ì„± ì°½ì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aDeviceInfo">Àåºñ Á¤º¸ ÀÔ´Ï´Ù.</param>
-        /// <param name="aWorkType">Work Type ÀÔ´Ï´Ù.</param>
+        /// <param name="aDeviceInfo">ì¥ë¹„ ì •ë³´ ì…ë‹ˆë‹¤.</param>
+        /// <param name="aWorkType">Work Type ì…ë‹ˆë‹¤.</param>
         private void ShowModifyDeviceForm(DeviceInfo aDeviceInfo, E_WorkType aWorkType)
         {
             ModifyDeviceInfo tModifyDeviceInfo = new ModifyDeviceInfo(aDeviceInfo, aWorkType);
@@ -1855,10 +1855,10 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-18 - shinyn - ¼öµ¿ Àåºñ ¼Ó¼º Ã¢À» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// 2013-01-18 - shinyn - ìˆ˜ë™ ì¥ë¹„ ì†ì„± ì°½ì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aDeviceInfo">Àåºñ Á¤º¸ ÀÔ´Ï´Ù.</param>
-        /// <param name="aWorkType">Work Type ÀÔ´Ï´Ù.</param>
+        /// <param name="aDeviceInfo">ì¥ë¹„ ì •ë³´ ì…ë‹ˆë‹¤.</param>
+        /// <param name="aWorkType">Work Type ì…ë‹ˆë‹¤.</param>
         private void ShowModifyUserDeviceForm(DeviceInfo aDeviceInfo, E_WorkType aWorkType)
         {
             ModifyUserDeviceInfo tModifyDeviceInfo = new ModifyUserDeviceInfo(aDeviceInfo, aWorkType);
@@ -1872,7 +1872,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-18 - shinyn - ¼öµ¿Àåºñ µî·Ï ¼Ó¼ºÃ¢À» Ç¥½ÃÇÕ´Ï´Ù.
+        /// 2013-01-18 - shinyn - ìˆ˜ë™ì¥ë¹„ ë“±ë¡ ì†ì„±ì°½ì„ í‘œì‹œí•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aWorkType"></param>
         /// <param name="aDeviceInfo"></param>
@@ -1893,7 +1893,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-01-17 - shinyn - ¸Ş¸ğÀå ÅÇ º¯°æ½Ã ¹ß»ıÇÏ´Â ÀÌº¥Æ®
+        /// 2013-01-17 - shinyn - ë©”ëª¨ì¥ íƒ­ ë³€ê²½ì‹œ ë°œìƒí•˜ëŠ” ì´ë²¤íŠ¸
         /// </summary>
         /// <param name="aWorkType"></param>
         /// <param name="aNotePadName"></param>
@@ -1968,17 +1968,17 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ¸ğµå¸¦ º¯°æ ÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ëª¨ë“œë¥¼ ë³€ê²½ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aMode"></param>
         private void ChangeClientMode(E_RACTClientMode aMode)
         {
             try
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Å¬¶óÀÌ¾ğÆ® ¸ğµå¸¦ º¯°æ ÇÕ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "í´ë¼ì´ì–¸íŠ¸ ëª¨ë“œë¥¼ ë³€ê²½ í•©ë‹ˆë‹¤.");
                 if (aMode == E_RACTClientMode.Online)
                 {
-                    //¼­¹ö¿¡ Á¢¼ÓÇØ¾ßÇÔ
+                    //ì„œë²„ì— ì ‘ì†í•´ì•¼í•¨
                     AppGlobal.s_IsModeChangeConnect = true;
                     AppGlobal.s_ModeChangeForm.InitializeControl();
                     AppGlobal.s_ModeChangeForm.Size = new Size(690, 410);
@@ -2000,7 +2000,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ·Î±× ¾Æ¿ô Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ ì•„ì›ƒ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SendLogOut()
         {
@@ -2089,7 +2089,7 @@ namespace RACTClient
         {
 
         }
-        //2016-01-19 ¼­¿µÀÀ ±âº» ¸í·É Á¶È¸ ´å³İ ¹Ù¿¡ Ãß°¡
+        //2016-01-19 ì„œì˜ì‘ ê¸°ë³¸ ëª…ë ¹ ì¡°íšŒ ë‹·ë„· ë°”ì— ì¶”ê°€
         private void mnuSearchDefaultCmd_Click(object sender, EventArgs e)
         {
             terminalPanel1.ExecTerminalScreen(E_TerminalScreenTextEditType.SearchCmd);
@@ -2110,8 +2110,8 @@ namespace RACTClient
             // m_MRE.WaitOne();
             if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                 return;
             }
 
@@ -2130,7 +2130,7 @@ namespace RACTClient
         }
 
 
-        // 2013-05-02-shinyn - ¿¬°áµÇÁö ¾Ê´Â ¿À·ù¸¦ ÇØ°áÇÏ±â À§ÇØ, µ¥¸óÇÁ·Î¼¼½ºÁ¤º¸¿Í ÀåºñÁ¤º¸¸¦ º¸³»¼­ ¿¬°áµÇµµ·Ï ¼öÁ¤ÇÑ´Ù..
+        // 2013-05-02-shinyn - ì—°ê²°ë˜ì§€ ì•ŠëŠ” ì˜¤ë¥˜ë¥¼ í•´ê²°í•˜ê¸° ìœ„í•´, ë°ëª¬í”„ë¡œì„¸ìŠ¤ì •ë³´ì™€ ì¥ë¹„ì •ë³´ë¥¼ ë³´ë‚´ì„œ ì—°ê²°ë˜ë„ë¡ ìˆ˜ì •í•œë‹¤..
         //public void ucSearchDevice1_OnConnectDeviceEvent(DeviceInfo aDeviceInfo)
         //{
         //    trvGroup_OnConnectDeviceEvent(aDeviceInfo);
@@ -2170,7 +2170,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ÇÁ·Î±×·¡½º¸¦ Ç¥½Ã¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// í”„ë¡œê·¸ë˜ìŠ¤ë¥¼ í‘œì‹œë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aVisable"></param>
         internal void ShowLoadingProgress(bool aVisable)
@@ -2186,9 +2186,9 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ÅÇÀ¸·Î Ãß°¡ ÇÕ´Ï´Ù.
+        /// íƒ­ìœ¼ë¡œ ì¶”ê°€ í•©ë‹ˆë‹¤.
         /// </summary>
-        internal void AddTerminalTab(MCTerminalEmulator mCTerminalEmulator)
+        internal void AddTerminalTab(ITerminal mCTerminalEmulator)
         {
             terminalPanel1.AddTerminal(mCTerminalEmulator);
         }
@@ -2212,7 +2212,7 @@ namespace RACTClient
             if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
             {
                 if (AppGlobal.s_LoginResult == null || AppGlobal.s_LoginResult.UserInfo == null) return;
-                this.lblSystemInfo.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "   Á¢¼Ó °èÁ¤ : " + AppGlobal.s_LoginResult.UserInfo.Account;
+                this.lblSystemInfo.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "   ì ‘ì† ê³„ì • : " + AppGlobal.s_LoginResult.UserInfo.Account;
             }
             else
             {
@@ -2226,7 +2226,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-01-11 - shinyn - Àåºñ ¸ñ·Ï ÆÄÀÏ ºÒ·¯¿À±â ±â´É Ãß°¡
+        /// 2013-01-11 - shinyn - ì¥ë¹„ ëª©ë¡ íŒŒì¼ ë¶ˆëŸ¬ì˜¤ê¸° ê¸°ëŠ¥ ì¶”ê°€
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2242,7 +2242,7 @@ namespace RACTClient
 
                 if (terminalPanel1.EmulatorList.Count >= 20)
                 {
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÅÍ¹Ì³Î ¿¬°á°³¼ö´Â 20°³±îÁöÀÔ´Ï´Ù. ÅÍ¹Ì³ÎÀ» ´İ¾ÆÁÖ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í„°ë¯¸ë„ ì—°ê²°ê°œìˆ˜ëŠ” 20ê°œê¹Œì§€ì…ë‹ˆë‹¤. í„°ë¯¸ë„ì„ ë‹«ì•„ì£¼ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -2273,7 +2273,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-01-11 - shinyn - Àåºñ ¸ñ·Ï ¿­±â Åø¹Ù Ãß°¡
+        /// 2013-01-11 - shinyn - ì¥ë¹„ ëª©ë¡ ì—´ê¸° íˆ´ë°” ì¶”ê°€
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2283,7 +2283,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-17 - shinyn - »õ·Î¿î ¸Ş¸ğÀå ½ÇÇà
+        /// 2013-01-17 - shinyn - ìƒˆë¡œìš´ ë©”ëª¨ì¥ ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2304,7 +2304,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-17 - shinyn - ¸Ş¸ğÀå ¿­±â ½ÇÇà
+        /// 2013-01-17 - shinyn - ë©”ëª¨ì¥ ì—´ê¸° ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2330,9 +2330,9 @@ namespace RACTClient
             }
         }
 
-        //2015-09-22 ¸í·É Á¶È¸ ¹× ÀÚµ¿ ÀúÀå ±â´É.
+        //2015-09-22 ëª…ë ¹ ì¡°íšŒ ë° ìë™ ì €ì¥ ê¸°ëŠ¥.
         /// <summary>
-        /// ÆÄÀÏ > ¸í·É½ÇÇà°á°úÁ¶È¸ ¸Ş´º Å¬¸¯½ÃÀÇ Ã³¸®ÀÔ´Ï´Ù.
+        /// íŒŒì¼ > ëª…ë ¹ì‹¤í–‰ê²°ê³¼ì¡°íšŒ ë©”ë‰´ í´ë¦­ì‹œì˜ ì²˜ë¦¬ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2342,13 +2342,13 @@ namespace RACTClient
             tCmdExecResultForm.StartPosition = FormStartPosition.CenterParent;
             tCmdExecResultForm.ShowDialog(this);
  
-            //»ó´Ü¿¡ Åø¹Ù ¸Ş´º Ãß°¡ ½Ã 
-            //ex> mnuNewNotePad_Click(null, null); ..ÇüÅÂÀÇ ¸Ş¼Òµå ¿¬°áÀÌ ÇÊ¿äÇÔ.
+            //ìƒë‹¨ì— íˆ´ë°” ë©”ë‰´ ì¶”ê°€ ì‹œ 
+            //ex> mnuNewNotePad_Click(null, null); ..í˜•íƒœì˜ ë©”ì†Œë“œ ì—°ê²°ì´ í•„ìš”í•¨.
         }
 
 
         /// <summary>
-        /// 2013-01-17 - shinyn - »õ·Î¿î ¸Ş¸ğÀå ½ÇÇà
+        /// 2013-01-17 - shinyn - ìƒˆë¡œìš´ ë©”ëª¨ì¥ ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2358,7 +2358,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-17 - shinyn - ¸Ş¸ğÀå ¿­±â ½ÇÇà
+        /// 2013-01-17 - shinyn - ë©”ëª¨ì¥ ì—´ê¸° ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2369,7 +2369,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-01-18 - shinyn - ¼öµ¿ Àåºñ µî·Ï ½ÇÇà
+        /// 2013-01-18 - shinyn - ìˆ˜ë™ ì¥ë¹„ ë“±ë¡ ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2390,7 +2390,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-18 - shinyn - ¼öµ¿Àåºñ µî·Ï ½ÇÇà
+        /// 2013-01-18 - shinyn - ìˆ˜ë™ì¥ë¹„ ë“±ë¡ ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2401,7 +2401,7 @@ namespace RACTClient
 
         private void autoSaveSwitch_ValueChanged(object sender, EventArgs e)
         {
-			// 2019-11-10 °³¼±»çÇ× (·Î±× ÀÚµ¿ÀúÀå ¼³Àå°ª ¿É¼ÇÀ¸·Î Áö¿ø ±â´É Ãß°¡ )
+			// 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ìë™ì €ì¥ ì„¤ì¥ê°’ ì˜µì…˜ìœ¼ë¡œ ì§€ì› ê¸°ëŠ¥ ì¶”ê°€ )
             //AppGlobal.s_IsAutoSaveLog = autoSaveSwitch.Value;
             AppGlobal.s_ClientOption.IsAutoSaveLog = autoSaveSwitch.Value;
    

@@ -1,218 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using MKLibrary.MKData;//MKOleDBPool
-using System.ComponentModel; //[DefaultValue()]
+using Serilog;
 
 namespace TACT.KeepAliveServer
 {
-    public enum E_DBLogType
-    {
-        Unknown,
-        /// <summary>
-        /// KeepAlive 송수신 로그 (DBLogKeepAlive)
-        /// </summary>
-        KeepAliveLog,
-    }
-
-    [Serializable]
-    public class DBLog
-    {
-        /// <summary>
-        /// DB로그 타입(상속시 구분을 위한)
-        /// </summary>
-        public E_DBLogType DBLogType { get; set; }
-
-        /// <summary>
-        /// 정보 객체
-        /// </summary>
-        [DefaultValue(null)]
-        protected object DataObject { get; set; }
-
-        public DBLog() { }
-        public DBLog(E_DBLogType aDBLogType, object aDataObject)
-        {
-            DBLogType = aDBLogType;
-            DataObject = aDataObject;
-        }
-        public virtual string GetQueryString()
-        {
-            return string.Empty;
-        }
-    }
-
-    public class DBLogKeepAlive : DBLog
-    {
-        public DBLogKeepAlive() { }
-        public DBLogKeepAlive(E_DBLogType aDBLogType, KeepAliveMsg aData)
-        {
-            DBLogType = aDBLogType;
-            DataObject = aData;
-        }
-
-        public override string GetQueryString()
-        {
-            KeepAliveMsg tMsg = (KeepAliveMsg)DataObject;
-            if (tMsg == null) return string.Empty;
-
-            const string c_SEND = "SEND";
-            const string c_RECV = "RECV";
-            string SendReceive = !string.IsNullOrEmpty(tMsg.SendIPAddress) ? c_SEND : c_RECV;
-            string tQuery = 
-            @"INSERT INTO LTE_KEEP_ALIVE_LOG(SendReceive, ServerDateTime, IPAddress, Port, DeviceIP, 
-                          DeviceModelName, USIM, IMEI, SerialNumber, LTEModuleName, 
-                          SSHTunnelCreateOption, SSHServerDomain, SSHPort, SSHTunnelPort, InsertDate)
-              VALUES({0}, {1}, {2}, {3}, {4}
-                   , {5}, {6}, {7}, {8}, {9}
-                   , {10}, {11}, {12}, {13}, GETDATE())";
-
-            tQuery = string.Format(tQuery,
-                  Util.QuotedStrOrNull(SendReceive)
-                , SendReceive.Equals(c_SEND) ? Util.DateTimeToDBValue(tMsg.SentDateTime) : Util.DateTimeToDBValue(tMsg.RecvDateTime) //송수신 서버시각
-                , SendReceive.Equals(c_SEND) ? Util.QuotedStrOrNull(tMsg.SendIPAddress) : Util.QuotedStrOrNull(tMsg.RecvIPAddress)
-                , SendReceive.Equals(c_SEND) ? tMsg.SendPort : tMsg.RecvPort
-                , Util.QuotedStrOrNull(tMsg.DeviceIP)
-                , Util.QuotedStrOrNull(tMsg.ModelName)
-                , Util.QuotedStrOrNull(tMsg.USIM)
-                , Util.QuotedStrOrNull(tMsg.IMEI)
-                , Util.QuotedStrOrNull(tMsg.SerialNumber)
-                , Util.QuotedStrOrNull(tMsg.LTEModuleName)
-                , SendReceive.Equals(c_SEND) && tMsg.IsFullMessage() ? ((byte)tMsg.SSHTunnelCreateOption).ToString() : "null"
-                , Util.QuotedStrOrNull(tMsg.SSHServerDomain)
-                , SendReceive.Equals(c_SEND) && tMsg.IsFullMessage() ? tMsg.SSHPort.ToString() : "null"
-                , SendReceive.Equals(c_SEND) && tMsg.IsFullMessage() ? tMsg.SSHTunnelPort.ToString() : "null"
-            );
-
-            return tQuery;
-        }
-    }
-
     public class DBLogProcess : IDisposable
     {
-        /// <summary>
-        /// 요청을 저장할 큐
-        /// </summary>
-        private Queue<DBLogKeepAlive> m_DBLogQueue = new Queue<DBLogKeepAlive>();
-        /// <summary>
-        /// 요청  대기 입니다.
-        /// </summary>
-        private ManualResetEvent m_DBLogQueueMRE = new ManualResetEvent(false);
-        /// <summary>
-        /// 요청 처리 스레드
-        /// </summary>
-        private Thread m_DBLogProcessThread = null;
-
-        private MKOleDBPool m_DBPool = null;
-
-
-        public DBLogProcess(MKOleDBPool aDBPool)
+        public DBLogProcess(object pool)
         {
-            m_DBPool = aDBPool;
-            m_DBLogProcessThread = new Thread(new ThreadStart(_ProcessDBLog));
-            m_DBLogProcessThread.Name = "DBLogProcess - DB로그 저장 스레드";
-            m_DBLogProcessThread.Start();
+            // 레거시 생성자 호환성 유지
         }
 
-        //public void Start(MKOleDBPool aDBPool)
-        //{
-        //    m_DBPool = aDBPool;
-        //}
-
-        public void Dispose()
+        public void Start()
         {
-            m_DBLogQueue.Clear();
-            GlobalClass.StopThread(m_DBLogProcessThread);
-
+            Log.Information("DBLogProcess started (Modernized stub).");
         }
 
-        public void AddLog(DBLogKeepAlive aLog)
+        public void Stop()
         {
-            lock (m_DBLogQueue)
+            Log.Information("DBLogProcess stopped.");
+        }
+
+        public void Dispose() => Stop();
+
+        public void PrintLog(E_FileLogType type, string msg)
+        {
+            switch (type)
             {
-                m_DBLogQueue.Enqueue(aLog);
-                m_DBLogQueueMRE.Set();
+                case E_FileLogType.Error: Log.Error(msg); break;
+                case E_FileLogType.Warning: Log.Warning(msg); break;
+                default: Log.Information(msg); break;
             }
         }
-
-        /// <summary>
-        /// [Thread] DB로그 요청 처리
-        /// </summary>
-        private void _ProcessDBLog()
-        {
-            DBLogKeepAlive tDBLog = null;
-            //List<DBLog> tDBLogList = new List<DBLog>();
-            while (!GlobalClass.m_IsServerStop)
-            {
-                try
-                {
-                    if (m_DBLogQueue.Count == 0)
-                    {
-                        m_DBLogQueueMRE.Reset();
-                        m_DBLogQueueMRE.WaitOne();
-                    }
-
-                    tDBLog = null;
-                    lock (m_DBLogQueue)
-                    {
-                        if (m_DBLogQueue.Count > 0)
-                            tDBLog = m_DBLogQueue.Dequeue();
-                    }
-                    if (tDBLog == null) continue;
-
-
-                    switch (tDBLog.DBLogType)
-                    {
-                        case E_DBLogType.KeepAliveLog:
-                            DBLogKeepAlive tDBLogKeepAlive = (DBLogKeepAlive)tDBLog;
-                            if (tDBLogKeepAlive == null)
-                            {
-                                GlobalClass.PrintLogError(string.Format("[DBLogProcess._ProcessRequest] KAM송수신이력 DB로그값이 null입니다.", tDBLog.DBLogType.ToString()));
-                                continue;
-                            }
-                            _ExcuteNoneQuery(tDBLogKeepAlive.GetQueryString());
-                            break;
-                        case E_DBLogType.Unknown:
-                            GlobalClass.PrintLogError(string.Format("[DBLogProcess._ProcessRequest] DB로그타입 설정값이 없습니다. DBLogType={0} ", tDBLog.DBLogType.ToString()));
-                            break;
-                        default:
-                            GlobalClass.PrintLogError(string.Format("[DBLogProcess._ProcessRequest] 처리가 없는 DB로그타입입니다. DBLogType={0} ", tDBLog.DBLogType.ToString()));
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    GlobalClass.PrintLogException("[DBLogProcess._ProcessRequest] ", ex);
-                }
-                finally
-                {
-                    tDBLog = null;
-                    //tDBLogList = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 쿼리를 실행 합니다.
-        /// </summary>
-        /// <param name="aQueryString"></param>
-        /// <returns></returns>
-        private void _ExcuteNoneQuery(string aQueryString)
-        {
-            MKDBWorkItem tDBWI = null;
-            try
-            {
-                tDBWI = m_DBPool.GetDBWorkItem();
-                E_DBProcessError tError = tDBWI.ExecuteNoneQuery(aQueryString);
-                if (tError != E_DBProcessError.Success)
-                {
-                    GlobalClass.PrintLogError("[DBLogProc.ExecuteNoneQuery] E_DBProcessError= " + tError.ToString() + "\r\n" + aQueryString);
-                }
-            }
-            catch (Exception ex)
-            {
-                GlobalClass.PrintLogException("[DBLogProc.ExecuteNoneQuery] Query= " + aQueryString, ex);
-            }
-        }
-
     }
 }

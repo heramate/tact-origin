@@ -447,7 +447,11 @@
     <Compile Include="TerminalControl\MCSmallTerminal.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="TerminalControl\ITerminal.cs" />
     <Compile Include="TerminalControl\MCTerminalControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TerminalControl\RebexTerminalControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="TerminalControl\TelnetFindForm.cs">
