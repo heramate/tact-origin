@@ -20,4 +20,11 @@
     <ProjectReference Include="..\..\RACTCommon\RACTCommonClass\RACTCommonClass.csproj" />
   </ItemGroup>
 
+  <!-- docs 폴더의 예제 파일은 빌드 대상에서 제외 -->
+  <ItemGroup>
+    <Compile Remove="docs\**\*.cs" />
+    <Content Remove="docs\**\*.cs" />
+    <None Include="docs\**\*.cs" />
+  </ItemGroup>
+
 </Project>
