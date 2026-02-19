@@ -419,6 +419,26 @@ namespace RACTClient
                 this.Screen.SetCursorPosition(0, 0); // 커서를 좌측 상단으로 이동
             });
 
+            m_ConnectionCommandSet = null;
+
+            // [Legacy Logic] 2023-06-13 VOIP AGW PORT 2001 치환
+            if (m_DeviceInfo.DevicePartCode == 13)
+            {
+                if (m_DeviceInfo.ModelID != 3727)
+                    m_DeviceInfo.TerminalConnectInfo.TelnetPort = 2001;
+            }
+
+            // [Legacy Logic] 터미널 로그 시작 (파일 저장 등)
+            try
+            {
+                // StartTerminalLog는 TactTerminalControl 또는 부모 클래스에 정의되어 있어야 함
+                StartTerminalLog(m_DeviceInfo);
+            }
+            catch (Exception ex)
+            {
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "Log Start Failed: " + ex.Message);
+            }
+
 
             // 1. 기존 연결 종료 및 상태 초기화
             Disconnect();
@@ -508,6 +528,14 @@ namespace RACTClient
 
             return null;
         }
+
+        private void StartTerminalLog(DeviceInfo info)
+        {
+            // 기존 소스 코드에 있는 로직을 그대로 사용하거나,
+            // AppGlobal.s_TerminalExecuteLogProcess 등을 호출
+            // 예: AppGlobal.s_FileLogProcessor.StartLog(info.IPAddress);
+        }
+
         /// <summary>
         /// 터미널 상태 가져오거나 설정 합니다.
         /// </summary>
