@@ -22,20 +22,20 @@ namespace RACTClient
 {
 
     /// <summary>
-    /// 2013-04-19 - shinyn - ±×¸®µå¿¡¼­ º¹»ç ºÙ¿©³Ö±â½Ã »ç¿ëÇÕ´Ï´Ù.
+    /// 2013-04-19 - shinyn - ï¿½×¸ï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
     /// </summary>
     public enum E_ClipboardProcessType
     {
         /// <summary>
-        /// Ã³¸® ¾øÀ½ ÀÔ´Ï´Ù.
+        /// Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         None,
         /// <summary>
-        /// º¹»ç Ã³¸® ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         Copy,
         /// <summary>
-        /// ºÙ¿©³Ö±â Ã³¸® ÀÔ´Ï´Ù.
+        /// ï¿½Ù¿ï¿½ï¿½Ö±ï¿½ Ã³ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         Paste
     }
@@ -51,22 +51,22 @@ namespace RACTClient
         public static TerminalPanel m_TerminalPanel = null;
 
         /// <summary>
-        /// Á¢±ÙÁ¦¾î ½ÇÇà ¸ðµå ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static E_RACTClientMode s_RACTClientMode = E_RACTClientMode.Online;
         /// <summary>
-        /// Á¢±ÙÁ¦¾î ½Ã½ºÅÛÀ» È£ÃâÇÑ ½Ã½ºÅÛ Å¸ÀÔ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static E_TerminalMode s_Caller = E_TerminalMode.RACTClient;
         /// <summary>
-        /// Á÷Á¢½ÇÇàÀÎÁö ±¸ºÐÇÏ±â À§ÇÑ »ç¿ëÀÚ °èÁ¤
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public static bool m_DirectConnect = false;
 
-        public static string[] s_FontList = new string[] {"±¼¸²Ã¼"
-                                                        ,"µ¸¿òÃ¼"
-                                                        ,"±Ã¼­Ã¼"
-                                                        ,"¹ÙÅÁÃ¼"
+        public static string[] s_FontList = new string[] {"ï¿½ï¿½ï¿½ï¿½Ã¼"
+                                                        ,"ï¿½ï¿½ï¿½ï¿½Ã¼"
+                                                        ,"ï¿½Ã¼ï¿½Ã¼"
+                                                        ,"ï¿½ï¿½ï¿½ï¿½Ã¼"
                                                         ,"Arial"
                                                         ,"Calibri"
                                                         ,"Candara"
@@ -74,63 +74,63 @@ namespace RACTClient
                                                         ,"Constantia"
                                                         ,"MS Mincho"};
         /// <summary>
-        /// Å¬¶óÀÌ¾ðÆ® IP ÀÔ´Ï´Ù.
+        /// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® IP ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_ClientIP = "";
         /// <summary>
-        /// ·¹ÀÌ¾Æ¿ô ÆÄÀÏ ÀÌ¸§ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½Ì¾Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_LayOutFileName = "\\RACTLayout.xml";
         /// <summary>
-        /// ¹öÀü Á¤º¸ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         //public static string s_Version = "1.1.2.10";
-        // 2013-02-21 - shinyn - TACT ¹öÀüº¯°æ (°íµµÈ­¹öÀü.±â´ÉÃß°¡.¹ö±×¼öÁ¤.¸±¸®ÁîÈ½¼ö)
+        // 2013-02-21 - shinyn - TACT ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½.ï¿½ï¿½ï¿½ï¿½ß°ï¿½.ï¿½ï¿½ï¿½×¼ï¿½ï¿½ï¿½.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È½ï¿½ï¿½)
         //public static string s_Version = "2.1.0.0";
-        //public static string s_Version = "2.2.0.0"; //2017.06.21 - NoSeungPil - RCCS ·Î±×ÀÎ ±â´ÉÃß°¡
-        //public static string s_Version = "2.2.1.0"; //2017.08.04 - KwonTaeSuk - µå·¡±×·Î ¿µ¿ª¼±ÅÃ½Ã ÀÚµ¿½ºÅ©·Ñ ±â´É Ãß°¡
-        //public static string s_Version = "2.2.2.0"; //20170818 - NoSeungPil - RCCS ·Î±×ÀÎÀÇ °æ¿ì Á¾·á½Ã °­Á¦·Î ctrl + d Àü¼Û
-        //public static string s_Version = "2.2.3.0"; //20170822 - NoSeungPil - RCCS ·Î±×ÀÎÀÇ °æ¿ì ·Î±×ÀÎÀü¿¡ °­Á¦·Î ¿£ÅÍÅ° Àü¼Û
-        //public static string s_Version = "2.3.0.0"; //20190212 °íµµÈ­ °³¹ß(º¸¾È°ü¸®±â´É,RPCS ¿ø°Ý°ü¸®Á¢¼Ó)
-        //public static string s_Version = "2.3.0.1"; //20190326 °íµµÈ­ °³¹ß(º¸¾È°ü¸®±â´É ¸í·É¾îÁ¦ÇÑ ±â´É º¸¾È,ºÒÆí ¹× °³¼±»çÇ×,ÀåºñÁ¢±Ù ·Î±×ÀÎ,·Î±×¾Æ¿ô½Ã°¢ DB±âÁØÀ¸·Î º¯°æ)
-        //public static string s_Version = "2.3.0.2"; //20190701 °íµµÈ­ °³¹ß(ºÒÆí ¹× °³¼±»çÇ×,RPCS Á¢¼Ó±¸ºÐ Ãß°¡)
-        //public static string s_Version = "2.3.0.3"; //20190930 °íµµÈ­ °³¹ß(ºÒÆí/°³¼±»çÇ× ¿Ü OneTerminal ¼öÇà½Ã »óÅÂ Ç¥½Ã ¹Ù,OneTerminal ¿É¼Ç ¸Þ´º Á¦°ø,ÀÚµ¿ÀúÀå ½ºÀ§Ä¡ ¿É¼ÇÇ×¸ñÀ¸·Î Æ÷ÇÔ ±â´É Á¦°ø,Áý¼±½ºÀ§Ä¡, G-PON-OLT, NG-PON-OLT Á¢¼Ó½Ã Áß¿äÀåºñ Ç¥½Ã(FONT COLOR REDÀû¿ë)°Ç °³¼±)
-        //public static string s_Version = "2.3.0.4"; //20191007 Áý¼±½ºÀ§Ä¡, G-PON-OLT, NG-PON-OLT Á¢¼Ó½Ã Áß¿äÀåºñ Ç¥½Ã(FONT COLOR REDÀû¿ë)°Ç º¯°æ)
-        //public static string s_Version = "2.3.0.5"; //20191110  ¸í·É¾î Àü¼Û µô·¹ÀÌ ¼³Á¤ ±â´É,Log °æ·Î ¼³Á¤ °³¼±
-        //public static string s_Version = "2.3.0.6"; //20191118 LTE ÅÍ³Î¸µ ¿äÃ» ¹Ýº¹ °³¼±(ÇÑ¹ø ¿äÃ»ÇÏ°í ÀÀ´ä¾øÀ½¸é ¿¬°á Á¾·á),ÅÚ³Ý ½º·¹µå Ä«¿îÆ® 1->3
-        //public static string s_Version = "2.3.0.7"; //20191209 ¸í·É¾î Àü¼Û µô·¹ÀÌ ¼³Á¤ ±â´É ¼öÁ¤, Ã¹ Á¢¼Ó½Ã Ctrl+C,V ½Ã ÇÁ·ÒÆ®Æ® ÀÎ½Ä ¿À·ù ¼öÁ¤
-        //public static string s_Version = "2.4.0.0"; // 2020-10-08 KwonTaeSUk [20°íµµÈ­(.NET¾÷±×·¹ÀÌµå)] .NET Framework 2.0 -> 4.8 (minor+1)
-        //public static string s_Version = "2.4.0.1"; // 2021-04-15 KANGBONGHAN ÀÏ°ý¸í·ÉÃ¢ °³¼± ´ÜÀÏ¸í·É¾î,º¹¼ö¸í·É¾î ¼öÇà ¹æ½ÄÀ» ºÐ¸®
-        //public static string s_Version = "2.4.0.2"; // 2021-04-21 ÅÍ¹Ì³Î ¶óÀÎ °»½Å ¾ÈµÇ´Â ºÎºÐ °³¼± // 2021-07-07KANGBONGHAN OneTerminal ÀÚµ¿½ºÅ©·Ñ °ü·Ã °³¼±
-        //public static string s_Version = "2.4.0.3"; // 2021-11-04 ÅÍ¹Ì³Î ÄÃ·³¼ö »çÀÌÁî °íÁ¤(80) Ç×¸ñ »èÁ¦
-        //public static string s_Version = "2.4.0.4";   // 2022-01-12 RPCS ¹«¼±Á¢¼Ó ¸ðµ¨ Ãß°¡ DSW105PR
-        //public static string s_Version = "2.4.0.5";    //2022-08-18 Console¸ðµå ½Ã¸®¾ó¿¬°á½Ã ºÙ¿©³Ö±â ¿À·ù È®ÀÎ ¹× °³¼±
-        //public static string s_Version = "2.4.0.6";    //2022-09-01 ¿ìÈ¸Á¢¼Ó º¸¾ÈÀÌ½´ °³¼±(Online¸ðµå¿¡¼­ Á¢¼Ó½Ã(Telnet) TACTµ¥¸óÀ» ÅëÇØ ¿¬°á
-        //public static string s_Version = "2.4.0.7";    //2023-02-07 Online¸ðµå¿¡¼­ Á¢¼Ó½Ã(ssh) TACTµ¥¸óÀ» ÅëÇØ ¿¬°á °³¼±
-        //public static string s_Version = "2.4.0.8";     //2023-02-24 ¸í·É¾î Ã¹±ÛÀÚ ´©¶ô ¶Ç´Â ºÙ¿©³Ö±â½Ã ²÷±è,Ã¹±ÛÀÚ ´©¶ô ¼öÁ¤ °³¼±
-        //public static string s_Version = "2.4.0.9";   //2023-06 AGW 2001Æ÷Æ® º¯°æ°Ç
-        //public static string s_Version = "2.4.1.0";   //2024-03 Ã£±â( Ctrl + F) ±â´É »ç¿ë ÈÄ ¸í·É¾î ¶ç¾î¾²±â ºÒ°¡, ÇÁ·ÒÇÁÆ®() ÀÌ½´
-        //public static string s_Version = "2.4.1.1";   //2025-01-20 More Ã³¸®½Ã H¸ðµ¨ °°Àº ¶óÀÎ µÎÁÙ Ãâ·ÂµÇ´Â Çö»ó °³¼±
-        //public static string s_Version = "2.4.2.0";   //2025-03-12 CATV °ü·Ã Àû¿ë
-        //public static string s_Version = "2.4.2.1";   //2025-05-14 IP°Ë»ö Á¶°Ç Ãß°¡(À¯È¿¼º Ãß°¡, 3¿ÁÅÝ ÀÌ»ó¸¸ Á¶È¸ 3¹øÂ° ÀÚ¸® ±îÁö¸¸ °ª Á¸Àç½Ã Like, 4¹øÂ° ÀÚ¸®±îÁö ÀÖÀ» °æ¿ì ÀÏÄ¡·Î)
-        //public static string s_Version = "2.4.2.2";   //2025-06-18 º¸¾È ÀÌ½´·Î Á÷Á¢½ÇÇà ±ÝÁö 
-        //public static string s_Version = "2.4.2.3";   //2025-07-04 Á÷Á¢½ÇÇà½Ã Console¸ðµå ¿ÀÇÂ 
-        public static string s_Version = "2.4.2.4";   //2025-08-04 V4604S Á¢¼Ó Æ÷Æ® 23°ü·Ã ¼öÁ¤
+        //public static string s_Version = "2.2.0.0"; //2017.06.21 - NoSeungPil - RCCS ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß°ï¿½
+        //public static string s_Version = "2.2.1.0"; //2017.08.04 - KwonTaeSuk - ï¿½å·¡ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+        //public static string s_Version = "2.2.2.0"; //20170818 - NoSeungPil - RCCS ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ctrl + d ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.2.3.0"; //20170822 - NoSeungPil - RCCS ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å° ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.3.0.0"; //20190212 ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,RPCS ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+        //public static string s_Version = "2.3.0.1"; //20190326 ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½,ï¿½Î±×¾Æ¿ï¿½ï¿½Ã°ï¿½ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+        //public static string s_Version = "2.3.0.2"; //20190701 ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,RPCS ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ ï¿½ß°ï¿½)
+        //public static string s_Version = "2.3.0.3"; //20190930 ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ OneTerminal ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½,OneTerminal ï¿½É¼ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½,ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½É¼ï¿½ï¿½×¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡, G-PON-OLT, NG-PON-OLT ï¿½ï¿½ï¿½Ó½ï¿½ ï¿½ß¿ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½(FONT COLOR REDï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+        //public static string s_Version = "2.3.0.4"; //20191007 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡, G-PON-OLT, NG-PON-OLT ï¿½ï¿½ï¿½Ó½ï¿½ ï¿½ß¿ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½(FONT COLOR REDï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+        //public static string s_Version = "2.3.0.5"; //20191110  ï¿½ï¿½ï¿½É¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½,Log ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.3.0.6"; //20191118 LTE ï¿½Í³Î¸ï¿½ ï¿½ï¿½Ã» ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ñ¹ï¿½ ï¿½ï¿½Ã»ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½),ï¿½Ú³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® 1->3
+        //public static string s_Version = "2.3.0.7"; //20191209 ï¿½ï¿½ï¿½É¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, Ã¹ ï¿½ï¿½ï¿½Ó½ï¿½ Ctrl+C,V ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®Æ® ï¿½Î½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.0"; // 2020-10-08 KwonTaeSUk [20ï¿½ï¿½ï¿½ï¿½È­(.NETï¿½ï¿½ï¿½×·ï¿½ï¿½Ìµï¿½)] .NET Framework 2.0 -> 4.8 (minor+1)
+        //public static string s_Version = "2.4.0.1"; // 2021-04-15 KANGBONGHAN ï¿½Ï°ï¿½ï¿½ï¿½ï¿½ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½É¾ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½
+        //public static string s_Version = "2.4.0.2"; // 2021-04-21 ï¿½Í¹Ì³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ // 2021-07-07KANGBONGHAN OneTerminal ï¿½Úµï¿½ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.3"; // 2021-11-04 ï¿½Í¹Ì³ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(80) ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.4";   // 2022-01-12 RPCS ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½ DSW105PR
+        //public static string s_Version = "2.4.0.5";    //2022-08-18 Consoleï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ó¿¬°ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.6";    //2022-09-01 ï¿½ï¿½È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½ï¿½(Onlineï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½ï¿½(Telnet) TACTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.7";    //2023-02-07 Onlineï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½ï¿½(ssh) TACTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.8";     //2023-02-24 ï¿½ï¿½ï¿½É¾ï¿½ Ã¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½,Ã¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.0.9";   //2023-06 AGW 2001ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.1.0";   //2024-03 Ã£ï¿½ï¿½( Ctrl + F) ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½É¾ï¿½ ï¿½ï¿½î¾²ï¿½ï¿½ ï¿½Ò°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®() ï¿½Ì½ï¿½
+        //public static string s_Version = "2.4.1.1";   //2025-01-20 More Ã³ï¿½ï¿½ï¿½ï¿½ Hï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÂµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.2.0";   //2025-03-12 CATV ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //public static string s_Version = "2.4.2.1";   //2025-05-14 IPï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½(ï¿½ï¿½È¿ï¿½ï¿½ ï¿½ß°ï¿½, 3ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½È¸ 3ï¿½ï¿½Â° ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Like, 4ï¿½ï¿½Â° ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½)
+        //public static string s_Version = "2.4.2.2";   //2025-06-18 ï¿½ï¿½ï¿½ï¿½ ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+        //public static string s_Version = "2.4.2.3";   //2025-07-04 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Consoleï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+        public static string s_Version = "2.4.2.4";   //2025-08-04 V4604S ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® 23ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
         /// <summary>
-        /// ·Î±×ÀÎ °á°ú ÀÔ´Ï´Ù.
+        /// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static LoginResultInfo s_LoginResult;
         /// <summary>
-        /// ¸ÞÀÎ Æû ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static Form s_ClientMainForm;
         /// <summary>
-        /// ¸®¸ðÆ®Åë½ÅÀ» À§ÇÑ ¿ø°Ý°´Ã¼ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý°ï¿½Ã¼ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static MKRemote s_RemoteGateway = null;
         /// <summary>
-        /// ¼­¹ö IP ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ IP ï¿½Ô´Ï´ï¿½.
         /// </summary>
         //public static string s_ServerIP = "118.217.79.48";
         public static string s_ServerIP = "118.217.79.41";
@@ -139,187 +139,187 @@ namespace RACTClient
 
         //public static string s_ServerIP = "127.0.0.1";
         /// <summary>
-        /// ¼­¹ö Port ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ Port ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static int s_ServerPort = 43210;
         /// <summary>
-        /// ÇÁ·Î±×·¥ ÀÌ¸§ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½Î±×·ï¿½ ï¿½Ì¸ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_ProgramName = "TACT Client";
         /// <summary>
-        /// Mac Address ÀÔ´Ï´Ù.
+        /// Mac Address ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_MacAddress = "";
         /// <summary>
-        /// ¼­¹ö Á¢¼Ó ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static bool s_IsServerConnected = false;
         /// <summary>
-        /// ¼­¹ö µ¥ÀÌÅÍ °Ë»ç ÁÖ±â ÀÔ´Ï´Ù(´ÜÀ§ : ¹Ð¸®ÃÊ)
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½Ö±ï¿½ ï¿½Ô´Ï´ï¿½(ï¿½ï¿½ï¿½ï¿½ : ï¿½Ð¸ï¿½ï¿½ï¿½)
         /// </summary>
         public static int s_ServerCheckInterval = 100;
         /// <summary>
-        /// ¿äÃ» Å¥ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½Ã» Å¥ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static Queue<CommunicationData> s_RequestQueue = new Queue<CommunicationData>();
 
         /// <summary>
-        /// 2013-05-03-shinyn - ¼±ÅÃµÈ Á¢±Ù±ÇÇÑ ³ëµåÀÔ´Ï´Ù.
+        /// 2013-05-03-shinyn - ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static TreeNodeEx m_SelectedSystemNode = null;
 
         /// <summary>
-        /// 2013-09-09- shinyn - ¼±ÅÃµÈ »ç¿ëÀÚ ³ëµåÀÔ´Ï´Ù.
+        /// 2013-09-09- shinyn - ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static TreeNodeEx m_SelectedUserNode = null;
 
 
 
         /// <summary>
-        /// »ç¿ëÀÚ °èÁ¤
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public static string s_UserAccount;
         /// <summary>
-        /// »ç¿ëÀÚ ºñ¹Ð¹øÈ£
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£
         /// </summary>
         public static string s_Password;
         /// <summary>
-        /// Ã¤³Î ÀÌ¸§ ÀÔ´Ï´Ù.
+        /// Ã¤ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_ChannelName = "RemoteClient";
         /// <summary>
-        /// ¿äÃ»ÀÚ ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static Dictionary<int, ISenderObject> s_SenderList = new Dictionary<int, ISenderObject>();
         /// <summary>
-        /// »ç¿ëÀÚ ±×·ì ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static GroupInfoCollection s_GroupInfoList = new GroupInfoCollection();
 
         /// <summary>
-        /// 2013-08-14- shinyn -»ç¿ëÀÚ¸®½ºÆ®ÀÇ »ç¿ëÀÚ ±×·ì ¸ñ·ÏÀÔ´Ï´Ù.
+        /// 2013-08-14- shinyn -ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static UserInfoCollection s_UserInfoList = new UserInfoCollection();
 
 
         /// <summary>
-        /// ´ÜÃà ¸í·É ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static ShortenCommandGroupInfoCollection s_ShortenCommandList = new ShortenCommandGroupInfoCollection();
         /// <summary>
-        /// ½ºÅ©¸³Æ® ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static ScriptGroupInfoCollection s_ScriptList = new ScriptGroupInfoCollection();
         /// <summary>
-        /// µ¥ÀÌÅÍ µ¿±â Ã³¸® ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DataSyncProcessor s_DataSyncProcssor = new DataSyncProcessor();
         /// <summary>
-        /// ¸ðµ¨ ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static ModelInfoCollection s_ModelInfoList = new ModelInfoCollection();
         /// <summary>
-        /// Á¦ÇÑ ¸í·É¾î ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½É¾ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static LimitCmdInfoCollection s_LimitCmdInfoList = new LimitCmdInfoCollection();
         /// <summary>
-        /// ±âº» ¸í·É¾î ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½âº» ï¿½ï¿½ï¿½É¾ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DefaultCmdInfoCollection s_DefaultCmdInfoList = new DefaultCmdInfoCollection();
         /// <summary>
-        /// ÀÚµ¿¿Ï¼º  ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½Úµï¿½ï¿½Ï¼ï¿½  ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static AutoCompleteCmdInfoCollection s_AutoCompleteCmdList = new AutoCompleteCmdInfoCollection();
         /// <summary>
-        /// Àåºñ ±¸ºÐ ¸ñ·ÏÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static ArrayList s_DevicePartList = new ArrayList();
         /// <summary>
-        /// ÀåºñÁ¤º¸ ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         //public static DeviceInfoCollection s_DeviceInfoList = new DeviceInfoCollection();
         /// <summary>
-        /// Å¬¶óÀÌ¾ðÆ® ¿É¼Ç Á¤º¸ ÀÔ´Ï´Ù.
+        /// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static ClientOption s_ClientOption = null;
         /// <summary>
-        /// Á¶Á÷ Á¤º¸ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static OrganizationInfo s_OrganizationInfo;
         /// <summary>
-        /// Ã£±â Æû ÀÔ´Ï´Ù.
+        /// Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         // public static TelnetFindForm  s_TelnetFindForm = null;
         /// <summary>
-        /// ÅÍ¹Ì³Î ·Î±× Ã³¸® ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ï¿½Í¹Ì³ï¿½ ï¿½Î±ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static CommandExecuteLogProcess s_TerminalExecuteLogProcess;
         /// <summary>
-        /// ÅÚ³Ý µ¥¸ó ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½Ú³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static Dictionary<int, DaemonProcessRemoteObject> s_DaemonProcessList = new Dictionary<int, DaemonProcessRemoteObject>();
         /// <summary>
-        /// Serial Ã³¸® ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// Serial Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static SerialProcess s_SerialProcessor;
         /// <summary>
-        /// ÅÚ³Ý Ã³¸® ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ï¿½Ú³ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static TelnetProcessor.TelnetProcessor s_TelnetProcessor;
         /// <summary>
-        /// ¸ðµå º¯°æÀ¸·Î Á¢¼Ó ÇÒ °æ¿ìÀÎÁö ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static bool s_IsModeChangeConnect = false;
         /// <summary>
-        /// ¸ðµå º¯°æ Æû ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static ModeChangeSubForm s_ModeChangeForm = new ModeChangeSubForm();
         /// <summary>
-        /// ÆÄÀÏ ·Î±× ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
-        public static FileLogProcess s_FileLogProcessor = null;
+        public static RACTClient.Logging.FastLogger s_FileLogProcessor = null;
         /// <summary>
-        /// ¿äÃ» ´ë±â Å¸ÀÓ ¾Æ¿ô ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½Æ¿ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static readonly int s_RequestTimeOut = 5000;
         /// <summary>
-        /// ÇÁ·Î±×·¥ Á¾·á ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static bool s_IsProgramShutdown = false;
 
         /// <summary>
-        /// ÀÚµ¿ÀúÀå ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static bool s_IsAutoSaveLog = false;
 
-        //2017.06.21 - NoSeungPil - RCCS ·Î±×ÀÎ ±â´ÉÃß°¡
+        //2017.06.21 - NoSeungPil - RCCS ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß°ï¿½
         /// <summary>
-        /// Á¢¼Ó¹æ¹ý ÀÔ´Ï´Ù. (1:RCCS ·Î±×ÀÎ)
+        /// ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½ ï¿½Ô´Ï´ï¿½. (1:RCCS ï¿½Î±ï¿½ï¿½ï¿½)
         /// </summary>
         public static int s_ConnectionMode = 0;
 
         /// <summary>
-        /// RCCS ·Î±×ÀÎ Ã¼Å©
+        /// RCCS ï¿½Î±ï¿½ï¿½ï¿½ Ã¼Å©
         /// </summary>
         public static bool s_IsRCCSLoginOK = false;
 
         /// <summary>
-        /// RCCS ÀåºñÀÇ IP ÀÔ´Ï´Ù.
+        /// RCCS ï¿½ï¿½ï¿½ï¿½ï¿½ IP ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_RCCSIP;
 
         /// <summary>
-        /// RCCS ÀåºñÀÇ Á¢¼Ó Port¹øÈ£ ÀÔ´Ï´Ù.
+        /// RCCS ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Portï¿½ï¿½È£ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static int s_RCCSPort = 0;
 
         /// <summary>
-        /// RPCS ÀåºñÀÇ IP ÀÔ´Ï´Ù.
+        /// RPCS ï¿½ï¿½ï¿½ï¿½ï¿½ IP ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static string s_RPCSIP;
 
         /// <summary>
-        /// RPCS ÀåºñÀÇ Á¢¼Ó Port¹øÈ£ ÀÔ´Ï´Ù.
+        /// RPCS ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Portï¿½ï¿½È£ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static int s_RPCSPort = 0;
 
@@ -328,7 +328,7 @@ namespace RACTClient
         public static E_IpType m_ViewIPType = E_IpType.ALL;
 
         /// <summary>
-        /// Çï½º Ã¼Å©¸¦ Ã³¸®ÇÕ´Ï´Ù.
+        /// ï¿½ï½º Ã¼Å©ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <returns></returns>
         public static bool AreYouThere()
@@ -337,33 +337,33 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ·Î±×ÀÎ ¹× ¼­¹ö ¿¬°áÀ» Ã³¸® ÇÕ´Ï´Ù.
+        /// ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vID">»ç¿ëÀÚ ¾ÆÀÌµð ÀÔ´Ï´Ù.</param>
-        /// <param name="vPwd">»ç¿ëÀÚ ÆÐ½º¿öµå ÀÔ´Ï´Ù.</param>
-        /// <param name="vIPAddress">»ç¿ëÀÚ ¾ÆÀÌÇÇ ÁÖ¼Ò ÀÔ´Ï´Ù.</param>
+        /// <param name="vID">ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ô´Ï´ï¿½.</param>
+        /// <param name="vPwd">ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
+        /// <param name="vIPAddress">ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static bool LoginConnect()
         {
             string tLogMessage = "";
 
             try
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat(AppGlobal.s_UserAccount, " °èÁ¤À¸·Î ·Î±×ÀÎ ÇÕ´Ï´Ù."));
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat(AppGlobal.s_UserAccount, " ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½."));
                 RemoteClientMethod tSPO = (RemoteClientMethod)AppGlobal.s_RemoteGateway.ServerObject;
 
-                // 2014-03-19 - ½ÅÀ±³² - À¥¿¡¼­ ½ÇÇàÇØ¼­ ·Î±×ÀÎ½Ã DB¿¡¼­ sha256À¸·Î ¾ÏÈ£È­µÈ ºñ¹Ð¹øÈ£·Î ·Î±×ÀÎµÇµµ·Ï ÇÏ°í,
-                // ¾ÆÀÌµð,ºñ¹Ð¹øÈ£ ÀÔ·ÂÇØ¼­ ·Î±×ÀÎ½Ã ºñ¹Ð¹øÈ£¸¦ sha256À¸·Î ¾ÏÈ£È­ÇÏ¿© ·Î±×ÀÎµÇµµ·Ï ¼öÁ¤
+                // 2014-03-19 - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Î±ï¿½ï¿½Î½ï¿½ DBï¿½ï¿½ï¿½ï¿½ sha256ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£È­ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ÎµÇµï¿½ï¿½ï¿½ ï¿½Ï°ï¿½,
+                // ï¿½ï¿½ï¿½Ìµï¿½,ï¿½ï¿½Ð¹ï¿½È£ ï¿½Ô·ï¿½ï¿½Ø¼ï¿½ ï¿½Î±ï¿½ï¿½Î½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ sha256ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£È­ï¿½Ï¿ï¿½ ï¿½Î±ï¿½ï¿½ÎµÇµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 string password = Hash.GetHashPW(AppGlobal.s_Password);
                 if (EncryptGlobal.s_shaYN == "1")
                 {
                     password = AppGlobal.s_Password;
                     EncryptGlobal.s_shaYN = "0";
                 }
-                //20131118 ±èµµ±Õ ÆÐ½º¿öµå¸¦ SHA-256 UTF-8 ¹æ½ÄÀ¸·Î ³Ñ±è
+                //20131118 ï¿½èµµï¿½ï¿½ ï¿½Ð½ï¿½ï¿½ï¿½ï¿½å¸¦ SHA-256 UTF-8 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ±ï¿½
                 s_LoginResult = (LoginResultInfo)ObjectConverter.GetObject(tSPO.CallUserLoginMethod(AppGlobal.s_UserAccount, password, AppGlobal.s_ClientIP, AppGlobal.s_Caller));
                 if (s_ClientMainForm is ClientMain)
                 {
-                    ((ClientMain)s_ClientMainForm).SetMainFormText("TACT Å¬¶óÀÌ¾ðÆ® (Ver " + AppGlobal.s_Version + ") :::");// + AppGlobal.m_ServerIP + " (¼­¹ö Ver " + m_LoginResult.ServerVersion + ")");
+                    ((ClientMain)s_ClientMainForm).SetMainFormText("TACT Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® (Ver " + AppGlobal.s_Version + ") :::");// + AppGlobal.m_ServerIP + " (ï¿½ï¿½ï¿½ï¿½ Ver " + m_LoginResult.ServerVersion + ")");
                 }
 
 
@@ -372,48 +372,48 @@ namespace RACTClient
                     switch (AppGlobal.s_LoginResult.LoginResult)
                     {
                         case E_LoginResult.IncorrectID:
-                            AppGlobal.ShowMessage("°èÁ¤À» È®ÀÎÇØ ÁÖ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.ShowMessage("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "°èÁ¤À» È®ÀÎÇØ ÁÖ¼¼¿ä. ");
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½. ");
                             break;
                         case E_LoginResult.IncorrectPassword:
-                            AppGlobal.ShowMessage("ºñ¹Ð¹øÈ£¸¦ È®ÀÎÇØ ÁÖ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.ShowMessage("ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ºñ¹Ð¹øÈ£¸¦ È®ÀÎÇØ ÁÖ¼¼¿ä. ");
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½. ");
                             //Application.Exit();
                             break;
                         case E_LoginResult.AlreadyLogin:
                             if (s_Caller == E_TerminalMode.RACTClient)
                             {
-                                AppGlobal.ShowMessage("°°Àº °èÁ¤ÀÌ ÀÌ¹Ì ·Î±×ÀÎ µÇ¾î ÀÖ½À´Ï´Ù. Å¬¶óÀÌ¾ðÆ®¸¦ °­Á¦ Á¾·á ÇÏ¿´À»°æ¿ì 30ÃÊ ÀÌÈÄ¿¡ ´Ù½Ã Á¢¼Ó ÇÏ½Ê½Ã¿À.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ÀÌ¹Ì ·Î±×ÀÎ µÇ¾î ÀÖ½À´Ï´Ù. ");
+                                AppGlobal.ShowMessage("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 30ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï½Ê½Ã¿ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ï¿½Ì¹ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½. ");
 
                                 // AppGlobal.s_ClientMainForm.Close();
                                 break;
                             }
                             else
                             {
-                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "·Î±×ÀÎ¿¡ " + E_LoginResult.Success.ToString() + "Çß½À´Ï´Ù.");
+                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ï¿½Î±ï¿½ï¿½Î¿ï¿½ " + E_LoginResult.Success.ToString() + "ï¿½ß½ï¿½ï¿½Ï´ï¿½.");
                                 AppGlobal.s_IsServerConnected = true;
                                 return true;
                             }
                         case E_LoginResult.UnknownError:
-                            AppGlobal.ShowMessage("Á¤º¸°¡ ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "Á¤º¸°¡ ¾ø½À´Ï´Ù.");
+                            AppGlobal.ShowMessage("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
                             //Application.Exit();
                             break;
                         case E_LoginResult.NotAuthentication:
-                            AppGlobal.ShowMessage("TACT »ç¿ë ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.\n°ü¸®ÀÚ¿¡°Ô ¹®ÀÇ ÇÏ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TACT »ç¿ë ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.");
+                            AppGlobal.ShowMessage("TACT ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\nï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ï¿½ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TACT ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
                             // Application.Exit();
                             break;
                         case E_LoginResult.UnUsedLimit:
-                            AppGlobal.ShowMessage("TACT Á¢¼Ó Á¦ÇÑ ³¯Â¥°¡ Áö³µ½À´Ï´Ù.\n°ü¸®ÀÚ¿¡°Ô ¹®ÀÇ ÇÏ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TACT Á¢¼Ó Á¦ÇÑ ³¯Â¥°¡ Áö³µ½À´Ï´Ù..");
+                            AppGlobal.ShowMessage("TACT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\nï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ï¿½ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TACT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½..");
                             break;
                         default:
-                            AppGlobal.ShowMessage("Áß´ëÇÑ ¿À·ù°¡ ¹ß»ý ÇÞ½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "Áß´ëÇÑ ¿À·ù°¡ ¹ß»ý ÇÞ½À´Ï´Ù.");
+                            AppGlobal.ShowMessage("ï¿½ß´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "ï¿½ß´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½.");
                             // Application.Exit();
                             break;
                     }
@@ -423,14 +423,14 @@ namespace RACTClient
                 }
                 else
                 {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "·Î±×ÀÎ¿¡ " + s_LoginResult.LoginResult.ToString() + "Çß½À´Ï´Ù.");
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "ï¿½Î±ï¿½ï¿½Î¿ï¿½ " + s_LoginResult.LoginResult.ToString() + "ï¿½ß½ï¿½ï¿½Ï´ï¿½.");
                     AppGlobal.s_IsServerConnected = true;
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "¼­¹ö¿Í ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, ex.ToString());
             }
             return false;
@@ -440,9 +440,9 @@ namespace RACTClient
 
 
         /// <summary>
-        /// µ¥¸ó ¼­¹ö¿¡ ¿¬°áÀ» ½Ãµµ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <returns>¿¬°á ½Ãµµ ¼º°ø ¿©ºÎ ÀÔ´Ï´Ù.</returns>
+        /// <returns>ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</returns>
         public static E_ConnectError TryDaemonConnect(string aDaemonIP, int aDaemonPort, string aDaemonChannelName, out MKRemote oRemoteObject)
         {
             int tTryCount = 0;
@@ -450,13 +450,13 @@ namespace RACTClient
             string tErrorString = string.Empty;
             DateTime tSDate = DateTime.Now;
             MKRemote tRemote;
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat("Daemon(", aDaemonIP, ":", aDaemonPort, ":", aDaemonChannelName, ") ¿¡ Á¢¼Ó ÇÕ´Ï´Ù."));
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat("Daemon(", aDaemonIP, ":", aDaemonPort, ":", aDaemonChannelName, ") ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½."));
             oRemoteObject = new MKRemote(E_RemoteType.TCPRemote, aDaemonIP, aDaemonPort, aDaemonChannelName);
 
 
             if (oRemoteObject == null)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("Daemon(", aDaemonIP, ":", aDaemonPort, ":", aDaemonChannelName, ") ¿¡ Á¢¼Ó ÇÒ ¼ö ¾ø½À´Ï´Ù."));
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("Daemon(", aDaemonIP, ":", aDaemonPort, ":", aDaemonChannelName, ") ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½."));
                 return E_ConnectError.LocalFail;
             }
             else
@@ -473,7 +473,7 @@ namespace RACTClient
 
                         if (oRemoteObject.ConnectServer(out tErrorString) != E_RemoteError.Success)
                         {
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("Daemon¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù. DaemonÀÌ Á¤»óÀûÀ¸·Î ½ÃÀÛµÇ¾ú´ÂÁö ¶Ç´Â FireWallÀÌ ÀÛµ¿ÁßÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À. :", tErrorString));
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("Daemonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. Daemonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ FireWallï¿½ï¿½ ï¿½Ûµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Ï½Ê½Ã¿ï¿½. :", tErrorString));
                             return E_ConnectError.LinkFail;
                         }
 
@@ -493,21 +493,21 @@ namespace RACTClient
                         AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, ex.ToString());
                         if (((TimeSpan)DateTime.Now.Subtract(tSDate)).TotalSeconds > 60)
                         {
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("Daemon¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù. DaemonÀÌ Á¤»óÀûÀ¸·Î ½ÃÀÛµÇ¾ú´ÂÁö ¶Ç´Â FireWallÀÌ ÀÛµ¿ÁßÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À. :", tErrorString));
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("Daemonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. Daemonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ FireWallï¿½ï¿½ ï¿½Ûµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Ï½Ê½Ã¿ï¿½. :", tErrorString));
                             return E_ConnectError.LinkFail;
                         }
                     }
                 }
 
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat("Daemon(", aDaemonIP, ":", aDaemonPort, ":", aDaemonChannelName, ") ¿¡ Á¢¼Ó Çß½À´Ï´Ù."));
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat("Daemon(", aDaemonIP, ":", aDaemonPort, ":", aDaemonChannelName, ") ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß½ï¿½ï¿½Ï´ï¿½."));
                 return E_ConnectError.NoError;
             }
         }
 
         /// <summary>
-        /// ¼­¹ö¿¡ ¿¬°áÀ» ½Ãµµ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <returns>¿¬°á ½Ãµµ ¼º°ø ¿©ºÎ ÀÔ´Ï´Ù.</returns>
+        /// <returns>ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</returns>
         public static E_ConnectError TryServerConnect()
         {
             int tTryCount = 0;
@@ -517,7 +517,7 @@ namespace RACTClient
 
             if (s_RemoteGateway == null)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat("¼­¹ö(", s_ServerIP, ":", s_ServerPort, ")¿¡ ¿¬°á ÇÕ´Ï´Ù."));
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat("ï¿½ï¿½ï¿½ï¿½(", s_ServerIP, ":", s_ServerPort, ")ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½."));
                 s_RemoteGateway = new MKRemote(E_RemoteType.TCPRemote, s_ServerIP, s_ServerPort, s_ChannelName);
                 //test code
                 // s_RemoteGateway = new MKRemote(E_RemoteType.TCPRemote, "192.168.25.4", s_ServerPort, s_ChannelName);
@@ -525,7 +525,7 @@ namespace RACTClient
 
             if (s_RemoteGateway == null)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("¼­¹ö(", s_ServerIP, ":", s_ServerPort, ")¿¡ ¿¬°á ÇÒ ¼ö ¾ø½À´Ï´Ù."));
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, string.Concat("ï¿½ï¿½ï¿½ï¿½(", s_ServerIP, ":", s_ServerPort, ")ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½."));
                 return E_ConnectError.LocalFail;
             }
             else
@@ -542,7 +542,7 @@ namespace RACTClient
 
                         if (AppGlobal.s_RemoteGateway.ConnectServer(out tErrorString) != E_RemoteError.Success)
                         {
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "¼­¹ö¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù. ¼­¹ö°¡ Á¤»óÀûÀ¸·Î ½ÃÀÛµÇ¾ú´ÂÁö ¶Ç´Â FireWallÀÌ ÀÛµ¿ÁßÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À.");
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ FireWallï¿½ï¿½ ï¿½Ûµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Ï½Ê½Ã¿ï¿½.");
                             AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, tErrorString);
                             return E_ConnectError.LinkFail;
                         }
@@ -573,7 +573,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// °ø¿ë ¸Þ½ÃÁö ¹Ú½ºÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DialogResult ShowMessage(string vMessage, MessageBoxButtons vButtonType, MessageBoxIcon vIconType)
         {
@@ -582,7 +582,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °ø¿ë ¸Þ½ÃÁö ¹Ú½ºÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DialogResult ShowMessage(System.Windows.Forms.IWin32Window vForm, string vMessage, MessageBoxButtons vButtonType, MessageBoxIcon vIconType)
         {
@@ -611,7 +611,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °ø¿ë ¸Þ½ÃÁö ¹Ú½ºÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DialogResult ShowMessage(System.Windows.Forms.IWin32Window vForm, string vMessage, MessageBoxButtons vButtonType, MessageBoxIcon vIconType
             , MessageBoxDefaultButton aDefaultButton)
@@ -641,7 +641,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °ø¿ë ¸Þ½ÃÁö ¹Ú½ºÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DialogResult ShowMessage(string vMessage)
         {
@@ -650,7 +650,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// °ø¿ë ¸Þ½ÃÁö ¹Ú½ºÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static DialogResult ShowMessage(System.Windows.Forms.IWin32Window vForm, string vMessage)
         {
@@ -659,9 +659,9 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±âº» ¿äÃ» Á¤º¸¸¦ »ý¼ºÇÕ´Ï´Ù.
+        /// ï¿½âº» ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <returns>»ý¼ºµÈ ¿äÃ» Á¤º¸ °´Ã¼ ÀÔ´Ï´Ù.</returns>
+        /// <returns>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½Ô´Ï´ï¿½.</returns>
         public static RequestCommunicationData MakeDefaultRequestData()
         {
             RequestCommunicationData tRequestData = new RequestCommunicationData();
@@ -670,10 +670,10 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¿äÃ» µ¥ÀÌÅÍ¸¦ Àü¼ÛÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vSender">Àü¼ÛÀÚ ÀÔ´Ï´Ù.</param>
-        /// <param name="vCommunicationData">Àü¼Û µ¥ÀÌÅÍ ÀÔ´Ï´Ù.</param>
+        /// <param name="vSender">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
+        /// <param name="vCommunicationData">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static void SendRequestData(ISenderObject vSender, CommunicationData vCommunicationData)
         {
             if (vSender != null)
@@ -685,16 +685,16 @@ namespace RACTClient
             {
                 s_RequestQueue.Enqueue(vCommunicationData);
             }
-            //2013-05-02 - shinyn - ¿äÃ»½ÃÀÛ½Ã ManualSetÇÑ´Ù.
+            //2013-05-02 - shinyn - ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Û½ï¿½ ManualSetï¿½Ñ´ï¿½.
             //m_MRE.Set();
         }
 
 
 
         /// <summary>
-        /// ¿äÃ» Àü¼ÛÀÚ¸¦ Ãß°¡ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ß°ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vSender">Àü¼ÛÀÚ ÀÔ´Ï´Ù.</param>
+        /// <param name="vSender">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static void AddSender(ISenderObject vSender)
         {
             lock (s_SenderList)
@@ -706,12 +706,12 @@ namespace RACTClient
             }
         }
 
-        // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+        // shinyn - 2012-12-13 - NE Group ID int -> string ï¿½ï¿½ï¿½ï¿½ 'B' PON(Biz) -> FOMsï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         /// <summary>
-        /// ¸Å°³º¯¼ö¿Í ÀÏÄ¡ÇÏ´Â ÀÌ¸§ÀÇ ±×·ìÁ¤º¸°¡ ÀÖÀ¸¸é ¹ÝÈ¯ÇÕ´Ï´Ù.
+        /// ï¿½Å°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="aGroupName">Ã£°íÀÚ ÇÏ´Â ±×·ìÁ¤º¸ÀÇ ÀÌ¸§ÀÔ´Ï´Ù.</param>
-        /// <returns>ÀÏÄ¡ÇÏ´Â Á¤º¸°¡ ÀÖÀ¸¸é ±×·ìÁ¤º¸¸¦, ÀÏÄ¡ÇÏ´Â Á¤º¸°¡ ¾øÀ¸¸é nullÀ» ¹ÝÈ¯ÇÕ´Ï´Ù.</returns>
+        /// <param name="aGroupName">Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½×·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½Ô´Ï´ï¿½.</param>
+        /// <returns>ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ nullï¿½ï¿½ ï¿½ï¿½È¯ï¿½Õ´Ï´ï¿½.</returns>
         public static string getGroupID(string aGroupName)
         {
             foreach (GroupInfo tGroupInfo in s_GroupInfoList.InnerList.Values)
@@ -749,7 +749,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-08-13- shinyn - »èÁ¦ÇÒ ±×·ìÀÌ ÀÖÀ¸¸é »èÁ¦ÇÏ°í ¸®½ºÆ®¾÷ ÇÑ´Ù.
+        /// 2013-08-13- shinyn - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ñ´ï¿½.
         /// </summary>
         /// <param name="vTreeView"></param>
         /// <param name="aTreeType"></param>
@@ -761,7 +761,7 @@ namespace RACTClient
             TreeNodeEx tDeviceNode = null;
             TreeNodeEx tParentNode = null;
 
-            // 2013-09-09 - shinyn- »ç¿ëÀÚ ±×·ì°ú Àåºñ¸®½ºÆ®¸¦ ·Îµå
+            // 2013-09-09 - shinyn- ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ ï¿½ï¿½ñ¸®½ï¿½Æ®ï¿½ï¿½ ï¿½Îµï¿½
             if (aTreeType == E_TreeType.UserGroup || aTreeType == E_TreeType.UserGroupList)
             {
                 if (AppGlobal.s_GroupInfoList == null) return;
@@ -772,7 +772,7 @@ namespace RACTClient
                 {
                     vTreeView.Visible = false;
 
-                    // 2013-08-13 - ´Ü°èº° ±×·ì¸®½ºÆ®°¡ ¾Æ´Ñ ÀÌÀü¼Ò½º
+                    // 2013-08-13 - ï¿½Ü°èº° ï¿½×·ì¸®ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò½ï¿½
                     /*
                     foreach (GroupInfo tGroupInfo in AppGlobal.s_GroupInfoList.InnerList.Values)
                     {
@@ -780,7 +780,7 @@ namespace RACTClient
 
                         tGroupNode = new TreeNodeEx(string.Concat(tGroupInfo.Name, "[", tDeviceCount, "]"), 0, 0);
                         tGroupNode.Tag = tGroupInfo;
-                        //³×Æ®¿öÅ© ½Ç ³ëµå Ãß°¡
+                        //ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
                         vTreeView.Nodes.Add(tGroupNode);
 
                         foreach (DeviceInfo tDeviceInfo in tGroupInfo.DeviceList.InnerList)
@@ -791,7 +791,7 @@ namespace RACTClient
                         }
                     }
                     */
-                    // 2013-08-13 - ´Ü°èº° ±×·ì¸®½ºÆ® Ç¥½Ã
+                    // 2013-08-13 - ï¿½Ü°èº° ï¿½×·ì¸®ï¿½ï¿½Æ® Ç¥ï¿½ï¿½
 
 
 
@@ -811,8 +811,8 @@ namespace RACTClient
 
                         if (tParentNode != null)
                         {
-                            //³×Æ®¿öÅ© ½Ç ³ëµå Ãß°¡
-                            System.Diagnostics.Debug.WriteLine(tGroupInfo.Name + " ±×·ì Ãß°¡");
+                            //ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+                            System.Diagnostics.Debug.WriteLine(tGroupInfo.Name + " ï¿½×·ï¿½ ï¿½ß°ï¿½");
                             tParentNode.Nodes.Add(tGroupNode);
                         }
                         else
@@ -845,7 +845,7 @@ namespace RACTClient
 
                 if (AppGlobal.s_OrganizationInfo == null || AppGlobal.s_OrganizationInfo.AllGroupInfo == null) return;
 
-                //ÀÌÀü ³»¿ëÀ» Áö¿ì±â ÇÕ´Ï´Ù.
+                //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
                 vTreeView.Nodes.Clear();
                 Hashtable tGroupHash = null;
                 int tDeviceCount = 0;
@@ -855,7 +855,7 @@ namespace RACTClient
                     vTreeView.Visible = false;
                     tGroupNode = new TreeNodeEx("Root", 0, 0);
                     tGroupNode.Tag = AppGlobal.s_OrganizationInfo.AllGroupInfo;
-                    //³×Æ®¿öÅ© ½Ç ³ëµå Ãß°¡
+                    //ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
                     vTreeView.Nodes.Add(tGroupNode);
 
                     if (AppGlobal.s_OrganizationInfo.AllGroupInfo.SubGroups != null)
@@ -892,7 +892,7 @@ namespace RACTClient
 
                     TreeNodeEx tTopNode = tGroupNode;
 
-                    // 2013-08-13 - ´Ü°èº° ±×·ì¸®½ºÆ® Ç¥½Ã
+                    // 2013-08-13 - ï¿½Ü°èº° ï¿½×·ì¸®ï¿½ï¿½Æ® Ç¥ï¿½ï¿½
                     foreach (GroupInfo tGroupInfo in AppGlobal.s_GroupInfoList.InnerList.Values)
                     {
                         //tDeviceCount = AppGlobal.s_GroupInfoList.GetCountByGroup(tGroupInfo.ID);
@@ -901,7 +901,7 @@ namespace RACTClient
                         tGroupNode = new TreeNodeEx(string.Concat(tGroupInfo.Name, "[", tDeviceCount, "]"), 0, 0);
                         tGroupNode.Tag = tGroupInfo;
 
-                        // º¸¿©ÁöÁö ¾ÊÀ» ±×·ìÀÌ ÀÖ´Â°æ¿ì º¸ÀÌÁö ¾Êµµ·Ï Ã³¸®ÇÑ´Ù.
+                        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½Ö´Â°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ñ´ï¿½.
                         if (aDeleteGroupInfo != null)
                         {
                             if (aDeleteGroupInfo.ID == tGroupInfo.ID) continue;
@@ -914,8 +914,8 @@ namespace RACTClient
 
                         if (tParentNode != null)
                         {
-                            //³×Æ®¿öÅ© ½Ç ³ëµå Ãß°¡
-                            System.Diagnostics.Debug.WriteLine(tGroupInfo.Name + " ±×·ì Ãß°¡");
+                            //ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+                            System.Diagnostics.Debug.WriteLine(tGroupInfo.Name + " ï¿½×·ï¿½ ï¿½ß°ï¿½");
                             tParentNode.Nodes.Add(tGroupNode);
                         }
                         else
@@ -948,7 +948,7 @@ namespace RACTClient
                 {
                     vTreeView.Visible = false;
 
-                    // 2013-08-13 - »ç¿ëÀÚ¿¡ ´ëÇÑ °øÀ¯ÇÒ ±×·ì¸®½ºÆ® Ç¥½Ã
+                    // 2013-08-13 - ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ì¸®ï¿½ï¿½Æ® Ç¥ï¿½ï¿½
                     foreach (UserInfo tUserInfo in AppGlobal.s_UserInfoList)
                     {
 
@@ -976,9 +976,9 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¸ÊÆ®¸®¸¦ ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vTV">¸ÊÆ®¸®¸¦ ÃÊ±âÈ­ ÇÒ Æ®¸®ºä ÀÔ´Ï´Ù.</param>
+        /// <param name="vTV">ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static void InitializeGroupTreeView(TreeViewEx vTreeView, E_TreeType aTreeType)
         {
             InitializeGroupTreeView(vTreeView, aTreeType, null);
@@ -987,11 +987,11 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ÁöÁ¤ÇÑ ³ëµåÀÇ ÇÏÀ§¿¡ Àåºñ ±×·ìÀ» Ãß°¡ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vGroupHash">±×·ì ÇØ½Ã Å×ÀÌºí ÀÔ´Ï´Ù.</param>
-        /// <param name="vParentNode">»óÀ§ ³ëµå ÀÔ´Ï´Ù.</param>
-        /// <param name="vGroupInfo">±×·ì Á¤º¸ ÀÔ´Ï´Ù.</param>
+        /// <param name="vGroupHash">ï¿½×·ï¿½ ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½Ô´Ï´ï¿½.</param>
+        /// <param name="vParentNode">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
+        /// <param name="vGroupInfo">ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         private static void AddGroupTree(TreeNodeEx vParentNode, FACTGroupInfo vGroupInfo)
         {
             TreeNodeEx tGroupNode = null;
@@ -1035,29 +1035,29 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±×¸®µå ½ºÅ¸ÀÏÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vGrid">½ºÅ¸ÀÏÀ» ÃÊ±âÈ­ ÇÒ ±×¸®µå ÀÔ´Ï´Ù.</param>
+        /// <param name="vGrid">ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static void InitializeGridStyle(C1FlexGrid vGrid)
         {
             vGrid.Styles["Normal"].BackColor = Color.FromArgb(255, 255, 255);
-            vGrid.Styles["Normal"].ForeColor = Color.FromArgb(75, 75, 75); //±×¸®µå ¾È¿¡ ÀÖ´Â ÆùÆ®
+            vGrid.Styles["Normal"].ForeColor = Color.FromArgb(75, 75, 75); //ï¿½×¸ï¿½ï¿½ï¿½ ï¿½È¿ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Æ®
 
             vGrid.Styles["Normal"].Border.Color = Color.FromArgb(225, 232, 242); //cell color		
             vGrid.Styles["Fixed"].BackColor = Color.FromArgb(245, 245, 245);
             vGrid.Styles["Fixed"].ForeColor = Color.FromArgb(0, 0, 0);
             vGrid.Styles["Fixed"].Border.Style = BorderStyleEnum.Flat;
-            vGrid.Styles["Fixed"].Border.Color = Color.FromArgb(201, 201, 201);//ÀÓ½Ã·Î Ã³¸®ÇÔ.
-            vGrid.Styles["EmptyArea"].BackColor = Color.FromArgb(246, 246, 246); //µ¥ÀÌÅÍ°¡ ¾øÀ» °æ¿ì backcolor
+            vGrid.Styles["Fixed"].Border.Color = Color.FromArgb(201, 201, 201);//ï¿½Ó½Ã·ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½.
+            vGrid.Styles["EmptyArea"].BackColor = Color.FromArgb(246, 246, 246); //ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ backcolor
 
             vGrid.Styles["Highlight"].ForeColor = Color.FromArgb(255, 255, 255);
             vGrid.Styles["Highlight"].BackColor = Color.FromArgb(110, 100, 189);
         }
 
         /// <summary>
-        /// ÄÞº¸¹Ú½º ½ºÅ¸ÀÏÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù
+        /// ï¿½Þºï¿½ï¿½Ú½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½
         /// </summary>
-        /// <param name="cboDevicePart">ÄÞº¸¹Ú½º ÀÔ´Ï´Ù.</param>
+        /// <param name="cboDevicePart">ï¿½Þºï¿½ï¿½Ú½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static void InitializeComboBoxStyle(MKComboBox aComboBox)
         {
             aComboBox.BackColor = System.Drawing.SystemColors.Window;
@@ -1069,7 +1069,7 @@ namespace RACTClient
             aComboBox.BoxBorderColor = System.Drawing.Color.Gray;
             aComboBox.ColorBoxSize = new System.Drawing.Size(12, 8);
             aComboBox.ComboBoxStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            aComboBox.Font = new System.Drawing.Font("µ¸¿ò", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            aComboBox.Font = new System.Drawing.Font("ï¿½ï¿½ï¿½ï¿½", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             aComboBox.ForeColor = System.Drawing.Color.Black;
             aComboBox.ImageList = null;
             aComboBox.ItemHeight = 14;
@@ -1080,11 +1080,11 @@ namespace RACTClient
 
 
         /// <summary>
-        /// Àåºñ ºÐ·ùº° Àåºñ ¸ðµ¨ ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
         /// </summary>
         public static Hashtable m_DeviceModelInfoDevicePart = new Hashtable();
         /// <summary>
-        /// Àåºñ ±¸ºÐ ¸ñ·ÏÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½.
         /// </summary>
         public static void InitializeDevicePartList()
         {
@@ -1113,7 +1113,7 @@ namespace RACTClient
                 {
                     s_DevicePartList.Add(new DevicePartInfo(tModelInfo.ModelTypeName, tModelInfo.ViewOrder, tModelInfo.ModelTypeCode, tModelInfo.IpTypeCd));
                 }
-                //Àåºñ ºÐ·ùº° ¸ðµ¨ ¸ñ·ÏÀ» ÀúÀå ÇÕ´Ï´Ù.
+                //ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
                 tModelInfos = (ArrayList)m_DeviceModelInfoDevicePart[tModelInfo.ModelTypeName];
                 if (tModelInfos == null)
                 {
@@ -1133,10 +1133,10 @@ namespace RACTClient
 
 
         /// <summary>
-        /// °´Ã¼¸¦ ¾ÐÃàÇÑ ¸Þ¸ð¸®½ºÆ®¸²À» ¹ÝÈ¯ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ð¸®½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="aValue">¾ÐÃàÇÒ °´Ã¼ ÀÔ´Ï´Ù.</param>
-        /// <returns>¸Þ¸ð¸® ½ºÆ®¸² ÀÔ´Ï´Ù.</returns>
+        /// <param name="aValue">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½Ô´Ï´ï¿½.</param>
+        /// <returns>ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.</returns>
         public static object DecompressObject(CompressData aCompressData)
         {
             GZipStream tGZipStream = null;
@@ -1181,22 +1181,22 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Àåºñ ºÐ·ù ÄÞº¸¹Ú½º ÃÊ±âÈ­ ¸Þ¼­µå
+        /// ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ ï¿½Þºï¿½ï¿½Ú½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Þ¼ï¿½ï¿½ï¿½
         /// </summary>
-        /// <param name="aISManagementList">°ü¸®µÇ´Â ÀåºñºÐ·ù¸¸ Ç¥½ÃÇÒÁöÀÇ¿©ºÎ </param>
-        /// <param name="vcmbDivision">ºÐ·ù ÄÞº¸¹Ú½º</param>
+        /// <param name="aISManagementList">ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ </param>
+        /// <param name="vcmbDivision">ï¿½Ð·ï¿½ ï¿½Þºï¿½ï¿½Ú½ï¿½</param>
         public static void InitializeDevicePartComboBox(bool aISManagementList, MKComboBox vDevicePartComboBox)
         {
             InitializeDevicePartComboBox(aISManagementList, vDevicePartComboBox, true, null);
         }
 
         /// <summary>
-        /// Àåºñ ºÐ·ù ÄÞº¸¹Ú½º ÃÊ±âÈ­ ¸Þ¼­µå
+        /// ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ ï¿½Þºï¿½ï¿½Ú½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Þ¼ï¿½ï¿½ï¿½
         /// </summary>
-        /// <param name="aISManagementList">°ü¸®µÇ´Â ÀåºñºÐ·ù¸¸ Ç¥½ÃÇÒÁöÀÇ¿©ºÎ </param>
-        /// <param name="vcmbDivision">ºÐ·ù ÄÞº¸¹Ú½º</param>
-        /// <param name="aAllType">ÀüÃ¼ ÀåºñºÐ·ùÀÎÁöÀÇ ¿©ºÎ</param>
-        /// <param name="aSelectType">¼±ÅÃµÈ ÀåºñºÐ·ù ¸®½ºÆ®(,·Î ºÐ¸®)</param>
+        /// <param name="aISManagementList">ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ </param>
+        /// <param name="vcmbDivision">ï¿½Ð·ï¿½ ï¿½Þºï¿½ï¿½Ú½ï¿½</param>
+        /// <param name="aAllType">ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</param>
+        /// <param name="aSelectType">ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½Ð·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(,ï¿½ï¿½ ï¿½Ð¸ï¿½)</param>
         public static void InitializeDevicePartComboBox(bool aISManagementList, MKComboBox vDevicePartComboBox, bool aAllType, ArrayList aSelectTypeList)
         {
             MKListItem tListItem = null;
@@ -1213,11 +1213,11 @@ namespace RACTClient
                 tItems[i] = (DevicePartInfo)AppGlobal.s_DevicePartList[i];
             }
 
-            // ¾ËÆÄºª ¼øÀ¸·Î Ç×¸ñÀ» Á¤·Ä.
+            // ï¿½ï¿½ï¿½Äºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
             Array.Sort(tConditions, tItems);
 
             vDevicePartComboBox.Items.Clear();
-            vDevicePartComboBox.Items.Add("- ºÐ·ù ¼±ÅÃ -");
+            vDevicePartComboBox.Items.Add("- ï¿½Ð·ï¿½ ï¿½ï¿½ï¿½ï¿½ -");
             /*
             for (int i = 0; i < tItems.Length; i++)
             {
@@ -1246,16 +1246,16 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Àåºñ ¸ðµ¨ ÄÞº¸ ¹Ú½º¸¦ ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Þºï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="vDeviceModelComboBox">Àåºñ ¸ðµ¨ ÄÞº¸ ¹Ú½º ÀÔ´Ï´Ù.</param>
-        /// <param name="vDevicePart">Àåºñ ºÐ·ù ÀÔ´Ï´Ù.</param>
+        /// <param name="vDeviceModelComboBox">ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Þºï¿½ ï¿½Ú½ï¿½ ï¿½Ô´Ï´ï¿½.</param>
+        /// <param name="vDevicePart">ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         public static void InitializeDeviceModelComboBox(MKComboBox vDeviceModelComboBox, string vDevicePart)
         {
             MKListItem tListItem = null;
             vDeviceModelComboBox.Enabled = false;
             vDeviceModelComboBox.Items.Clear();
-            vDeviceModelComboBox.Items.Add("- ¸ðµ¨ ¼±ÅÃ -");
+            vDeviceModelComboBox.Items.Add("- ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -");
 
             if (m_DeviceModelInfoDevicePart[vDevicePart] == null) return;
 
@@ -1268,7 +1268,7 @@ namespace RACTClient
                 tItems[i] = (ModelInfo)((ArrayList)m_DeviceModelInfoDevicePart[vDevicePart])[i];
             }
 
-            // ¾ËÆÄºª ¼øÀ¸·Î Ç×¸ñÀ» Á¤·Ä.
+            // ï¿½ï¿½ï¿½Äºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
             Array.Sort(tConditions, tItems);
 
             int tIPTypeCd = (m_ViewIPType == E_IpType.IPTV) ? 1 : (m_ViewIPType == E_IpType.CATV) ? 2 : 3;
@@ -1281,12 +1281,12 @@ namespace RACTClient
                     tListItem.Tag = tItems[i];
                 }
             }
-            //2008-05-01 hanjiyeon ¼öÁ¤ - ¸ðµç µå·Ó´Ù¿î¸®½ºÆ®ÀÇ ¾ÆÀÌÅÛÀ» Á¤·Ä½ÃÄÑ Ç¥½Ã - end
+            //2008-05-01 hanjiyeon ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ ï¿½ï¿½Ó´Ù¿î¸®ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ - end
             vDeviceModelComboBox.Enabled = true;
         }
 
         /// <summary>
-        /// ³×Æ®¿öÅ© ½Ç ÄÚµå¸¦ ÀÌ¿ëÇÏ¿© ³×Æ®¿öÅ© ½Ç ÀÌ¸§À» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ ï¿½Úµå¸¦ ï¿½Ì¿ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="aORG1Code"></param>
         /// <returns></returns>
@@ -1301,10 +1301,10 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÆÀ ÄÚµå¸¦ ÀÌ¿ëÇÏ¿© ÆÀ ¸íÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ ï¿½Úµå¸¦ ï¿½Ì¿ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
-        /// <param name="aIsBranchCode">Àü´ÞÀÎÀÚ°¡ Áö»çÄÚµåÀÎÁöÀÇ ¿©ºÎÀÔ´Ï´Ù.false:¼¾ÅÍÄÚµå</param>
-        /// <param name="vBranchCode">Á¶Á÷ÄÚ±× ÀÔ´Ï´Ù.</param>
+        /// <param name="aIsBranchCode">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.false:ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½</param>
+        /// <param name="vBranchCode">ï¿½ï¿½ï¿½ï¿½ï¿½Ú±ï¿½ ï¿½Ô´Ï´ï¿½.</param>
         /// <returns></returns>
         public static string GetBranchName(string vBranchCode)
         {
@@ -1317,7 +1317,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¼¾ÅÍ ÄÚµå¸íÀ» ÀÌ¿ëÇÏ¿© ¼¾ÅÍ¸íÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="vCenterCode"></param>
         /// <returns></returns>
@@ -1332,7 +1332,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¼¾ÅÍ ÄÚµå¸¦ ÀÌ¿ëÇÏ¿© Á¶Á÷Á¤º¸(¸¸)¸¦ °¡Á®¿É´Ï´Ù. ÀåºñÁ¤º¸´Â ¾øÀ½.
+        /// ï¿½ï¿½ï¿½ï¿½ ï¿½Úµå¸¦ ï¿½Ì¿ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½É´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
         /// </summary>
         /// <returns></returns>
         public static FACTGroupInfo GetGroupInfoByCenterCode(string aCenterCode)
@@ -1343,7 +1343,7 @@ namespace RACTClient
             {
                 for (int i = 0; i < AppGlobal.s_OrganizationInfo.AllGroupInfo.SubGroups.Count; i++)
                 {
-                    //³×Æ®¿öÅ© ½Ç
+                    //ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½
                     for (int t = 0; t < AppGlobal.s_OrganizationInfo.AllGroupInfo.SubGroups[i].SubGroups.Count; t++)
                     {
                         for (int c = 0; c < AppGlobal.s_OrganizationInfo.AllGroupInfo.SubGroups[i].SubGroups[t].SubGroups.Count; c++)
@@ -1362,7 +1362,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¹öÆ° ½ºÅ¸ÀÏÀ» ¼³Á¤ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Æ° ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="aButton"></param>
         public static void InitializeButtonStyle(MKButton aButton)
@@ -1387,7 +1387,7 @@ namespace RACTClient
         private static ImageList ilLeft = null;
         private static ImageList ilRight = null;
         /// <summary>
-        /// ¹öÆ°ÀÇ ÀÌ¹ÌÁö ½ºÅ¸ÀÏÀ» ¼³Á¤ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="aButtonType"></param>
         public static void SetButtonImageStyle()
@@ -1445,11 +1445,11 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// XML ÆÄÀÏÀ» »ý¼º ÇÕ´Ï´Ù.
+        /// XML ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
         public static void MakeClientOption()
         {
-            // 2013-04-24- shinyn - È¯°æ¼³Á¤ÆÄÀÏ ÀúÀå½Ã ¿À·ùÃ¼Å©
+            // 2013-04-24- shinyn - È¯ï¿½æ¼³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼Å©
             try
             {
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
@@ -1467,7 +1467,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ½ºÅ©¸³Æ® ÆÄÀÏÀ» ¿­±âÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <returns></returns>
         public static DialogResult ShowScriptOpenDialog(out string aScriptText)
@@ -1484,7 +1484,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÇÁ·Î±×·¡½º¸¦ Ç¥½Ã¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½ï¿½Î±×·ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½Ã¸ï¿½ Ã³ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="aVisable"></param>
         public static void ShowLoadingProgress(bool aVisable)
@@ -1493,21 +1493,21 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-11 - shinyn - R14-01 - Àåºñ ¸ñ·Ï ÀúÀå 
+        /// 2013-01-11 - shinyn - R14-01 - ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
         /// </summary>
         /// <param name="aDeviceInfos"></param>
         /// <returns></returns>
         public static bool SaveDeviceList(UserInfo aUserInfo, DeviceInfoCollection aDeviceInfos, DeviceCfgSaveInfoCollection aDviceCfgSaveInfos)
         {
             /*   
-             -- XMLÇü½Ä
+             -- XMLï¿½ï¿½ï¿½ï¿½
             <?xml version="1.0" ?> 
             <Account></Account>
             <DeviceInfos>
               <DeviceIDs>
                   <DeviceID value="211987">
-    	                <Name>ÀåºñÀÌ¸§</Name>
-                        <ModelID>¸ðµ¨¾ÆÀÌµð</ModelID>
+    	                <Name>ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½</Name>
+                        <ModelID>ï¿½ðµ¨¾ï¿½ï¿½Ìµï¿½</ModelID>
 			            <BranchCode></BranchCode>
 			            <CenterCode></CenterCode>
 			            <TpoName></TpoName>
@@ -1540,8 +1540,8 @@ namespace RACTClient
                         <CfgSaveInfos>
                   </DeviceID> 
                   <DeviceID value="211987">
-    	                <Name>ÀåºñÀÌ¸§</Name>
-                        <ModelID>¸ðµ¨¾ÆÀÌµð</ModelID>
+    	                <Name>ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½</Name>
+                        <ModelID>ï¿½ðµ¨¾ï¿½ï¿½Ìµï¿½</ModelID>
 			            <BranchCode></BranchCode>
 			            <CenterCode></CenterCode>
 			            <TpoName></TpoName>
@@ -1590,7 +1590,7 @@ namespace RACTClient
                                tNow.Hour.ToString("00") +
                                tNow.Minute.ToString("00") +
                                tNow.Second.ToString("00") + "]" +
-                               "Àåºñ¸ñ·Ï.XML";
+                               "ï¿½ï¿½ï¿½ï¿½ï¿½.XML";
 
 
             tSaveFileDialog.FileName = tFileName;
@@ -1757,7 +1757,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 2013-01-11 - shinyn - CFG º¹¿ø¸í·ÉÀ» Script ÇüÅÂ·Î ¹ÝÈ¯ÇÑ´Ù.
+        /// 2013-01-11 - shinyn - CFG ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Script ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
         /// </summary>
         /// <param name="aCfgRestoreCommands"></param>
         /// <returns></returns>
@@ -1784,7 +1784,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-05-02 - shinyn - ¸µÅ©Àåºñ¿¬°á¿¡ ÇÊ¿äÇÑ Telnet¸í·É ½ºÅ©¸³Æ®¸¦ ¸¸µç´Ù.
+        /// 2013-05-02 - shinyn - ï¿½ï¿½Å©ï¿½ï¿½ñ¿¬°á¿¡ ï¿½Ê¿ï¿½ï¿½ï¿½ Telnetï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
         /// </summary>
         /// <param name="aCfgRestoreCommands"></param>
         /// <returns></returns>
@@ -1848,14 +1848,14 @@ namespace RACTClient
         public static DeviceInfoCollection OpenDeviceList()
         {
             /*   
-             -- XMLÇü½Ä
+             -- XMLï¿½ï¿½ï¿½ï¿½
             <?xml version="1.0" ?> 
             <Account></Account>
             <DeviceInfos>
               <DeviceIDs>
                   <DeviceID value="211987">
-    	                <Name>ÀåºñÀÌ¸§</Name>
-                        <ModelID>¸ðµ¨¾ÆÀÌµð</ModelID>
+    	                <Name>ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½</Name>
+                        <ModelID>ï¿½ðµ¨¾ï¿½ï¿½Ìµï¿½</ModelID>
 			            <BranchCode></BranchCode>
 			            <CenterCode></CenterCode>
 			            <TpoName></TpoName>
@@ -1888,8 +1888,8 @@ namespace RACTClient
                         <CfgSaveInfos>
                   </DeviceID> 
                   <DeviceID value="211987">
-    	                <Name>ÀåºñÀÌ¸§</Name>
-                        <ModelID>¸ðµ¨¾ÆÀÌµð</ModelID>
+    	                <Name>ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½</Name>
+                        <ModelID>ï¿½ðµ¨¾ï¿½ï¿½Ìµï¿½</ModelID>
 			            <BranchCode></BranchCode>
 			            <CenterCode></CenterCode>
 			            <TpoName></TpoName>
@@ -2000,7 +2000,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-04-19 - shinyn - Gridº¹»ç ºÙ¿©³Ö±â ÇÒ°æ¿ì »ç¿ëÇÔ
+        /// 2013-04-19 - shinyn - Gridï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½ ï¿½Ò°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         /// <param name="vGrid"></param>
         /// <param name="isControl"></param>
@@ -2012,7 +2012,7 @@ namespace RACTClient
             return GridClipBoard(vGrid, isControl, vKey, isNoPaste, false);
         }
         /// <summary>
-        /// 2013-04-19 - shinyn - Gridº¹»ç ºÙ¿©³Ö±â ÇÒ°æ¿ì »ç¿ëÇÔ
+        /// 2013-04-19 - shinyn - Gridï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½Ö±ï¿½ ï¿½Ò°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         /// <param name="vGrid"></param>
         /// <param name="isControl"></param>
@@ -2063,7 +2063,7 @@ namespace RACTClient
                                 string[] tStringLine = ((string)tData.GetData(typeof(string))).Split('\n');
                                 string[] tValues = null;
                                 int tRow = vGrid.Row;
-                                //mjjoe, 2008.10.21 ÄÚµåÃß°¡ ---------------------------------------------------------------------------------
+                                //mjjoe, 2008.10.21 ï¿½Úµï¿½ï¿½ß°ï¿½ ---------------------------------------------------------------------------------
                                 int tAddNewOption_AddLine;
                                 if (vGrid.AllowAddNew == true)
                                     tAddNewOption_AddLine = 2;
@@ -2071,18 +2071,18 @@ namespace RACTClient
                                     tAddNewOption_AddLine = 1;
 
                                 Row tAddedRow;
-                                //mjjoe, 2008.10.21 ÄÚµåÃß°¡ ³¡---------------------------------------------------------------------------------
+                                //mjjoe, 2008.10.21 ï¿½Úµï¿½ï¿½ß°ï¿½ ï¿½ï¿½---------------------------------------------------------------------------------
                                 for (int i = 0; i < tStringLine.Length; i++)
                                 {
-                                    //mjjoe, 2008.10.21 ÄÚµåÃß°¡ ---------------------------------------------------------------------------------
-                                    //Å¬¸³º¸µå º¹»ç½Ã ¸¶Áö¸·¿¡ ºóÇàÀÌ ´õÇØÁ®¼­ º¹»çµÇ¾î Áø´Ù.
-                                    //(Excel¿¡¼­ Å×½ºÆ®). ±×·¯¹Ç·Î, ¸¶Áö¸· ÇàÀÌ ºó ÇàÀÌ¸é LineÀ» Ãß°¡ÇÏÁö ¾Êµµ·Ï Ã³¸®ÇÑ´Ù.
+                                    //mjjoe, 2008.10.21 ï¿½Úµï¿½ï¿½ß°ï¿½ ---------------------------------------------------------------------------------
+                                    //Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½.
+                                    //(Excelï¿½ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ®). ï¿½×·ï¿½ï¿½Ç·ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ Lineï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ñ´ï¿½.
                                     if (i == tStringLine.Length - 1 && tStringLine[i] == "")
                                         break;
-                                    //mjjoe, 2008.10.21 ÄÚµåÃß°¡ ³¡ ---------------------------------------------------------------------------------
+                                    //mjjoe, 2008.10.21 ï¿½Úµï¿½ï¿½ß°ï¿½ ï¿½ï¿½ ---------------------------------------------------------------------------------
 
-                                    //mjjoe, 2008.10.21 ¼öÁ¤ ---------------------------------------------------------------------------------
-                                    //if(tRow >= vGrid.Rows.Count) //oldÄÚµå
+                                    //mjjoe, 2008.10.21 ï¿½ï¿½ï¿½ï¿½ ---------------------------------------------------------------------------------
+                                    //if(tRow >= vGrid.Rows.Count) //oldï¿½Úµï¿½
                                     //{ 
                                     //    vGrid.Rows.Count++;
                                     //}
@@ -2101,10 +2101,10 @@ namespace RACTClient
                                     {
                                         if (vGrid.Col + tCol >= vGrid.Cols.Count) break;
 
-                                        //vGrid[tRow, tCol + vGrid.Col] = tValues[tCol].Replace(((char)13).ToString(), ""); //oldÄÚµå
+                                        //vGrid[tRow, tCol + vGrid.Col] = tValues[tCol].Replace(((char)13).ToString(), ""); //oldï¿½Úµï¿½
                                         tAddedRow[tCol + vGrid.Col] = tValues[tCol].Replace(((char)13).ToString(), "");
                                     }
-                                    //mjjoe, 2008.10.21 ¼öÁ¤ ³¡---------------------------------------------------------------------------------
+                                    //mjjoe, 2008.10.21 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½---------------------------------------------------------------------------------
 
                                     tRow++;
                                 }
@@ -2129,9 +2129,9 @@ namespace RACTClient
             return E_ClipboardProcessType.Copy;
         }
 
-        //2015-10-28 hanjiyeon Ãß°¡
+        //2015-10-28 hanjiyeon ï¿½ß°ï¿½
         /// <summary>
-        /// ¾ËÄ«ÅÚ·ç½¼Æ® ÀåºñÀÎÁöÀÇ ¿©ºÎ¸¦ ¹ÝÈ¯ÇÕ´Ï´Ù.
+        /// ï¿½ï¿½Ä«ï¿½Ú·ç½¼Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½È¯ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="aModelID"></param>
         /// <returns></returns>
@@ -2146,9 +2146,9 @@ namespace RACTClient
             return false;
         }
 
-        //2018-11-20 KangBonghan Ãß°¡
+        //2018-11-20 KangBonghan ï¿½ß°ï¿½
         /// <summary>
-        /// RPCS ÀåºñÀÎÁöÀÇ ¿©ºÎ¸¦ ¹ÝÈ¯ÇÕ´Ï´Ù.
+        /// RPCS ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½È¯ï¿½Õ´Ï´ï¿½.
         /// </summary>
         /// <param name="aModelID"></param>
         /// <returns></returns>
@@ -2185,40 +2185,40 @@ namespace RACTClient
 
             string[] rawParts = ip.Split('.');
             List<string> segments = new List<string>();
-            int validPartCount = 0; // À¯È¿ÇÑ ¿ÁÅÝ °³¼ö
+            int validPartCount = 0; // ï¿½ï¿½È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
             for (int i = 0; i < rawParts.Length; i++)
             {
                 string part = rawParts[i];
 
-                // Áß°£¿¡ ºó °ªÀÌ ÀÖÀ¸¸é ½ÇÆÐ (¿¹: 210..10.5)
+                // ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½: 210..10.5)
                 if (string.IsNullOrWhiteSpace(part))
                 {
                     if (i != rawParts.Length - 1)
                         return false;
 
-                    part = "0"; // ¸¶Áö¸· ºó ¿ÁÅÝÀº 0À¸·Î º¸Ãæ
+                    part = "0"; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 }
                 else
                 {
-                    validPartCount++; // À¯È¿ÇÑ °ªÀÌ¸é Ä«¿îÆ®
+                    validPartCount++; // ï¿½ï¿½È¿ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ Ä«ï¿½ï¿½Æ®
                 }
 
                 segments.Add(part);
             }
 
-            // ¡Ú ¼öÁ¤µÈ Á¶°Ç: À¯È¿ÇÑ ¿ÁÅÝ °³¼ö°¡ 3°³ ÀÌ»óÀÌ¾î¾ß ÇÔ
+            // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 3ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½
             if (validPartCount < 3)
                 return false;
 
-            // ÃÖ´ë 4¿ÁÅÝ±îÁö 0À¸·Î º¸Ãæ
+            // ï¿½Ö´ï¿½ 4ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             while (segments.Count < 4)
                 segments.Add("0");
 
             if (segments.Count > 4)
                 return false;
 
-            // ¼ýÀÚ ¹× ¹üÀ§ °Ë»ç
+            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
             for (int i = 0; i < 4; i++)
             {
                 string seg = segments[i];
@@ -2230,7 +2230,7 @@ namespace RACTClient
                 if (!int.TryParse(seg, out val) || val < 0 || val > 255)
                     return false;
 
-                segments[i] = val.ToString(); // ¾ÕÀÚ¸® 0 Á¦°Å
+                segments[i] = val.ToString(); // ï¿½ï¿½ï¿½Ú¸ï¿½ 0 ï¿½ï¿½ï¿½ï¿½
             }
 
             returnip = string.Join(".", segments);

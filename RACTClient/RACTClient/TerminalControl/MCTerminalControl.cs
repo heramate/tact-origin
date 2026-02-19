@@ -127,7 +127,18 @@ namespace RACTClient
         /// </summary>
         private bool m_IsShowCaret = true;
         /// <summary>
-        /// 터미널 상태 입니다.
+        ///  ߰  ü  
+        /// </summary>
+        private DeviceInfo m_JumpHost = null;
+
+        public DeviceInfo JumpHost
+        {
+            get { return m_JumpHost; }
+            set { m_JumpHost = value; }
+        }
+
+        /// <summary>
+        ///  ͹̳   ¿  
         /// </summary>
         private E_TerminalStatus m_TerminalStatus = E_TerminalStatus.TryConnection;
         /// <summary>
@@ -5496,6 +5507,12 @@ namespace RACTClient
         }
 
 
+
+        public void ConnectDevice(DeviceInfo target, DeviceInfo jumpHost)
+        {
+            this.JumpHost = jumpHost;
+            ConnectDevice((object)target);
+        }
 
         public object ConnectDevice(object aDeviceInfo)
         {

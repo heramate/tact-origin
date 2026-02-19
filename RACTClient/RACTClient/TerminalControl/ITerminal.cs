@@ -11,12 +11,15 @@ namespace RACTClient
         string ToolTip { get; }
         ConnectionTypes ConnectionType { get; }
         object ConnectDevice(object aDeviceInfo);
+        void ConnectDevice(DeviceInfo target, DeviceInfo jumpHost);
         void Disconnect();
         // void DisplayResult(SerialCommandResultInfo aResult); // Inherited from ISerialEmulator
         void DisplayResult(int aSessionID, string aResult);
         void ScriptWork(E_ScriptWorkType aType, object aScript);
         
         // Members added for TerminalPanel compatibility
+        DeviceInfo JumpHost { get; set; }
+        E_TerminalStatus TerminalStatus { get; set; }
         int ConnectedSessionID { get; }
         bool IsQuickConnection { get; }
         E_TerminalMode TerminalMode { get; set; }

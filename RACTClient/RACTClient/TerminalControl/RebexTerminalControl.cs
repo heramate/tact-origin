@@ -23,7 +23,22 @@ namespace RACTClient
         private Rebex.TerminalEmulation.TerminalControl _rebexTerminal;
         private Ssh _ssh;
         private Telnet _telnet;
+        private Connectivity.SshTunnelManager _tunnelManager = new Connectivity.SshTunnelManager();
+
         public DeviceInfo DeviceInfo { get; set; }
+        public DeviceInfo JumpHost { get; set; }
+        
+        private E_TerminalStatus _terminalStatus;
+        public E_TerminalStatus TerminalStatus 
+        { 
+            get => _terminalStatus;
+            set 
+            {
+                _terminalStatus = value;
+                OnTerminalStatusChange?.Invoke(this, value);
+            }
+        }
+
         public string ToolTip 
         { 
             get 
@@ -86,34 +101,45 @@ namespace RACTClient
 
         public object ConnectDevice(object aDeviceInfo)
         {
-            DeviceInfo tDeviceInfo = aDeviceInfo as DeviceInfo;
-            if (tDeviceInfo == null) return false;
+            return ConnectDevice(aDeviceInfo as DeviceInfo, null);
+        }
 
-            this.DeviceInfo = tDeviceInfo; // Store for reference
+        public void ConnectDevice(DeviceInfo target, DeviceInfo jumpHost)
+        {
+            if (target == null) return;
+
+            this.DeviceInfo = target;
+            this.JumpHost = jumpHost;
+            this.TerminalStatus = E_TerminalStatus.TryConnection;
 
             try
             {
-                if (tDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
+                string connectIp = target.IPAddress;
+                int connectPort = target.TerminalConnectInfo.TelnetPort;
+
+                // Jump Host  처리
+                if (jumpHost != null)
                 {
-                    ConnectTelnet(tDeviceInfo.IPAddress, tDeviceInfo.TerminalConnectInfo.Port);
+                    _tunnelManager.OpenTunnel(jumpHost, target);
+                    connectIp = "127.0.0.1";
+                    connectPort = _tunnelManager.LocalBoundPort;
                 }
-                else if (tDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSH)
+
+                if (target.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
                 {
-                     // Assuming SSH port is same or needs specific handling
-                     // Using default 22 if not specified appropriately, or use Port from ConnectInfo
-                    ConnectSsh(tDeviceInfo.IPAddress, tDeviceInfo.TerminalConnectInfo.Port, tDeviceInfo.TerminalConnectInfo.UserID, tDeviceInfo.TerminalConnectInfo.Password);
+                    ConnectTelnet(connectIp, connectPort);
                 }
-                else if (tDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL)
+                else if (target.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSH || target.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // Placeholder for serial
-                    MessageBox.Show("Serial connection via Rebex not fully implemented yet.");
+                    ConnectSsh(connectIp, connectPort, target.TelnetID1, target.TelnetPwd1);
                 }
-                return true;
+                
+                this.TerminalStatus = E_TerminalStatus.Connection;
             }
             catch (Exception ex)
             {
-               MessageBox.Show("Connection Error: " + ex.Message);
-               return false;
+                this.TerminalStatus = E_TerminalStatus.Disconnected;
+                AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Error, $" ӽ  н : {ex.Message}");
             }
         }
 

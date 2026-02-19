@@ -10,7 +10,10 @@ using DevComponents.DotNetBar;
 using RACTTerminal;
 using RACTSerialProcess;
 using System.Threading;
+using System.Threading.Tasks;
 using MKLibrary.MKProcess;
+using RACTClient.Helpers;
+using RACTClient.Connectivity;
 
 namespace RACTClient
 {
@@ -89,6 +92,8 @@ namespace RACTClient
 
             ucShortenCommand.OnSendShortenCommand += new HandlerArgument1<ShortenCommandInfo>(ShortenCommand_OnSendShortenCommand);
             ucShortenScript.OnSendScript += new HandlerArgument1<Script>(ShortenScript_OnSendScript);
+
+            SshSessionPool.Instance.OnSessionDisconnected += Global_OnSharedSessionDisconnected;
         }
         /// <summary>
         /// 스크립트 명령 이벤트를 처리 합니다. 
@@ -262,19 +267,8 @@ namespace RACTClient
         /// </summary>
         private ITerminal MakeEmulator(DeviceInfo aDeviceInfo, bool aIsQuickConnection)
         {
-            ITerminal tEmulator = null;
-            
-            // Check protocol to decide which terminal control to use
-            if (aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET ||
-                aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSH || 
-                aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL)
-            {
-                 tEmulator = new RebexTerminalControl();
-            }
-            else
-            {
-                 tEmulator = new MCTerminalEmulator();
-            }
+            // MCTerminalControl 제거 및 RebexTerminalControl로 통합
+            ITerminal tEmulator = new RebexTerminalControl();
             
             ((Control)tEmulator).Dock = DockStyle.Fill;
             tEmulator.DeviceInfo = aDeviceInfo;
@@ -409,7 +403,12 @@ namespace RACTClient
             int tCount = 0;
             if (!CheckTerminalCount(aDeviceInfo, out tCount)) return;
 
-            MCTerminalEmulator tEmulator = MakeEmulator(aDeviceInfo, aIsQuickConnection);
+            ITerminal tEmulator = MakeEmulator(aDeviceInfo, aIsQuickConnection);
+            
+            // Jump Host  정보  조회
+            DeviceInfo jumpHost = GetJumpHostForDevice(aDeviceInfo);
+            tEmulator.JumpHost = jumpHost;
+
             if (AppGlobal.s_ClientOption.TerminalWindowsPopupType == E_DefaultTerminalPopupType.Tab)
             {
                 SuperTabItem tTabItem = MakeTabPanel(tEmulator, tCount);
@@ -420,7 +419,7 @@ namespace RACTClient
             else
             {
                 TerminalWindows tForm = new TerminalWindows();
-                tEmulator.Dock = DockStyle.Fill;
+                ((Control)tEmulator).Dock = DockStyle.Fill;
                 tForm.AddTerminalControl(tEmulator);
                 tForm.Size = new Size(AppGlobal.s_ClientOption.PopupSizeWidth, AppGlobal.s_ClientOption.PopupSizeHeight);
 
@@ -431,7 +430,7 @@ namespace RACTClient
                 }
                 else if (tEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSH텔넷인 경우 분기처리 추가
+                    // 2013-03-06 - shinyn - SSH ͹̳   경우  з ó   ߰ 
                     tEmulator.Name = tEmulator.DeviceInfo.IPAddress;
                 }
                 else
@@ -443,20 +442,27 @@ namespace RACTClient
                 tForm.Show();
             }
 
-            // 2013-05-02 - shinyn - 터미널 연결시 연결안되는 오류를 수정하기 위해, 텔넷 연결시 WorkItem을 같이 보내서 연결하도록 수정합니다.
-            //m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(tEmulator.ConnectDevice)));
-
-            MKWorkItem tWorkItem = new MKWorkItem(new WorkItemParmeterMethod(tEmulator.ConnectDevice), new DeviceInfo(tEmulator.DeviceInfo));
-
-
-            m_TerminalConnectThreadPool.ExecuteWork(tWorkItem);
-
-            //2013-05-02 - shinyn - 터미널 연결 스레드 풀요청과 받는 것을 제대로 받았는지 체크한다.
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "AddTerminal : ThreadPool 시작 : " + tEmulator.DeviceInfo.IPAddress);
-
-
+            // Task.Run 을  ̿  Ͽ   񵿱   ӽ   õ 
+            Task.Run(() =>
+            {
+                try
+                {
+                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Infomation, "AddTerminal : Task  õ  : " + tEmulator.DeviceInfo.IPAddress);
+                    tEmulator.ConnectDevice(tEmulator.DeviceInfo, tEmulator.JumpHost);
+                }
+                catch (Exception ex)
+                {
+                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Error, "AddTerminal Error: " + ex.Message);
+                }
+            });
 
             if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(E_TerminalStatus.Add, tEmulator.Name);
+        }
+
+        private DeviceInfo GetJumpHostForDevice(DeviceInfo device)
+        {
+            // TODO: DB  나  설정에서  장비의 Zone  또는  망  구분별  중계  서버  정보를  조회하는  로직  구현
+            return null;
         }
 
         /// <summary>
@@ -1597,6 +1603,53 @@ namespace RACTClient
         {
             System.Diagnostics.Debug.WriteLine("Leave");
             //AppGlobal.bPanelFocusCheck = false;
+        }
+
+        private void Global_OnSharedSessionDisconnected(string disconnectedKey)
+        {
+            UiContext.RunAsync(() =>
+            {
+                if (this.IsDisposed) return;
+
+                AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Warning, $" ߰   ǿ   ܰ   : {disconnectedKey}");
+
+                List<ITerminal> targets;
+                lock (m_EmulatorList) { targets = new List<ITerminal>(m_EmulatorList); }
+
+                foreach (ITerminal emulator in targets)
+                {
+                    if (emulator.JumpHost == null) continue;
+
+                    string emulatorKey = SshSessionPool.Instance.GetKey(emulator.JumpHost);
+                    if (emulatorKey == disconnectedKey)
+                    {
+                        ExecuteAutoReconnect(emulator);
+                    }
+                }
+            });
+        }
+
+        private void ExecuteAutoReconnect(ITerminal emulator)
+        {
+            emulator.TerminalStatus = E_TerminalStatus.Disconnected;
+
+            string emulatorName = emulator.Name;
+            DeviceInfo targetInfo = emulator.DeviceInfo;
+            DeviceInfo jumpHostInfo = emulator.JumpHost;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Infomation, $"[  տ   ]  հ   õ   : {emulatorName}");
+                    emulator.ConnectDevice(targetInfo, jumpHostInfo);
+                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Infomation, $"[  տ   ]  հ   ߽   : {emulatorName}");
+                }
+                catch (Exception ex)
+                {
+                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Error, $"[  տ   ] {emulatorName}  հ   н : {ex.Message}");
+                }
+            });
         }
 
     }

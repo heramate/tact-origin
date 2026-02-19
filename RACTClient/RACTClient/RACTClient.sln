@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RACTClient", "RACTClient.csproj", "{C9157CBA-CF90-EC22-8A2C-B45983B83A43}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C9157CBA-CF90-EC22-8A2C-B45983B83A43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9157CBA-CF90-EC22-8A2C-B45983B83A43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9157CBA-CF90-EC22-8A2C-B45983B83A43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9157CBA-CF90-EC22-8A2C-B45983B83A43}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2FBA5410-12FC-4680-B068-C28C9070D61E}
+	EndGlobalSection
+EndGlobal

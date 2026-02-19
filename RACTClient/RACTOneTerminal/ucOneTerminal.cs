@@ -88,8 +88,11 @@ namespace RACTOneTerminal
             AppGlobal.s_ServerIP = aServerIP;
             AppGlobal.s_UserAccount = aUserID;
             AppGlobal.s_Password = aUserPW;
-			// 2019-11-10 개선사항 (로그 저장 경로 개선)
-            AppGlobal.s_FileLogProcessor = new FileLogProcess(AppGlobal.s_ClientOption.LogPath + "SystemLog\\", "ClientSystem");
+
+            RACTClient.Helpers.UiContext.Initialize();
+
+			// 2019-11-10  簡 ׻ ( α  浵 渷  簡)
+            AppGlobal.s_FileLogProcessor = new RACTClient.Logging.FastLogger(AppGlobal.s_ClientOption.LogPath + "SystemLog\\", "ClientSystem");
             AppGlobal.s_FileLogProcessor.Start();
             AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "클라이언트를 시작 합니다.");
 
