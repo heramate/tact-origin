@@ -14,7 +14,7 @@ namespace RACTClient
         /// <summary>
         /// 터미널 목록 입니다.
         /// </summary>
-        private List<ITerminal> m_TerminalList = null;
+        private List<ITactTerminal> m_TerminalList = null;
         /// <summary>
         /// 기본 생성자 입니다.
         /// </summary>
@@ -38,7 +38,7 @@ namespace RACTClient
         /// <summary>
         /// 터미널 목록을 가져오거나 설정 합니다.
         /// </summary>
-        public List<ITerminal> TerminalList
+        public List<ITactTerminal> TerminalList
         {
             get { return m_TerminalList; }
             set
@@ -50,7 +50,7 @@ namespace RACTClient
                 ListViewItem tTempButton = null;
                 if (m_TerminalList != null)
                 {
-                    foreach (ITerminal tEmulator in m_TerminalList)
+                    foreach (ITactTerminal tEmulator in m_TerminalList)
                     {
                         if (tEmulator.IsConnected)
                         {
@@ -64,9 +64,9 @@ namespace RACTClient
                 }
             }
         }
-        public ITerminal SelectedTerminal
+        public ITactTerminal SelectedTerminal
         {
-            get{return (ITerminal)lstTerminal.SelectedItems[0].Tag;}
+            get{return (ITactTerminal)lstTerminal.SelectedItems[0].Tag;}
         }
 
         /// <summary>

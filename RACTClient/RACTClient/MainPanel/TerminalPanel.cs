@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using MKLibrary.MKProcess;
 using RACTClient.Helpers;
 using RACTClient.Connectivity;
+using RACTClient.TerminalControl;
+using RACTClient.TerminalManagement;
 
 namespace RACTClient
 {
@@ -22,16 +24,12 @@ namespace RACTClient
     /// 터미널 변경에 사용할 핸들러 입니다.
     /// </summary>
     /// <param name="aTerminalName"></param>
-    public delegate void TerminalTabChangeHandler(E_TerminalStatus aStatus, string aTerminalName);
+    public delegate void TerminalTabChangeHandler(E_TerminalStatus status, string terminalName);
     /// <summary>
     /// 터미널 Tab 패널 입니다.
     /// </summary>
     public partial class TerminalPanel : SenderControl, IMainPanel
     {
-        /// <summary>
-        /// 터미널 연결 스레드 풀 입니다.
-        /// </summary>
-        private MKThreadPool m_TerminalConnectThreadPool;
         /// <summary>
         /// 장비 수정 이벤트 입니다.
         /// </summary>
@@ -47,10 +45,6 @@ namespace RACTClient
         /// 터미널 탭 변경시 발할 이벤트 입니다.
         /// </summary>
         public event TerminalTabChangeHandler OnTerminalTabChangeEvent;
-        /// <summary>
-        /// 활성화 중인 터미널 목록입니다.
-        /// </summary>
-        private List<ITerminal> m_EmulatorList = new List<ITerminal>();
 
         /// <summary>
         /// 2013-05-02- shinyn - 링크장비정보입니다.
@@ -62,12 +56,17 @@ namespace RACTClient
         /// </summary>
         private TerminalConnectInfo m_ConnectInfo = null;
 
+        private readonly ITactTerminalFactory m_TerminalFactory = new TactTerminalFactory();
+        private readonly TerminalManager m_TerminalManager = new TerminalManager();
+
+        private TaskCompletionSource<ResultCommunicationData> m_ResponseTcs;
+
         /// <summary>
         /// 2013-01-11 - shinyn - 현재 열려있는 에뮬레이터 수를 가져와서 그이상 에뮬레이터 열수 없도록 수정
         /// </summary>
-        public List<ITerminal> EmulatorList
+        public List<ITactTerminal> EmulatorList
         {
-            get { return m_EmulatorList; }
+            get { return m_TerminalManager.EmulatorList; }
         }
 
         /// <summary>
@@ -77,49 +76,42 @@ namespace RACTClient
         {
             InitializeComponent();
 
-            m_TerminalConnectThreadPool = new MKThreadPool("Terminal Connection ThreadPool", 3);
-            m_TerminalConnectThreadPool.StartThreadPool();
 
-
-            Image tImage = global::RACTClient.Properties.Resources.led_green;
-            imlTab.Images.Add(tImage);
-            tImage = global::RACTClient.Properties.Resources.led_red;
-            imlTab.Images.Add(tImage);
-            tImage = global::RACTClient.Properties.Resources.led_gray;
-            imlTab.Images.Add(tImage);
-            tImage = global::RACTClient.Properties.Resources.led_blue;
-            imlTab.Images.Add(tImage);
+            Image image = global::RACTClient.Properties.Resources.led_green;
+            imlTab.Images.Add(image);
+            image = global::RACTClient.Properties.Resources.led_red;
+            imlTab.Images.Add(image);
+            image = global::RACTClient.Properties.Resources.led_gray;
+            imlTab.Images.Add(image);
+            image = global::RACTClient.Properties.Resources.led_blue;
+            imlTab.Images.Add(image);
 
             ucShortenCommand.OnSendShortenCommand += new HandlerArgument1<ShortenCommandInfo>(ShortenCommand_OnSendShortenCommand);
             ucShortenScript.OnSendScript += new HandlerArgument1<Script>(ShortenScript_OnSendScript);
 
             SshSessionPool.Instance.OnSessionDisconnected += Global_OnSharedSessionDisconnected;
+
+            m_TerminalManager.TerminalTabChangeEvent += (status, name) => OnTerminalTabChangeEvent?.Invoke(status, name);
         }
         /// <summary>
         /// 스크립트 명령 이벤트를 처리 합니다. 
         /// </summary>
         /// <param name="aValue1"></param>
-        void ShortenScript_OnSendScript(Script aValue1)
+        void ShortenScript_OnSendScript(Script script)
         {
             this.BringToFront();
 
             if (AppGlobal.s_ClientOption.ShortenCommandTaget == E_ShortenCommandTagret.ActiveTerminal)
             {
-                ScriptWork(E_ScriptWorkType.Run, aValue1);
-                //((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0].Focus();
-                //MCTerminalEmulator tTerminal = (MCTerminalEmulator)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0];
-                //if (tTerminal.TerminalStatus != E_TerminalStatus.Disconnected)
-                //{
-                //    tTerminal.RunScript(aValue1);
-                //}
+                ScriptWork(E_ScriptWorkType.Run, script);
             }
             else
             {
-                foreach (ITerminal tTelnet in m_EmulatorList)
+                foreach (ITactTerminal emulator in m_TerminalManager.EmulatorList)
                 {
-                    if (tTelnet.TerminalStatus != E_TerminalStatus.Disconnected)
+                    if (emulator.TerminalStatus != E_TerminalStatus.Disconnected)
                     {
-                        tTelnet.RunScript(aValue1);
+                        emulator.RunScript(script);
                     }
                 }
             }
@@ -128,36 +120,32 @@ namespace RACTClient
         /// 단축 명령 이벤트를 처리 합니다.
         /// </summary>
         /// <param name="aValue1"></param>
-        void ShortenCommand_OnSendShortenCommand(ShortenCommandInfo aValue1)
+        void ShortenCommand_OnSendShortenCommand(ShortenCommandInfo commandInfo)
         {
             //if (tabTerminal.SelectedTabIndex < 0) return;
             if (AppGlobal.s_ClientOption.ShortenCommandTaget == E_ShortenCommandTagret.ActiveTerminal)
             {
-                // m_TerminalSelectForm.TerminalList expects List<ITerminal> or similar?
-                // Assuming TerminalSelectForm is updated or handles ITerminal generic list
-                m_TerminalSelectForm.TerminalList = m_EmulatorList; 
-                ITerminal tSelectedTerminal = null;
+                m_TerminalSelectForm.TerminalList = m_TerminalManager.EmulatorList; 
+                ITactTerminal selectedTerminal = null;
                 if (m_TerminalSelectForm.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
                 {
-                    tSelectedTerminal = m_TerminalSelectForm.SelectedTerminal;
-                    if (tSelectedTerminal.Parent is TerminalWindows)
+                    selectedTerminal = m_TerminalSelectForm.SelectedTerminal;
+                    if (selectedTerminal.Parent is TerminalWindows)
                     {
-                        ((Form)tSelectedTerminal.Parent).BringToFront();
+                        ((Form)selectedTerminal.Parent).BringToFront();
                     }
                     else
                     {
-                        tabTerminal.SelectedTab = ((SuperTabControlPanel)tSelectedTerminal.Parent).TabItem;
+                        tabTerminal.SelectedTab = ((SuperTabControlPanel)selectedTerminal.Parent).TabItem;
                     }
-                    //tSelectedTerminal.DispatchMessage(this, aValue1.Command + "\r\n");
-                    tSelectedTerminal.IsLimitCmdForShortenCommand(this, aValue1.Command + "\r\n");
+                    selectedTerminal.IsLimitCmdForShortenCommand(this, commandInfo.Command + "\r\n");
                 }
             }
             else
             {
-                foreach (ITerminal tTelnet in m_EmulatorList)
+                foreach (ITactTerminal emulator in m_TerminalManager.EmulatorList)
                 {
-                    //tTelnet.DispatchMessage(this, aValue1.Command + "\r\n");
-                    tTelnet.IsLimitCmdForShortenCommand(this, aValue1.Command + "\r\n");
+                    emulator.IsLimitCmdForShortenCommand(this, commandInfo.Command + "\r\n");
                 }
             }
         }
@@ -167,222 +155,191 @@ namespace RACTClient
         /// </summary>
         /// <param name="tCount"></param>
         /// <returns></returns>
-        private bool CheckTerminalCount(DeviceInfo aDeviceInfo, out int tCount)
+        private bool CheckTerminalCount(DeviceInfo deviceInfo, out int totalCount)
         {
-            tCount = 0;
+            var tabDevices = tabTerminal.Tabs.Cast<SuperTabItem>()
+                                .Select(t => t.Tag as DeviceInfo)
+                                .Where(d => d != null);
 
-            if (m_EmulatorList.Count >= 20)
+            if (!m_TerminalManager.CanAddTerminal(deviceInfo, out totalCount, tabDevices))
             {
                 AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "최대 연결 개수는 20개 입니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-            DeviceInfo tDeviceInfo;
-            string tTabName = "";
-            int tMaxNumber = 0;
-            int tTempNumber = 0;
-            for (int i = 0; i < tabTerminal.Tabs.Count; i++)
-            {
-                tDeviceInfo = ((SuperTabItem)tabTerminal.Tabs[i]).Tag as DeviceInfo;
-                tTabName = ((SuperTabItem)tabTerminal.Tabs[i]).Text;
 
-                if (aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
-                {
-                    if (tDeviceInfo.IPAddress.Equals(aDeviceInfo.IPAddress))
-                    {
-                        if (tTabName.Contains("("))
-                        {
-                            // 2013-05-02 - 아이피가 겹치는 경우 뒤에 이름 추가
-                            try
-                            {
-                                tTempNumber = int.Parse(tTabName.Substring(tTabName.IndexOf("(") + 1, tTabName.Length - tTabName.IndexOf(")")));
-                            }
-                            catch (Exception ex)
-                            {
-                                tTempNumber = tMaxNumber + 1;
-                            }
-
-                            if (tTempNumber > tMaxNumber)
-                            {
-                                tMaxNumber = tTempNumber;
-                            }
-                        }
-                        else
-                        {
-                            tCount++;
-                        }
-                    }
-                }
-                else if (aDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
-                {
-
-                    // 2013-03-06 - shinyn - SSH텔넷인경우 분기 처리 추가
-                    if (tDeviceInfo.IPAddress.Equals(aDeviceInfo.IPAddress))
-                    {
-                        if (tTabName.Contains("("))
-                        {
-                            tTempNumber = int.Parse(tTabName.Substring(tTabName.IndexOf("(") + 1, tTabName.Length - tTabName.IndexOf(")")));
-                            if (tTempNumber > tMaxNumber)
-                            {
-                                tMaxNumber = tTempNumber;
-                            }
-                        }
-                        else
-                        {
-                            tCount++;
-                        }
-                    }
-                }
-                else
-                {
-                    if (tDeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL_PORT)
-                    {
-                        if (tDeviceInfo.TerminalConnectInfo.SerialConfig.PortName.Equals(aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName))
-                        {
-                            if (tTabName.Contains("("))
-                            {
-                                tTempNumber = int.Parse(tTabName.Substring(tTabName.IndexOf("(") + 1, tTabName.Length - tTabName.IndexOf(")")));
-                                if (tTempNumber > tMaxNumber)
-                                {
-                                    tMaxNumber = tTempNumber;
-                                }
-                            }
-                            else
-                            {
-                                tCount++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (tMaxNumber > 0)
-            {
-                tCount = tMaxNumber + 1;
-            }
-
+            totalCount = CalculateTotalCountForDevice(deviceInfo, tabDevices);
             return true;
+        }
+
+        private int CalculateTotalCountForDevice(DeviceInfo deviceInfo, IEnumerable<DeviceInfo> tabDevices)
+        {
+            int maxNumber = 0;
+            int currentCount = 0;
+
+            foreach (var tabDeviceInfo in tabDevices)
+            {
+                if (IsSameDeviceConnection(deviceInfo, tabDeviceInfo))
+                {
+                    currentCount = 1;
+                    int tabIndex = ParseTabIndexFromTabName(tabDeviceInfo);
+                    if (tabIndex > maxNumber) maxNumber = tabIndex;
+                }
+            }
+
+            return (maxNumber > 0 || currentCount > 0) ? Math.Max(currentCount, maxNumber + 1) : 0;
+        }
+
+        private bool IsSameDeviceConnection(DeviceInfo deviceInfo, DeviceInfo tabDeviceInfo)
+        {
+            if (deviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL_PORT)
+            {
+                return tabDeviceInfo.TerminalConnectInfo.SerialConfig.PortName.Equals(deviceInfo.TerminalConnectInfo.SerialConfig.PortName);
+            }
+            return tabDeviceInfo.IPAddress.Equals(deviceInfo.IPAddress);
+        }
+
+        private int ParseTabIndexFromTabName(DeviceInfo deviceInfo)
+        {
+            var tab = tabTerminal.Tabs.Cast<SuperTabItem>().FirstOrDefault(t => t.Tag == deviceInfo);
+            if (tab == null) return 0;
+
+            string tabName = tab.Text;
+            if (tabName.Contains("(") && tabName.Contains(")"))
+            {
+                try
+                {
+                    int start = tabName.IndexOf("(") + 1;
+                    int length = tabName.IndexOf(")") - start;
+                    return int.Parse(tabName.Substring(start, length));
+                }
+                catch { }
+            }
+            return 0;
         }
         /// <summary>
         /// 터미널을 생성 합니다.
         /// </summary>
-        private ITerminal MakeEmulator(DeviceInfo aDeviceInfo, bool aIsQuickConnection)
+        private ITactTerminal MakeEmulator(DeviceInfo deviceInfo, bool isQuickConnection)
         {
-            // MCTerminalControl 제거 및 RebexTerminalControl로 통합
-            ITerminal tEmulator = new RebexTerminalControl();
+            ITactTerminal emulator = m_TerminalFactory.CreateTerminal(deviceInfo, isQuickConnection);
             
-            ((Control)tEmulator).Dock = DockStyle.Fill;
-            tEmulator.DeviceInfo = aDeviceInfo;
+            emulator.OnTerminalStatusChange += new HandlerArgument2<object, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
+            emulator.OnTelnetFindString += new DefaultHandler(tEmulator_OnTelnetFindString);
+            emulator.CallOptionHandlerEvent += new DefaultHandler(tEmulator_CallOptionHandlerEvent);
+            emulator.ProgreBarHandlerEvent += new HandlerArgument3<string, eProgressItemType, bool>(tEmulator_ProgreBarHandlerEvent);
 
-            tEmulator.OnTerminalStatusChange += new HandlerArgument2<object, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
-            tEmulator.OnTelnetFindString += new DefaultHandler(tEmulator_OnTelnetFindString);
-            tEmulator.CallOptionHandlerEvent += new DefaultHandler(tEmulator_CallOptionHandlerEvent);
-            tEmulator.ProgreBarHandlerEvent += new HandlerArgument3<string, eProgressItemType, bool>(tEmulator_ProgreBarHandlerEvent);
+            m_TerminalManager.AddEmulator(emulator);
 
-            return tEmulator;
+            return emulator;
         }
         /// <summary>
         /// 패널을 생성 합니다.
         /// </summary>
-        private SuperTabItem MakeTabPanel(ITerminal aMCTerminalEmulator, int aCount)
+        private SuperTabItem MakeTabPanel(ITactTerminal emulator, int count)
         {
+            SuperTabControlPanel tabControlPanel;
+            SuperTabItem tabItem;
+            tabItem = new DevComponents.DotNetBar.SuperTabItem();
+            tabControlPanel = new DevComponents.DotNetBar.SuperTabControlPanel();
+            tabItem.MouseUp += new MouseEventHandler(TabItem_MouseUp);
+            tabTerminal.Controls.Add(tabControlPanel);
+            tabControlPanel.Controls.Add((Control)emulator);
+            tabItem.AttachedControl = tabControlPanel;
+            tabItem.GlobalItem = false;
 
-            SuperTabControlPanel tTabPanel;
-            SuperTabItem tTabItem;
-            tTabItem = new DevComponents.DotNetBar.SuperTabItem();
-            tTabPanel = new DevComponents.DotNetBar.SuperTabControlPanel();
-            tTabItem.MouseUp += new MouseEventHandler(TabItem_MouseUp);
-            tabTerminal.Controls.Add(tTabPanel);
-            tTabPanel.Controls.Add(aMCTerminalEmulator);
-            tTabItem.AttachedControl = tTabPanel;
-            tTabItem.GlobalItem = false;
-
-
-            if (aMCTerminalEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
+            if (emulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
             {
                 if (AppGlobal.s_ClientOption.TerminalDisplayNameType == E_TerminalDisplayNameType.IPAddress)
                 {
-                    tTabItem.Name = aCount > 0 ? aMCTerminalEmulator.DeviceInfo.IPAddress + "(" + aCount.ToString() + ")" : aMCTerminalEmulator.DeviceInfo.IPAddress;
+                    tabItem.Name = count > 0 ? emulator.DeviceInfo.IPAddress + "(" + count.ToString() + ")" : emulator.DeviceInfo.IPAddress;
                 }
                 else
                 {
-                    tTabItem.Name = aCount > 0 ? aMCTerminalEmulator.DeviceInfo.Name + "(" + aCount.ToString() + ")" : aMCTerminalEmulator.DeviceInfo.Name;
+                    tabItem.Name = count > 0 ? emulator.DeviceInfo.Name + "(" + count.ToString() + ")" : emulator.DeviceInfo.Name;
                 }
             }
-            else if (aMCTerminalEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
+            else if (emulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSH텔넷인 경우 분기처리 추가
                 if (AppGlobal.s_ClientOption.TerminalDisplayNameType == E_TerminalDisplayNameType.IPAddress)
                 {
-                    tTabItem.Name = aCount > 0 ? aMCTerminalEmulator.DeviceInfo.IPAddress + "(" + aCount.ToString() + ")" : aMCTerminalEmulator.DeviceInfo.IPAddress;
+                    tabItem.Name = count > 0 ? emulator.DeviceInfo.IPAddress + "(" + count.ToString() + ")" : emulator.DeviceInfo.IPAddress;
                 }
                 else
                 {
-                    tTabItem.Name = aCount > 0 ? aMCTerminalEmulator.DeviceInfo.Name + "(" + aCount.ToString() + ")" : aMCTerminalEmulator.DeviceInfo.Name;
+                    tabItem.Name = count > 0 ? emulator.DeviceInfo.Name + "(" + count.ToString() + ")" : emulator.DeviceInfo.Name;
                 }
             }
             else
             {
-                tTabItem.Name = aCount > 0 ? "Serial-" + aMCTerminalEmulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + "(" + aCount + ")" : "Serial-" + aMCTerminalEmulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName;
+                tabItem.Name = count > 0 ? "Serial-" + emulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + "(" + count + ")" : "Serial-" + emulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName;
             }
-            tTabItem.Text = tTabItem.Name;
-            aMCTerminalEmulator.DeviceInfo.TerminalName = tTabItem.Name;
-            tTabItem.Image = (Image)global::RACTClient.Properties.Resources.TryConnect;
-            ((Control)aMCTerminalEmulator).Name = tTabItem.Name;
+            tabItem.Text = tabItem.Name;
+            emulator.DeviceInfo.TerminalName = tabItem.Name;
+            tabItem.Image = (Image)global::RACTClient.Properties.Resources.TryConnect;
+            ((Control)emulator).Name = tabItem.Name;
 
-            tTabItem.Tag = aMCTerminalEmulator.DeviceInfo;
-            tTabItem.Tooltip = aMCTerminalEmulator.ToolTip;
-            tTabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            tTabPanel.Location = new System.Drawing.Point(0, 26);
-            tTabPanel.Name = "superTabControlPanel1";
-            tTabPanel.Size = new System.Drawing.Size(150, 124);
-            tTabPanel.TabIndex = 1;
-            tTabPanel.TabItem = tTabItem;
+            tabItem.Tag = emulator.DeviceInfo;
+            tabItem.Tooltip = emulator.ToolTip;
+            tabControlPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            tabControlPanel.Location = new System.Drawing.Point(0, 26);
+            tabControlPanel.Name = "superTabControlPanel1";
+            tabControlPanel.Size = new System.Drawing.Size(150, 124);
+            tabControlPanel.TabIndex = 1;
+            tabControlPanel.TabItem = tabItem;
 
-            ((Control)aMCTerminalEmulator).Name = tTabItem.Text;
+            ((Control)emulator).Name = tabItem.Text;
 
-
-            return tTabItem;
-
+            return tabItem;
         }
 
-        internal void AddTerminal(ITerminal mCTerminalEmulator)
+        internal void AddTerminal(ITactTerminal emulator)
         {
-            int tCount = 0;
+            int totalCount = 0;
 
-            if (!CheckTerminalCount(mCTerminalEmulator.DeviceInfo, out tCount)) return;
+            if (!CheckTerminalCount(emulator.DeviceInfo, out totalCount)) return;
 
-            SuperTabItem tTabItem = MakeTabPanel(mCTerminalEmulator, tCount);
-            tabTerminal.Tabs.AddRange(new DevComponents.DotNetBar.BaseItem[] { tTabItem });
+            SuperTabItem tabItem = MakeTabPanel(emulator, totalCount);
+            tabTerminal.Tabs.AddRange(new DevComponents.DotNetBar.BaseItem[] { tabItem });
             tabTerminal.ReorderTabsEnabled = true;
-            mCTerminalEmulator.TerminalStatus = mCTerminalEmulator.TerminalStatus;
-            tabTerminal.SelectedTab = tTabItem;
+            emulator.TerminalStatus = emulator.TerminalStatus;
+            tabTerminal.SelectedTab = tabItem;
 
         }
 
         /// <summary>
         /// 터미널을 추가 합니다.
         /// </summary>
-        /// <param name="aDeviceInfo">장비 정보 입니다.</param>
-        /// <param name="aIsQuickConnection">빠른 연결 여부</param>
-        public void AddTerminal(DeviceInfo aDeviceInfo, bool aIsQuickConnection, DaemonProcessInfo aDaemonProcessInfo)
+        /// <param name="deviceInfo">장비 정보 입니다.</param>
+        /// <param name="isQuickConnection">빠른 연결 여부</param>
+        public void AddTerminal(DeviceInfo deviceInfo, bool isQuickConnection, DaemonProcessInfo daemonProcessInfo)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new HandlerArgument3<DeviceInfo, bool, DaemonProcessInfo>(AddTerminal), new object[] { aDeviceInfo, aIsQuickConnection, aDaemonProcessInfo });
+                this.Invoke(new HandlerArgument3<DeviceInfo, bool, DaemonProcessInfo>(AddTerminal), new object[] { deviceInfo, isQuickConnection, daemonProcessInfo });
                 return;
             }
 
-            if (aDaemonProcessInfo == null)
+            if (daemonProcessInfo == null)
             {
                 AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "사용 가능한 Daemon 정보 로드에 실패 했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "사용 가능한 Daemon 정보 로드에 실패 했습니다.");
                 return;
             }
-            int tCount = 0;
-            if (!CheckTerminalCount(aDeviceInfo, out tCount)) return;
+            int totalCount = 0;
+            if (!CheckTerminalCount(deviceInfo, out totalCount)) return;
 
+            ITactTerminal emulator = MakeEmulator(deviceInfo, isQuickConnection);
+            // Daemon 관련 추가 로직이 필요하다면 여기에 작성
 
-            if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(E_TerminalStatus.Add, tEmulator.Name);
+            if (AppGlobal.s_ClientOption.TerminalWindowsPopupType == E_DefaultTerminalPopupType.Tab)
+            {
+                SuperTabItem tabItem = MakeTabPanel(emulator, totalCount);
+                tabTerminal.Tabs.AddRange(new DevComponents.DotNetBar.BaseItem[] { tabItem });
+                tabTerminal.ReorderTabsEnabled = true;
+                tabTerminal.SelectedTab = tabItem;
+            }
+
+            if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(E_TerminalStatus.Add, emulator.Name);
         }
 
 
@@ -391,64 +348,59 @@ namespace RACTClient
         /// </summary>
         /// <param name="aDeviceInfo">장비 정보 입니다.</param>
         /// <param name="aIsQuickConnection">빠른 연결 여부</param>
-        public void AddTerminal(DeviceInfo aDeviceInfo, bool aIsQuickConnection)
+        public void AddTerminal(DeviceInfo deviceInfo, bool isQuickConnection)
         {
-            // 2013-05-02 - shinyn - 빠른연결 처리시 재시도 제외처리
             if (this.InvokeRequired)
             {
-                this.Invoke(new HandlerArgument2<DeviceInfo, bool>(AddTerminal), new object[] { aDeviceInfo, aIsQuickConnection });
+                this.Invoke(new HandlerArgument2<DeviceInfo, bool>(AddTerminal), new object[] { deviceInfo, isQuickConnection });
                 return;
             }
 
-            int tCount = 0;
-            if (!CheckTerminalCount(aDeviceInfo, out tCount)) return;
+            int totalCount = 0;
+            if (!CheckTerminalCount(deviceInfo, out totalCount)) return;
 
-            ITerminal tEmulator = MakeEmulator(aDeviceInfo, aIsQuickConnection);
+            ITactTerminal emulator = MakeEmulator(deviceInfo, isQuickConnection);
             
-            // Jump Host  정보  조회
-            DeviceInfo jumpHost = GetJumpHostForDevice(aDeviceInfo);
-            tEmulator.JumpHost = jumpHost;
+            DeviceInfo jumpHost = GetJumpHostForDevice(deviceInfo);
+            emulator.JumpHost = jumpHost;
 
             if (AppGlobal.s_ClientOption.TerminalWindowsPopupType == E_DefaultTerminalPopupType.Tab)
             {
-                SuperTabItem tTabItem = MakeTabPanel(tEmulator, tCount);
-                tabTerminal.Tabs.AddRange(new DevComponents.DotNetBar.BaseItem[] { tTabItem });
+                SuperTabItem tabItem = MakeTabPanel(emulator, totalCount);
+                tabTerminal.Tabs.AddRange(new DevComponents.DotNetBar.BaseItem[] { tabItem });
                 tabTerminal.ReorderTabsEnabled = true;
-                tabTerminal.SelectedTab = tTabItem;
+                tabTerminal.SelectedTab = tabItem;
             }
             else
             {
-                TerminalWindows tForm = new TerminalWindows();
-                ((Control)tEmulator).Dock = DockStyle.Fill;
-                tForm.AddTerminalControl(tEmulator);
-                tForm.Size = new Size(AppGlobal.s_ClientOption.PopupSizeWidth, AppGlobal.s_ClientOption.PopupSizeHeight);
+                TerminalWindows window = new TerminalWindows();
+                ((Control)emulator).Dock = DockStyle.Fill;
+                window.AddTerminalControl(emulator);
+                window.Size = new Size(AppGlobal.s_ClientOption.PopupSizeWidth, AppGlobal.s_ClientOption.PopupSizeHeight);
 
-
-                if (tEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
+                if (emulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
                 {
-                    tEmulator.Name = tEmulator.DeviceInfo.IPAddress;
+                    emulator.Name = emulator.DeviceInfo.IPAddress;
                 }
-                else if (tEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
+                else if (emulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSH ͹̳   경우  з ó   ߰ 
-                    tEmulator.Name = tEmulator.DeviceInfo.IPAddress;
+                    emulator.Name = emulator.DeviceInfo.IPAddress;
                 }
                 else
                 {
-                    tEmulator.Name = "Serial-" + tEmulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName;
+                    emulator.Name = "Serial-" + emulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName;
                 }
-                tForm.Text = tEmulator.Name;
-                tForm.MaximizeBox = false;
-                tForm.Show();
+                window.Text = emulator.Name;
+                window.MaximizeBox = false;
+                window.Show();
             }
 
-            // Task.Run 을  ̿  Ͽ   񵿱   ӽ   õ 
             Task.Run(() =>
             {
                 try
                 {
-                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Infomation, "AddTerminal : Task  õ  : " + tEmulator.DeviceInfo.IPAddress);
-                    tEmulator.ConnectDevice(tEmulator.DeviceInfo, tEmulator.JumpHost);
+                    AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Infomation, "AddTerminal : Task Start : " + emulator.DeviceInfo.IPAddress);
+                    emulator.ConnectDevice(emulator.DeviceInfo, emulator.JumpHost);
                 }
                 catch (Exception ex)
                 {
@@ -456,7 +408,7 @@ namespace RACTClient
                 }
             });
 
-            if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(E_TerminalStatus.Add, tEmulator.Name);
+            if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(E_TerminalStatus.Add, emulator.Name);
         }
 
         private DeviceInfo GetJumpHostForDevice(DeviceInfo device)
@@ -470,70 +422,59 @@ namespace RACTClient
         /// </summary>
         /// <param name="aValue1"></param>
         /// <param name="aValue2"></param>
-        public void tEmulator_OnTerminalStatusChange(MCTerminalEmulator aValue1, E_TerminalStatus aValue2)
+        public void tEmulator_OnTerminalStatusChange(object sender, E_TerminalStatus status)
         {
-            try
-            {
-                if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(aValue2, aValue1.Name);
-
-                if (aValue2 == E_TerminalStatus.Disconnected)
-                {
-                    lock (m_EmulatorList)
-                    {
-                        m_EmulatorList.Remove(aValue1);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-            }
+            // 이 로직은 이제 TerminalManager에서 이벤트로 처리하거나 
+            // Manager가 상태 변경을 추적하고 있으므로 
+            // Panel은 UI 업데이트 위주로 수행함.
+            // (이미 생성자에서 m_TerminalManager.TerminalTabChangeEvent를 구독 중)
         }
 
         /// <summary>
         /// 빠른 연결 처리 합니다.
         /// </summary>
         /// <param name="quickConnectInfo"></param>
-        internal void QuickConnect(TerminalConnectInfo aConnectInfo)
+        internal async Task QuickConnect(TerminalConnectInfo connectInfo)
         {
-            DeviceInfo tDeviceInfo = null;
+            DeviceInfo deviceInfo = null;
 
-            m_ConnectInfo = aConnectInfo;
+            m_ConnectInfo = connectInfo;
 
-            if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
+            if (connectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
             {
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
-                    //서버에 사용할 수 있는 장비인지 확인합니다.
+                    RequestCommunicationData requestData = null;
+                    DeviceSearchInfo searchInfo = new DeviceSearchInfo();
 
-                    RequestCommunicationData tRequestData = null;
-                    DeviceSearchInfo tSearchInfo = new DeviceSearchInfo();
+                    searchInfo.DeviceIPAddress = connectInfo.IPAddress;
+                    searchInfo.UserID = AppGlobal.s_LoginResult.UserID;
+                    requestData = AppGlobal.MakeDefaultRequestData();
+                    searchInfo.IsCheckPermission = false;
+                    requestData.CommType = E_CommunicationType.RequestFACTSearchDevice;
 
-                    tSearchInfo.DeviceIPAddress = aConnectInfo.IPAddress;
-                    tSearchInfo.UserID = AppGlobal.s_LoginResult.UserID;
-                    tRequestData = AppGlobal.MakeDefaultRequestData();
-                    tSearchInfo.IsCheckPermission = false;
-                    tRequestData.CommType = E_CommunicationType.RequestFACTSearchDevice;
-
-                    tRequestData.RequestData = tSearchInfo;
+                    requestData.RequestData = searchInfo;
 
                     m_Result = null;
-                    m_MRE.Reset();
+                    m_ResponseTcs = new TaskCompletionSource<ResultCommunicationData>();
 
-                    AppGlobal.SendRequestData(this, tRequestData);
-                    m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
+                    AppGlobal.SendRequestData(this, requestData);
+                    
+                    var completedTask = await Task.WhenAny(m_ResponseTcs.Task, Task.Delay(AppGlobal.s_RequestTimeOut));
+                    if (completedTask != m_ResponseTcs.Task)
+                    {
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "타임 아웃 발생했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
                 else
                 {
-                    if (tDeviceInfo == null)
+                    if (deviceInfo == null)
+                        deviceInfo = new DeviceInfo();
+                    deviceInfo.IsRegistered = false;
+                    deviceInfo.IPAddress = m_ConnectInfo.IPAddress;
+                    deviceInfo.TerminalConnectInfo = m_ConnectInfo;
 
-                        tDeviceInfo = new DeviceInfo();
-                    tDeviceInfo.IsRegistered = false;
-                    tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                    tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-
-                    AddTerminal(tDeviceInfo, true);
-
+                    AddTerminal(deviceInfo, true);
                 }
                 /*
                 if (m_Result == null)
@@ -576,94 +517,52 @@ namespace RACTClient
                 
             */
             }
-            else if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
+            else if (connectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSH텔넷인 경우 분기처리 추가
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
-                    //서버에 사용할 수 있는 장비인지 확인합니다.
+                    RequestCommunicationData requestData = null;
+                    DeviceSearchInfo searchInfo = new DeviceSearchInfo();
 
-                    RequestCommunicationData tRequestData = null;
-                    DeviceSearchInfo tSearchInfo = new DeviceSearchInfo();
+                    searchInfo.DeviceIPAddress = connectInfo.IPAddress;
+                    searchInfo.UserID = AppGlobal.s_LoginResult.UserID;
+                    requestData = AppGlobal.MakeDefaultRequestData();
+                    searchInfo.IsCheckPermission = false;
+                    requestData.CommType = E_CommunicationType.RequestFACTSearchDevice;
 
-                    tSearchInfo.DeviceIPAddress = aConnectInfo.IPAddress;
-                    tSearchInfo.UserID = AppGlobal.s_LoginResult.UserID;
-                    tRequestData = AppGlobal.MakeDefaultRequestData();
-                    tSearchInfo.IsCheckPermission = false;
-                    tRequestData.CommType = E_CommunicationType.RequestFACTSearchDevice;
-
-                    tRequestData.RequestData = tSearchInfo;
+                    requestData.RequestData = searchInfo;
 
                     m_Result = null;
-                    m_MRE.Reset();
+                    m_ResponseTcs = new TaskCompletionSource<ResultCommunicationData>();
 
-                    AppGlobal.SendRequestData(this, tRequestData);
-                    m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
+                    AppGlobal.SendRequestData(this, requestData);
+
+                    var completedTask = await Task.WhenAny(m_ResponseTcs.Task, Task.Delay(AppGlobal.s_RequestTimeOut));
+                    if (completedTask != m_ResponseTcs.Task)
+                    {
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "타임 아웃 발생하였습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
                 else
                 {
-                    if (tDeviceInfo == null)
+                    if (deviceInfo == null)
+                        deviceInfo = new DeviceInfo();
+                    deviceInfo.IsRegistered = false;
+                    deviceInfo.IPAddress = m_ConnectInfo.IPAddress;
+                    deviceInfo.TerminalConnectInfo = m_ConnectInfo;
 
-                        tDeviceInfo = new DeviceInfo();
-                    tDeviceInfo.IsRegistered = false;
-                    tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                    tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-
-                    AddTerminal(tDeviceInfo, true);
-
+                    AddTerminal(deviceInfo, true);
                 }
-                /*
-                if (m_Result == null)
-                {
-                    //타임 아웃 처리 콘솔 모드로 변경 해야 하나?
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "타임 아웃 발생했습니다.",MessageBoxButtons.OK,MessageBoxIcon.Error);
-                    return;
-                }
-                else
-                {
-                    tDeviceInfo = ((DeviceInfoCollection)AppGlobal.DecompressObject((CompressData)m_Result.ResultData))[aConnectInfo.IPAddress];
-
-                    if (tDeviceInfo == null)
-                    {
-                        tDeviceInfo = new DeviceInfo();
-                        tDeviceInfo.IsRegistered = false;
-                        tDeviceInfo.IPAddress = aConnectInfo.IPAddress;
-                        tDeviceInfo.TerminalConnectInfo = aConnectInfo;
-                    }
-                    else
-                    {
-                        if (AppGlobal.s_LoginResult.UserInfo.Centers.Count > 0)
-                        {
-                            if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
-                            {
-                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "해당 장비에 접속 권한이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                return;
-                            }
-                        }
-                        tDeviceInfo.TerminalConnectInfo = aConnectInfo;
-                    }
-                }
-                    
             }
-
-            if (tDeviceInfo == null)
+            else if (connectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL_PORT)
             {
-                tDeviceInfo = new DeviceInfo();
-                tDeviceInfo.IsRegistered = false;
-                tDeviceInfo.IPAddress = aConnectInfo.IPAddress;
-                tDeviceInfo.TerminalConnectInfo =  aConnectInfo ;
-            }
-            */
-            }
-            else if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SERIAL_PORT)
-            {//2020-10-05 TACT 기능개선 Console 접속 시 터미널(COM-PORT)접속 실행 불가 수정 
-                if (tDeviceInfo == null)
-                    tDeviceInfo = new DeviceInfo();
-                tDeviceInfo.IsRegistered = false;
-                tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
+                if (deviceInfo == null)
+                    deviceInfo = new DeviceInfo();
+                deviceInfo.IsRegistered = false;
+                deviceInfo.IPAddress = m_ConnectInfo.IPAddress;
+                deviceInfo.TerminalConnectInfo = m_ConnectInfo;
 
-                AddTerminal(tDeviceInfo, true);
+                AddTerminal(deviceInfo, true);
             }
             
 
@@ -675,27 +574,24 @@ namespace RACTClient
         /// </summary>
         /// <param name="aDeviceInfo"></param>
         /// <param name="aConnectInfo"></param>
-        internal void OpenDeviceConnect(DeviceInfo aDeviceInfo, TerminalConnectInfo aConnectInfo)
+        internal void OpenDeviceConnect(DeviceInfo deviceInfo, TerminalConnectInfo connectInfo)
         {
-
-
-            if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
+            if (connectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
             {
-                aDeviceInfo.IsRegistered = false;
-                aDeviceInfo.TerminalConnectInfo = aConnectInfo;
+                deviceInfo.IsRegistered = false;
+                deviceInfo.TerminalConnectInfo = connectInfo;
             }
-            else if (aConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
+            else if (connectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSH텔넷 기능인 경우 분기처리 추가
-                aDeviceInfo.IsRegistered = false;
-                aDeviceInfo.TerminalConnectInfo = aConnectInfo;
+                deviceInfo.IsRegistered = false;
+                deviceInfo.TerminalConnectInfo = connectInfo;
             }
             else
             {
-                aDeviceInfo.IsRegistered = false;
-                aDeviceInfo.TerminalConnectInfo = aConnectInfo;
+                deviceInfo.IsRegistered = false;
+                deviceInfo.TerminalConnectInfo = connectInfo;
             }
-            AddTerminal(aDeviceInfo, true);
+            AddTerminal(deviceInfo, true);
         }
 
         /// <summary>
@@ -707,19 +603,18 @@ namespace RACTClient
         {
             if (e.Button == MouseButtons.Right)
             {
-                SuperTabItem tBaseItem = (SuperTabItem)sender;
-                SuperTabControlPanel tPanel = (SuperTabControlPanel)tBaseItem.AttachedControl;
-                MCTerminalEmulator tEmulator = (MCTerminalEmulator)tPanel.Controls[0];
-                m_SelectedEmulator = tEmulator;
-                mnuModifyDevice.Enabled = tEmulator.DeviceInfo.IsRegistered;
+                SuperTabItem baseItem = (SuperTabItem)sender;
+                SuperTabControlPanel panel = (SuperTabControlPanel)baseItem.AttachedControl;
+                ITactTerminal emulator = panel.Controls[0] as ITactTerminal;
+                if (emulator == null) return;
 
-                // 2013-01-11 - shinyn - 복원 명령 실행 메뉴 추가
-                mnuRestoreCfgCmd.Enabled = tEmulator.IsConnected;
+                m_SelectedEmulator = emulator;
+                mnuModifyDevice.Enabled = emulator.DeviceInfo.IsRegistered;
 
-                mnuDisConnect.Enabled = tEmulator.IsConnected;
-                //2013-05-02 - shinyn - 링크 장비 연결은 연결된 상태에서 해야함.
-                mnuLinkConnect.Enabled = tEmulator.IsConnected;
-                mnuReConnect.Enabled = !tEmulator.IsConnected;
+                mnuRestoreCfgCmd.Enabled = emulator.IsConnected;
+                mnuDisConnect.Enabled = emulator.IsConnected;
+                mnuLinkConnect.Enabled = emulator.IsConnected;
+                mnuReConnect.Enabled = !emulator.IsConnected;
 
                 ShowContextMenu(cmTabPopup);
             }
@@ -727,15 +622,15 @@ namespace RACTClient
         /// <summary>
         /// 선택된 Emulator 입니다.
         /// </summary>
-        private ITerminal m_SelectedEmulator = null;
+        private ITactTerminal m_SelectedEmulator = null;
         //public MCTerminalEmulator m_SelectedEmulator = null;
         /// <summary>
         /// 팝업 메뉴를 표시 합니다.
         /// </summary>
         /// <param name="cm"></param>
-        private void ShowContextMenu(ButtonItem aPopup)
+        private void ShowContextMenu(ButtonItem popup)
         {
-            aPopup.Popup(MousePosition);
+            popup.Popup(MousePosition);
         }
 
         /// <summary>
@@ -768,37 +663,33 @@ namespace RACTClient
         {
             if (tabTerminal.Tabs.Count == 0) return;
 
-            ((MCTerminalEmulator)(tabTerminal.SelectedTab.AttachedControl.Controls[0])).FindForm_Close();
+            ITactTerminal emulator = tabTerminal.SelectedTab.AttachedControl.Controls[0] as ITactTerminal;
+            if (emulator != null) emulator.FindForm_Close();
         }
         /// <summary>
         /// 찾기 처리 합니다.
         /// </summary>
-        void TelnetFindForm_OnTelnetStringFind(TelnetStringFindHandlerArgs aStringArgs)
+        void TelnetFindForm_OnTelnetStringFind(TelnetStringFindHandlerArgs args)
         {
             if (tabTerminal.Tabs.Count == 0) return;
 
-            ((MCTerminalEmulator)(tabTerminal.SelectedTab.AttachedControl.Controls[0])).FindForm_OnTelnetStringFind(aStringArgs);
+            ITactTerminal emulator = tabTerminal.SelectedTab.AttachedControl.Controls[0] as ITactTerminal;
+            if (emulator != null) emulator.FindForm_OnTelnetStringFind(args);
         }
         /// <summary>
         /// 닫기 처리된 컨트롤 입니다.
         /// </summary>
-        private MCTerminalEmulator m_CloseEmulator = null;
-        /// <summary>
-        /// 탭 닫기 처리 합니다.
-        /// </summary>
+        private ITactTerminal m_CloseEmulator = null;
         private void tabTerminal_TabItemClose(object sender, SuperTabStripTabItemCloseEventArgs e)
         {
             if (((SuperTabItem)e.Tab).AttachedControl.Controls.Count == 0) return;
 
-            MCTerminalEmulator tCloseEmulator = ((SuperTabItem)e.Tab).AttachedControl.Controls[0] as MCTerminalEmulator;
+            ITactTerminal closeEmulator = ((SuperTabItem)e.Tab).AttachedControl.Controls[0] as ITactTerminal;
 
-            // 2014-08-19 - 신윤남 - 종료 클릭시에는 상위 Parent를 종료하지 않도록 한다.
-            tCloseEmulator.Tag = "TabItemClose";
-
-            if (tCloseEmulator.IsConnected)
+            if (closeEmulator != null && closeEmulator.IsConnected)
             {
-                tCloseEmulator.Disconnect();
-                tCloseEmulator.TerminalStatus = E_TerminalStatus.Disconnected;
+                closeEmulator.Disconnect();
+                closeEmulator.TerminalStatus = E_TerminalStatus.Disconnected;
             }
         }
         /// <summary>
@@ -815,9 +706,12 @@ namespace RACTClient
             if (((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls.Count == 0) return;
 
             ((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0].Focus();
-            MCTerminalEmulator tEmulator = (MCTerminalEmulator)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0];
-            m_SelectedEmulator = tEmulator;
-            if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(tEmulator.TerminalStatus, tabTerminal.SelectedTab.Name);
+            ITactTerminal emulator = ((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0] as ITactTerminal;
+            if (emulator != null)
+            {
+                m_SelectedEmulator = emulator;
+                if (OnTerminalTabChangeEvent != null) OnTerminalTabChangeEvent(emulator.TerminalStatus, tabTerminal.SelectedTab.Name);
+            }
         }
         /// <summary>
         /// 재 접속 처리 합니다.
@@ -834,7 +728,7 @@ namespace RACTClient
             //m_SelectedEmulator.ConnectDevice();
             m_SelectedEmulator.ConnectDevice(m_SelectedEmulator.DeviceInfo);
 
-            m_EmulatorList.Add(m_SelectedEmulator);
+            m_TerminalManager.AddEmulator(m_SelectedEmulator);
 
             // 재연결시 바로 터미널에서 키보드 입력할 수 있도록 포커스 처리
             m_SelectedEmulator.Focus();
@@ -863,21 +757,20 @@ namespace RACTClient
         private void mnuModifyDevice_Click(object sender, EventArgs e)
         {
             if (m_SelectedEmulator == null) return;
-            DeviceInfo tDeviceInfo = m_SelectedEmulator.DeviceInfo;
+            DeviceInfo deviceInfo = m_SelectedEmulator.DeviceInfo;
 
-            // 2013-01-18 - shinyn - 수동, 일반장비 수정합니다.
-            switch (tDeviceInfo.DeviceType)
+            switch (deviceInfo.DeviceType)
             {
                 case E_DeviceType.NeGroup:
                     if (OnModifyDeviceEvent != null)
                     {
-                        OnModifyDeviceEvent(E_WorkType.Modify, tDeviceInfo);
+                        OnModifyDeviceEvent(E_WorkType.Modify, deviceInfo);
                     }
                     break;
                 case E_DeviceType.UserNeGroup:
                     if (OnModifyUsrDeviceEvent != null)
                     {
-                        OnModifyUsrDeviceEvent(E_WorkType.Modify, tDeviceInfo);
+                        OnModifyUsrDeviceEvent(E_WorkType.Modify, deviceInfo);
                     }
                     break;
             }
@@ -887,35 +780,32 @@ namespace RACTClient
         /// </summary>
         public int TerminalCount
         {
-            get { return m_EmulatorList.Count; }
+            get { return m_TerminalManager.EmulatorList.Count; }
         }
         /// <summary>
         /// 변경된 환경 정보를 적용합니다.
         /// </summary>
         internal void ChangeOption()
         {
-            foreach (ITerminal tEmulator in m_EmulatorList)
-            {
-                tEmulator.ApplyOption();
-            }
+            m_TerminalManager.ApplyOptionToAll();
         }
         /// <summary>
         /// 컨트롤을 초기화 시킵니다.
         /// </summary>
         public void InitializeControl()
         {
-            m_EmulatorList = new List<ITerminal>();
+            // TerminalManager 내부 초기화 필요 시 호출
         }
         /// <summary>
         /// 탭 이름 변경 처리 합니다.
         /// </summary>
         private void mnuReName_Click(object sender, EventArgs e)
         {
-            TerminalReName tReName = new TerminalReName(tabTerminal.SelectedTab.Text);
-            tReName.InitializeContro();
-            if (tReName.ShowDialog(this) == DialogResult.OK)
+            TerminalReName renameForm = new TerminalReName(tabTerminal.SelectedTab.Text);
+            renameForm.InitializeContro();
+            if (renameForm.ShowDialog(this) == DialogResult.OK)
             {
-                tabTerminal.SelectedTab.Text = tReName.GetNewTabName;
+                tabTerminal.SelectedTab.Text = renameForm.GetNewTabName;
             }
         }
         /// <summary>
@@ -925,145 +815,99 @@ namespace RACTClient
         /// <summary>
         /// 스크립트 처리 합니다.
         /// </summary>
-        internal void ScriptWork(E_ScriptWorkType aScriptWorkType)
+        internal void ScriptWork(E_ScriptWorkType scriptWorkType)
         {
-            if (m_EmulatorList.Count == 0) return;
+            if (m_TerminalManager.EmulatorList.Count == 0) return;
 
-            m_TerminalSelectForm.TerminalList = m_EmulatorList;
-            ITerminal tSelectedTerminal = null;
+            m_TerminalSelectForm.TerminalList = m_TerminalManager.EmulatorList;
+            ITactTerminal selectedTerminal = null;
             if (m_TerminalSelectForm.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
             {
-                tSelectedTerminal = m_TerminalSelectForm.SelectedTerminal;
-                if (tSelectedTerminal.Parent is TerminalWindows)
+                selectedTerminal = m_TerminalSelectForm.SelectedTerminal;
+                if (selectedTerminal.Parent is TerminalWindows)
                 {
-                    ((Form)tSelectedTerminal.Parent).BringToFront();
+                    ((Form)selectedTerminal.Parent).BringToFront();
                 }
                 else
                 {
-                    tabTerminal.SelectedTab = ((SuperTabControlPanel)tSelectedTerminal.Parent).TabItem;
+                    tabTerminal.SelectedTab = ((SuperTabControlPanel)selectedTerminal.Parent).TabItem;
                 }
-                tSelectedTerminal.ScriptWork(aScriptWorkType);
+                selectedTerminal.ScriptWork(scriptWorkType);
             }
         }
         /// <summary>
         /// 스크립트 처리 합니다.
         /// </summary>
-        internal void ScriptWork(E_ScriptWorkType e_ScriptWorkType, Script aScript)
+        internal void ScriptWork(E_ScriptWorkType scriptWorkType, Script script)
         {
-            //if (tabTerminal.SelectedTabIndex < 0) return;
-            ////(Image)global::RACTClient.Properties.Resources.;
-            //((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0].Focus();
-            //((MCTerminalEmulator)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0]).RunScript(aScript);
+            if (m_TerminalManager.EmulatorList.Count == 0) return;
 
-            if (m_EmulatorList.Count == 0) return;
-
-            m_TerminalSelectForm.TerminalList = m_EmulatorList;
-            ITerminal tSelectedTerminal = null;
+            m_TerminalSelectForm.TerminalList = m_TerminalManager.EmulatorList;
+            ITactTerminal selectedTerminal = null;
             if (m_TerminalSelectForm.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
             {
 
-                tSelectedTerminal = m_TerminalSelectForm.SelectedTerminal;
-                if (tSelectedTerminal.Parent is TerminalWindows)
+                selectedTerminal = m_TerminalSelectForm.SelectedTerminal;
+                if (selectedTerminal.Parent is TerminalWindows)
                 {
-                    ((Form)tSelectedTerminal.Parent).BringToFront();
+                    ((Form)selectedTerminal.Parent).BringToFront();
                 }
                 else
                 {
-                    tabTerminal.SelectedTab = ((SuperTabControlPanel)tSelectedTerminal.Parent).TabItem;
+                    tabTerminal.SelectedTab = ((SuperTabControlPanel)selectedTerminal.Parent).TabItem;
                 }
-                m_TerminalSelectForm.SelectedTerminal.RunScript(aScript);
+                m_TerminalSelectForm.SelectedTerminal.RunScript(script);
             }
         }
 
         /// <summary>
         /// 종료 처리 합니다.
         /// </summary>
-        internal void Stop(E_TerminalSessionCloseType aCloseType)
+        internal void Stop(E_TerminalSessionCloseType closeType)
         {
-            ITerminal tTelnet;
-            if (aCloseType == E_TerminalSessionCloseType.All)
-            {
-                for (int i = m_EmulatorList.Count - 1; i > -1; i--)
-                {
-                    tTelnet = m_EmulatorList[i];
-                    if (m_TerminalConnectThreadPool != null)
-                    {
-                        m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(tTelnet.Disconnect)));
-                    }
-                }
-
-                Thread.Sleep(500);
-
-            }
-            else
-            {
-                for (int i = m_EmulatorList.Count - 1; i > -1; i--)
-                {
-                    tTelnet = m_EmulatorList[i];
-                    if (tTelnet.ConnectionType != ConnectionTypes.RemoteTelnet)
-                    {
-                        continue;
-                    }
-                    tTelnet.Disconnect();
-                }
-            }
-
-            if (AppGlobal.s_IsProgramShutdown)
-            {
-
-                if (m_TerminalConnectThreadPool != null)
-                {
-                    m_TerminalConnectThreadPool.StopThreadPool();
-                    m_TerminalConnectThreadPool.Dispose();
-                    m_TerminalConnectThreadPool = null;
-                }
-            }
+            m_TerminalManager.StopAll(closeType);
         }
         /// <summary>
         /// 클라이언트 모드 변경을 적용 합니다.
         /// </summary>
         public void ChangeClientMode()
         {
-            // MCTerminalEmulator tTelnet;
-            //for (int i = 0; i < tabTerminal.Tabs.Count; i++)
-            // {
-            //     tTelnet = (MCTerminalEmulator)((SuperTabControlPanel)((SuperTabItem)tabTerminal.Tabs[i]).AttachedControl).Controls[0];//.ChangeClientMode();
-            //     m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(tTelnet.ChangeClientMode)));
-
-            // }
-            for (int i = 0; i < m_EmulatorList.Count; i++)
-            {
-                m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(m_EmulatorList[i].ChangeClientMode)));
-            }
+            m_TerminalManager.ChangeClientModeForAll();
         }
         /// <summary>
         /// 메인화면의 편집 처리 합니다.
         /// </summary>
         /// <param name="aEditType"></param>
-        internal void ExecTerminalScreen(E_TerminalScreenTextEditType aEditType)
+        internal void ExecTerminalScreen(E_TerminalScreenTextEditType editType)
         {
             if (tabTerminal.SelectedTabIndex < 0) 
                 return;
             ((Control)tabTerminal.SelectedTab.AttachedControl).Controls[0].Focus();
-            ((ITerminal)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0]).ExecTerminalScreen(aEditType);
+            ((ITactTerminal)((SuperTabControlPanel)tabTerminal.SelectedTab.AttachedControl).Controls[0]).ExecTerminalScreen(editType);
         }
 
-        internal void ExecTerminalScreenTest(ITerminal m,E_TerminalScreenTextEditType aEditType)
+        internal void ExecTerminalScreenTest(ITactTerminal terminal, E_TerminalScreenTextEditType editType)
         {
-
-            m.ExecTerminalScreen(aEditType);
+            terminal.ExecTerminalScreen(editType);
         }
 
         private void mnuCloseOther_Click(object sender, EventArgs e)
         {
             if (m_SelectedEmulator == null) return;
 
-            for (int i = tabTerminal.Tabs.Count - 1; i > -1; i--)
+            var tabsToClose = new List<SuperTabItem>();
+            foreach (SuperTabItem tab in tabTerminal.Tabs)
             {
-                if (((ITerminal)((SuperTabControlPanel)((SuperTabItem)tabTerminal.Tabs[i]).AttachedControl).Controls[0]).ConnectedSessionID != m_SelectedEmulator.ConnectedSessionID)
+                ITactTerminal emulator = tab.AttachedControl.Controls[0] as ITactTerminal;
+                if (emulator != null && emulator.ConnectedSessionID != m_SelectedEmulator.ConnectedSessionID)
                 {
-                    m_TerminalConnectThreadPool.ExecuteWork(new MKWorkItem(new WorkItemDefaultMethod(((SuperTabItem)tabTerminal.Tabs[i]).Close)));
+                    tabsToClose.Add(tab);
                 }
+            }
+
+            foreach (var tab in tabsToClose)
+            {
+                tab.Close();
             }
             this.Invalidate();
         }
@@ -1077,14 +921,14 @@ namespace RACTClient
         {
             if (m_SelectedEmulator == null) return;
 
-            TerminalWindows tForm = new TerminalWindows();
+            TerminalWindows window = new TerminalWindows();
 
             m_SelectedEmulator.TerminalMode = E_TerminalMode.QuickClient;
 
             m_SelectedEmulator.Dock = DockStyle.Fill;
 
-            tForm.Controls.Add(m_SelectedEmulator);
-            tForm.Size = new Size(AppGlobal.s_ClientOption.PopupSizeWidth, AppGlobal.s_ClientOption.PopupSizeHeight);
+            window.Controls.Add(m_SelectedEmulator);
+            window.Size = new Size(AppGlobal.s_ClientOption.PopupSizeWidth, AppGlobal.s_ClientOption.PopupSizeHeight);
 
             if (m_SelectedEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
             {
@@ -1101,7 +945,6 @@ namespace RACTClient
             }
             else if (m_SelectedEmulator.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSH텔넷인경우 분기처리 추가
                 switch (AppGlobal.s_ClientOption.TerminalDisplayNameType)
                 {
                     case E_TerminalDisplayNameType.IPAddress:
@@ -1116,14 +959,11 @@ namespace RACTClient
             {
                 m_SelectedEmulator.Name = "Serial-" + m_SelectedEmulator.DeviceInfo.TerminalConnectInfo.SerialConfig.PortName;
             }
-            tForm.Text = m_SelectedEmulator.Name;
+            window.Text = m_SelectedEmulator.Name;
             tabTerminal.SelectedTab.Close();
-            tForm.MaximizeBox = false;
-            tForm.BringToFront();
-            tForm.Show();
-            
-
-
+            window.MaximizeBox = false;
+            window.BringToFront();
+            window.Show();
         }
 
         private void mnuSaveTerminalLog_Click(object sender, EventArgs e)
@@ -1144,144 +984,66 @@ namespace RACTClient
             {
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
-
                     if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Config복원명령은 로그인후 root 경로에서 실행됩니다. \r\nConfig복원명령을 실행하시겠습니까?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     {
                         return;
                     }
 
-                    //서버에 사용할 수 있는 장비인지 확인합니다.
-                    RequestCommunicationData tRequestData = null;
-                    CfgRestoreCommandRequestInfo tRequest = new CfgRestoreCommandRequestInfo();
+                    RequestCommunicationData requestData = null;
+                    CfgRestoreCommandRequestInfo request = new CfgRestoreCommandRequestInfo();
 
-                    DeviceInfo tDeviceInfo = (DeviceInfo)tabTerminal.SelectedTab.Tag;
+                    DeviceInfo deviceInfo = (DeviceInfo)tabTerminal.SelectedTab.Tag;
 
-                    tRequest.CommandPart = E_CommandPart.ConfigBRRestore;
-                    tRequest.IPAddress = tDeviceInfo.IPAddress;
-                    tRequest.ModelID = tDeviceInfo.ModelID;
+                    request.CommandPart = E_CommandPart.ConfigBRRestore;
+                    request.IPAddress = deviceInfo.IPAddress;
+                    request.ModelID = deviceInfo.ModelID;
 
-
-                    tRequestData = AppGlobal.MakeDefaultRequestData();
-                    tRequestData.CommType = E_CommunicationType.RequestCfgRestoreCommand;
-
-                    tRequestData.RequestData = tRequest;
+                    requestData = AppGlobal.MakeDefaultRequestData();
+                    requestData.CommType = E_CommunicationType.RequestCfgRestoreCommand;
+                    requestData.RequestData = request;
 
                     m_Result = null;
                     m_MRE.Reset();
 
-                    AppGlobal.SendRequestData(this, tRequestData);
+                    AppGlobal.SendRequestData(this, requestData);
                     m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
-
-
-                    //if (m_Result == null)
-                    //{
-                    //    //타임 아웃 처리 콘솔 모드로 변경 해야 하나?
-                    //    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "타임 아웃 발생했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //    return;
-                    //}
-                    //else
-                    //{
-                    //    if (m_Result.Error.Error != E_ErrorType.NoError)
-                    //    {
-                    //        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "오류 발생:" + m_Result.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //        return;
-                    //    }
-
-                    //    CfgSaveInfoCollection tCfgSaveInfos = null;
-
-                    //    tCfgSaveInfos = (CfgSaveInfoCollection)m_Result.ResultData;
-
-                    //    if (tCfgSaveInfos == null)
-                    //    {
-                    //        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "복원할 CFG 바이너리 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //        return;
-                    //    }
-                    //    else
-                    //    {
-
-                    //        if (tCfgSaveInfos.Count == 0)
-                    //        {
-                    //            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "최근 Config 복원 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //            return;
-                    //        }
-
-
-
-                    //        CfgSaveInfo tCfgSaveInfo = (CfgSaveInfo)tCfgSaveInfos.InnerList[0];
-
-                    //        if (tCfgSaveInfo.FileName == "")
-                    //        {
-                    //            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "최근 Config 복원 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //            return;
-                    //        }
-                    //        else
-                    //        {
-                    //            OpenRestoreCommand tOpenRestoreCommand = new OpenRestoreCommand();
-
-                    //            tOpenRestoreCommand.OpenOnlineRestoreList(tCfgSaveInfos);
-
-                    //            if (tOpenRestoreCommand.ShowDialog() != DialogResult.OK) return;
-
-                    //            // 선택결과에 대해서 CFG 복원명령 예약어를 매핑 처리
-                    //            CfgSaveInfoCollection tSelectCfgSaveInfos = tOpenRestoreCommand.CfgSaveInfos;
-
-                    //            string tConfigFileName = string.Empty;
-
-                    //            SetTelnetReservedString(tSelectCfgSaveInfos);
-
-                    //            // 스크립트 명령 실행
-                    //            CfgSaveInfo tSelectCfgSaveInfo = (CfgSaveInfo)tSelectCfgSaveInfos.InnerList[0];
-                    //            Script tScript = new Script(AppGlobal.GetScript(tSelectCfgSaveInfo.CfgRestoreCommands));
-
-                    //            AppGlobal.s_ClientOption.ShortenCommandTaget = E_ShortenCommandTagret.ActiveTerminal;
-                    //            m_SelectedEmulator.RunScript(tScript);
-                    //        }
-                    //    }
-                    //}
                 }
                 else if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Console)
                 {
-
                     if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Config복원명령은 로그인후 root 경로에서 실행됩니다. \r\nConfig복원명령을 실행하시겠습니까?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     {
                         return;
                     }
 
-                    DeviceInfo tDeviceInfo = (DeviceInfo)tabTerminal.SelectedTab.Tag;
+                    DeviceInfo deviceInfo = (DeviceInfo)tabTerminal.SelectedTab.Tag;
 
-                    if (tDeviceInfo.CfgSaveInfos.Count == 0)
+                    if (deviceInfo.CfgSaveInfos.Count == 0)
                     {
                         AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "장비 Config 복원 명령이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
-                    CfgSaveInfo tCfgSaveInfo = (CfgSaveInfo)tDeviceInfo.CfgSaveInfos.InnerList[0];
+                    CfgSaveInfo cfgSaveInfo = (CfgSaveInfo)deviceInfo.CfgSaveInfos.InnerList[0];
 
-                    if (tCfgSaveInfo.FullFileName == "")
+                    if (cfgSaveInfo.FullFileName == "")
                     {
                         AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "장비 Config 복원 명령이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
-                    OpenRestoreCommand tOpenRestoreCommand = new OpenRestoreCommand();
+                    OpenRestoreCommand restoreForm = new OpenRestoreCommand();
+                    restoreForm.OpenConsoleRestoreList(deviceInfo.CfgSaveInfos);
 
-                    tOpenRestoreCommand.OpenConsoleRestoreList(tDeviceInfo.CfgSaveInfos);
+                    if (restoreForm.ShowDialog() != DialogResult.OK) return;
 
-                    if (tOpenRestoreCommand.ShowDialog() != DialogResult.OK) return;
+                    CfgSaveInfoCollection selectedCfgSaveInfos = restoreForm.CfgSaveInfos;
 
-                    // 선택결과에 대해서 CFG 복원명령 예약어를 매핑 처리
-                    CfgSaveInfoCollection tSelectCfgSaveInfos = tOpenRestoreCommand.CfgSaveInfos;
-
-                    // 스크립트 명령실행
-                    CfgSaveInfo tSelectCfgSaveInfo = (CfgSaveInfo)tSelectCfgSaveInfos.InnerList[0];
-                    Script tScript = new Script(tSelectCfgSaveInfo.CfgRestoreScript);
+                    CfgSaveInfo selectedCfgSaveInfo = (CfgSaveInfo)selectedCfgSaveInfos.InnerList[0];
+                    Script script = new Script(selectedCfgSaveInfo.CfgRestoreScript);
 
                     AppGlobal.s_ClientOption.ShortenCommandTaget = E_ShortenCommandTagret.ActiveTerminal;
-                    m_SelectedEmulator.RunScript(tScript);
-
+                    m_SelectedEmulator.RunScript(script);
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -1293,62 +1055,62 @@ namespace RACTClient
         /// 2013-01-11 - shinyn - 텔넷 예약어 매칭처리
         /// </summary>
         /// <param name="tSelectCfgSaveInfos"></param>
-        private void SetTelnetReservedString(CfgSaveInfoCollection tSelectCfgSaveInfos)
+        private void SetTelnetReservedString(CfgSaveInfoCollection selectedCfgSaveInfos)
         {
-            string tConfigFileName = string.Empty;
+            string configFileName = string.Empty;
 
-            foreach (CfgSaveInfo tCfgSaveInfo in tSelectCfgSaveInfos)
+            foreach (CfgSaveInfo cfgSaveInfo in selectedCfgSaveInfos)
             {
-                foreach (CfgRestoreCommand tCfgRestoreCommand in tCfgSaveInfo.CfgRestoreCommands)
+                foreach (CfgRestoreCommand restoreCommand in cfgSaveInfo.CfgRestoreCommands)
                 {
-                    if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_FTPIP) > -1)
+                    if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_FTPIP) > -1)
                     {
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_FTPIP, tCfgSaveInfo.FTPServerIP);
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_FTPIP, cfgSaveInfo.FTPServerIP);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_FTPUSER) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_FTPUSER) > -1)
                     {
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_FTPUSER, tCfgSaveInfo.CenterFTPID);
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_FTPUSER, cfgSaveInfo.CenterFTPID);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_FTPPASSEORD) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_FTPPASSEORD) > -1)
                     {
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_FTPPASSEORD, tCfgSaveInfo.CenterFTPPW);
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_FTPPASSEORD, cfgSaveInfo.CenterFTPPW);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAME) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAME) > -1)
                     {
-                        tConfigFileName = tCfgSaveInfo.FileName;
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAME, tConfigFileName);
+                        configFileName = cfgSaveInfo.FileName;
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAME, configFileName);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAMEEXT) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAMEEXT) > -1)
                     {
-                        tConfigFileName = tCfgSaveInfo.FileName;
-                        if (tCfgSaveInfo.FileExtend != "")
+                        configFileName = cfgSaveInfo.FileName;
+                        if (cfgSaveInfo.FileExtend != "")
                         {
-                            tConfigFileName += "." + tCfgSaveInfo.FileExtend;
+                            configFileName += "." + cfgSaveInfo.FileExtend;
                         }
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAMEEXT, tConfigFileName);
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAMEEXT, configFileName);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAME16) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAME16) > -1)
                     {
-                        tConfigFileName = tCfgSaveInfo.FileName;
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAME16, tConfigFileName);
+                        configFileName = cfgSaveInfo.FileName;
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAME16, configFileName);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAMEEXT16) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFILENAMEEXT16) > -1)
                     {
-                        tConfigFileName = tCfgSaveInfo.FileName;
-                        if (tCfgSaveInfo.FileExtend != "")
+                        configFileName = cfgSaveInfo.FileName;
+                        if (cfgSaveInfo.FileExtend != "")
                         {
-                            tConfigFileName += "." + tCfgSaveInfo.FileExtend;
+                            configFileName += "." + cfgSaveInfo.FileExtend;
                         }
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAMEEXT16, tConfigFileName);
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFILENAMEEXT16, configFileName);
                     }
-                    else if (tCfgRestoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFULLFILENAME) > -1)
+                    else if (restoreCommand.Cmd.IndexOf(TelnetReservedString.c_CONFIGFULLFILENAME) > -1)
                     {
-                        tConfigFileName = tCfgSaveInfo.FileName;
-                        if (tCfgSaveInfo.FileExtend != "")
+                        configFileName = cfgSaveInfo.FileName;
+                        if (cfgSaveInfo.FileExtend != "")
                         {
-                            tConfigFileName += "." + tCfgSaveInfo.FileExtend;
+                            configFileName += "." + cfgSaveInfo.FileExtend;
                         }
-                        tCfgRestoreCommand.Cmd = tCfgRestoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFULLFILENAME, tConfigFileName);
+                        restoreCommand.Cmd = restoreCommand.Cmd.Replace(TelnetReservedString.c_CONFIGFULLFILENAME, configFileName);
                     }
                 }
             }
@@ -1361,249 +1123,169 @@ namespace RACTClient
         /// <param name="e"></param>
         private void mnuLinkConnect_Click(object sender, EventArgs e)
         {
-            SearchLinkDevice tSearch = new SearchLinkDevice();
+            SearchLinkDevice searchForm = new SearchLinkDevice();
 
-            if (tSearch.ShowDialog(this) != DialogResult.OK)
+            if (searchForm.ShowDialog(this) != DialogResult.OK)
             {
                 return;
             }
 
-            DeviceInfoCollection tDeviceInfos = tSearch.SelectedDeviceList;
-            DeviceInfo tDeviceInfo = null;
+            DeviceInfoCollection deviceInfos = searchForm.SelectedDeviceList;
+            DeviceInfo deviceInfo = null;
 
-            foreach (DeviceInfo tItem in tDeviceInfos)
+            foreach (DeviceInfo item in deviceInfos)
             {
-                tDeviceInfo = tItem;
+                deviceInfo = item;
             }
 
-            m_LinkDeviceInfo = tDeviceInfo;
+            m_LinkDeviceInfo = deviceInfo;
 
             StartSendThread(new ThreadStart(RequestConnectionCommand));
-
-
-
         }
 
         private void RequestConnectionCommand()
         {
-            // 사용자등록장비인 경우 기본접속 명령을 DeviceInfo에 같이 가지고 있음.
-            RequestCommunicationData tRequestData = null;
+            RequestCommunicationData requestData = null;
 
-            tRequestData = AppGlobal.MakeDefaultRequestData();
-            tRequestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
-            //2013-05-02- shinyn - 수동장비인 경우 기본접속 정보는 DeviceInfo에 있으므로 DeviceInfo를 보내고 기본접속 정보를 로드한다.
-            tRequestData.RequestData = m_LinkDeviceInfo;
+            requestData = AppGlobal.MakeDefaultRequestData();
+            requestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
+            requestData.RequestData = m_LinkDeviceInfo;
             m_Result = null;
             m_MRE.Reset();
 
-            AppGlobal.SendRequestData(this, tRequestData);
+            AppGlobal.SendRequestData(this, requestData);
             m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
         }
 
         /// <summary>
         /// 2013-05-02 - shinyn - 기본접속 명령을 요청후 스크립트를 실행한다.
         /// </summary>
-        /// <param name="vResult"></param>
-        public override void ResultReceiver(ResultCommunicationData vResult)
+        public override void ResultReceiver(ResultCommunicationData result)
         {
-
-            // 2013-05-02- shinyn - 결과값 올때까지 계속 실행한다.
             if (this.InvokeRequired)
             {
-                this.Invoke(new HandlerArgument1<ResultCommunicationData>(ResultReceiver), vResult);
+                this.Invoke(new HandlerArgument1<ResultCommunicationData>(ResultReceiver), result);
                 return;
             }
 
-            base.ResultReceiver(vResult);
+            base.ResultReceiver(result);
+
+            m_ResponseTcs?.TrySetResult(result);
 
             if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
             {
-                // 2013-05-02 - shinyn - 기본접속 명령 로드 실패시 장비 아이피 로그에 저장
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TerminalPanel : ResultReceiver : 기본 접속 명령 정보 로드에 실패 했습니다. IP : " + m_LinkDeviceInfo.IPAddress);
-                if (vResult.CommType == E_CommunicationType.RequestDefaultConnectionCommand)
-                {
-                    MessageBox.Show("접속정보를 가져오지 못했습니다.");
-                }
+                HandleErrorResult(result);
                 return;
             }
 
-            object tResult = m_Result.ResultData;
+            object resultData = m_Result.ResultData;
+            if (resultData == null) return;
 
-            if (tResult.GetType().Equals(typeof(FACT_DefaultConnectionCommandSet)))
+            if (resultData is FACT_DefaultConnectionCommandSet commandSet)
             {
-                FACT_DefaultConnectionCommandSet tCommandSet = m_Result.ResultData as FACT_DefaultConnectionCommandSet;
-
-                Script tScript = new Script(AppGlobal.GetTelnetScript(m_LinkDeviceInfo, tCommandSet));
-                m_SelectedEmulator.RunScript(tScript);
+                HandleDefaultConnectionCommand(commandSet);
             }
-            else if (tResult.GetType().Equals(typeof(CompressData)))
+            else if (resultData is CompressData compressData)
             {
-                object tObject = AppGlobal.DecompressObject((CompressData)tResult);
-                DeviceInfo tDeviceInfo = null;
-
-                // 장비연결인 경우 연결 실행하도록 수정
-                if (tObject.GetType().Equals(typeof(DeviceInfoCollection)))
-                {
-                    if (m_ConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
-                    {
-                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
-                        {
-
-                            DeviceInfoCollection tDeviceInfos = (DeviceInfoCollection)tObject;
-
-                            if (!tDeviceInfos.Contains(m_ConnectInfo.IPAddress))
-                            {
-                                tDeviceInfo = new DeviceInfo();
-                                tDeviceInfo.IsRegistered = false;
-                                tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                                tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-                            }
-                            else
-                            {
-
-                                tDeviceInfo = tDeviceInfos[m_ConnectInfo.IPAddress];
-
-                                if (AppGlobal.s_LoginResult.UserInfo.Centers.Count > 0)
-                                {
-                                    if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
-                                    {
-                                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "해당 장비에 접속 권한이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                        return;
-                                    }
-                                }
-                                tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-                            }
-
-
-                        }
-
-                        if (tDeviceInfo == null)
-                        {
-                            tDeviceInfo = new DeviceInfo();
-                            tDeviceInfo.IsRegistered = false;
-                            tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                            tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-                        }
-
-                    }
-                    else if (m_ConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
-                    {
-                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
-                        {
-
-                            DeviceInfoCollection tDeviceInfos = (DeviceInfoCollection)tObject;
-
-                            if (!tDeviceInfos.Contains(m_ConnectInfo.IPAddress))
-                            {
-                                tDeviceInfo = new DeviceInfo();
-                                tDeviceInfo.IsRegistered = false;
-                                tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                                tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-
-                                tDeviceInfo.TelnetID1 = m_ConnectInfo.ID;
-                                tDeviceInfo.TelnetPwd1 = m_ConnectInfo.Password;
-                            }
-                            else
-                            {
-                                tDeviceInfo = tDeviceInfos[m_ConnectInfo.IPAddress];
-
-                                if (AppGlobal.s_LoginResult.UserInfo.Centers.Count > 0)
-                                {
-                                    if (!AppGlobal.s_LoginResult.UserInfo.Centers.Contains(tDeviceInfo.CenterCode))
-                                    {
-                                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "해당 장비에 접속 권한이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                        return;
-                                    }
-                                }
-                                tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-                            }
-
-                        }
-
-                        if (tDeviceInfo == null)
-                        {
-                            tDeviceInfo = new DeviceInfo();
-                            tDeviceInfo.IsRegistered = false;
-                            tDeviceInfo.IPAddress = m_ConnectInfo.IPAddress;
-                            tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-                        }
-                    }
-                    else
-                    {
-                        tDeviceInfo = new DeviceInfo();
-                        tDeviceInfo.IsRegistered = false;
-                        tDeviceInfo.TerminalConnectInfo = m_ConnectInfo;
-                    }
-
-                    AddTerminal(tDeviceInfo, true);
-                }
+                HandleCompressedDeviceData(compressData);
             }
-            else if (tResult.GetType().Equals(typeof(CfgSaveInfoCollection)))
+            else if (resultData is CfgSaveInfoCollection cfgSaveInfos)
             {
-                CfgSaveInfoCollection tCfgSaveInfos = null;
-
-                tCfgSaveInfos = (CfgSaveInfoCollection)m_Result.ResultData;
-
-                if (tCfgSaveInfos == null)
-                {
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "복원할 CFG 바이너리 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                else
-                {
-
-                    if (tCfgSaveInfos.Count == 0)
-                    {
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "최근 Config 복원 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-
-
-
-                    CfgSaveInfo tCfgSaveInfo = (CfgSaveInfo)tCfgSaveInfos.InnerList[0];
-
-                    if (tCfgSaveInfo.FileName == "")
-                    {
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "최근 Config 복원 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-                    else
-                    {
-                        OpenRestoreCommand tOpenRestoreCommand = new OpenRestoreCommand();
-
-                        tOpenRestoreCommand.OpenOnlineRestoreList(tCfgSaveInfos);
-
-                        if (tOpenRestoreCommand.ShowDialog() != DialogResult.OK) return;
-
-                        // 선택결과에 대해서 CFG 복원명령 예약어를 매핑 처리
-                        CfgSaveInfoCollection tSelectCfgSaveInfos = tOpenRestoreCommand.CfgSaveInfos;
-
-                        string tConfigFileName = string.Empty;
-
-                        SetTelnetReservedString(tSelectCfgSaveInfos);
-
-                        // 스크립트 명령 실행
-                        CfgSaveInfo tSelectCfgSaveInfo = (CfgSaveInfo)tSelectCfgSaveInfos.InnerList[0];
-                        Script tScript = new Script(AppGlobal.GetScript(tSelectCfgSaveInfo.CfgRestoreCommands));
-
-                        AppGlobal.s_ClientOption.ShortenCommandTaget = E_ShortenCommandTagret.ActiveTerminal;
-                        m_SelectedEmulator.RunScript(tScript);
-                    }
-                }
+                HandleConfigRestoreData(cfgSaveInfos);
             }
         }
 
-        private void tabTerminal_Enter(object sender, EventArgs e)
+        private void HandleErrorResult(ResultCommunicationData result)
         {
-            System.Diagnostics.Debug.WriteLine("Enter");
-            //AppGlobal.bPanelFocusCheck = true;
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TerminalPanel : ResultReceiver : 명령 정보 로드 실패. CommType: " + result.CommType);
+            if (result.CommType == E_CommunicationType.RequestDefaultConnectionCommand)
+            {
+                MessageBox.Show("접속정보를 가져오지 못했습니다.");
+            }
         }
 
-        private void tabTerminal_Leave(object sender, EventArgs e)
+        private void HandleDefaultConnectionCommand(FACT_DefaultConnectionCommandSet commandSet)
         {
-            System.Diagnostics.Debug.WriteLine("Leave");
-            //AppGlobal.bPanelFocusCheck = false;
+            Script script = new Script(AppGlobal.GetTelnetScript(m_LinkDeviceInfo, commandSet));
+            m_SelectedEmulator.RunScript(script);
         }
+
+        private void HandleCompressedDeviceData(CompressData compressData)
+        {
+            object decompressedObject = AppGlobal.DecompressObject(compressData);
+            if (decompressedObject is DeviceInfoCollection deviceInfos)
+            {
+                DeviceInfo deviceInfo = ResolveDeviceInfo(deviceInfos);
+                if (deviceInfo != null)
+                {
+                    AddTerminal(deviceInfo, true);
+                }
+            }
+        }
+
+        private DeviceInfo ResolveDeviceInfo(DeviceInfoCollection deviceInfos)
+        {
+            if (m_ConnectInfo == null) return null;
+
+            if (!deviceInfos.Contains(m_ConnectInfo.IPAddress))
+            {
+                return new DeviceInfo
+                {
+                    IsRegistered = false,
+                    IPAddress = m_ConnectInfo.IPAddress,
+                    TerminalConnectInfo = m_ConnectInfo
+                };
+            }
+
+            DeviceInfo deviceInfo = deviceInfos[m_ConnectInfo.IPAddress];
+            if (IsAccessDenied(deviceInfo))
+            {
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "해당 장비에 접속 권한이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return null;
+            }
+
+            deviceInfo.TerminalConnectInfo = m_ConnectInfo;
+            if (m_ConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
+            {
+                deviceInfo.TelnetID1 = m_ConnectInfo.ID;
+                deviceInfo.TelnetPwd1 = m_ConnectInfo.Password;
+            }
+
+            return deviceInfo;
+        }
+
+        private bool IsAccessDenied(DeviceInfo deviceInfo)
+        {
+            return AppGlobal.s_RACTClientMode == E_RACTClientMode.Online &&
+                   AppGlobal.s_LoginResult.UserInfo.Centers.Count > 0 &&
+                   !AppGlobal.s_LoginResult.UserInfo.Centers.Contains(deviceInfo.CenterCode);
+        }
+
+        private void HandleConfigRestoreData(CfgSaveInfoCollection cfgSaveInfos)
+        {
+            if (cfgSaveInfos.Count == 0 || string.IsNullOrEmpty(((CfgSaveInfo)cfgSaveInfos.InnerList[0]).FileName))
+            {
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "Config 복원 파일이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            OpenRestoreCommand restoreForm = new OpenRestoreCommand();
+            restoreForm.OpenOnlineRestoreList(cfgSaveInfos);
+
+            if (restoreForm.ShowDialog() == DialogResult.OK)
+            {
+                CfgSaveInfoCollection selectedCfgSaveInfos = restoreForm.CfgSaveInfos;
+                SetTelnetReservedString(selectedCfgSaveInfos);
+
+                CfgSaveInfo selectedCfgSaveInfo = (CfgSaveInfo)selectedCfgSaveInfos.InnerList[0];
+                Script script = new Script(AppGlobal.GetScript(selectedCfgSaveInfo.CfgRestoreCommands));
+
+                AppGlobal.s_ClientOption.ShortenCommandTaget = E_ShortenCommandTagret.ActiveTerminal;
+                m_SelectedEmulator.RunScript(script);
+            }
+        }
+        }
+
 
         private void Global_OnSharedSessionDisconnected(string disconnectedKey)
         {
@@ -1611,15 +1293,12 @@ namespace RACTClient
             {
                 if (this.IsDisposed) return;
 
-                AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Warning, $" ߰   ǿ   ܰ   : {disconnectedKey}");
+                AppGlobal.s_FileLogProcessor?.PrintLog(E_FileLogType.Warning, $" 장비 세션 연결 단절됨 : {disconnectedKey}");
 
-                List<ITerminal> targets;
-                lock (m_EmulatorList) { targets = new List<ITerminal>(m_EmulatorList); }
+                var targets = m_TerminalManager.EmulatorList.Where(e => e.JumpHost != null).ToList();
 
-                foreach (ITerminal emulator in targets)
+                foreach (ITactTerminal emulator in targets)
                 {
-                    if (emulator.JumpHost == null) continue;
-
                     string emulatorKey = SshSessionPool.Instance.GetKey(emulator.JumpHost);
                     if (emulatorKey == disconnectedKey)
                     {
@@ -1629,7 +1308,7 @@ namespace RACTClient
             });
         }
 
-        private void ExecuteAutoReconnect(ITerminal emulator)
+        private void ExecuteAutoReconnect(ITactTerminal emulator)
         {
             emulator.TerminalStatus = E_TerminalStatus.Disconnected;
 

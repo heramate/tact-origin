@@ -1632,12 +1632,12 @@ namespace RACTClient
         }
 
 
-        void tConnectList_Click(object sender, EventArgs e)
+        async void tConnectList_Click(object sender, EventArgs e)
         {
             ButtonItem tSender = (ButtonItem)sender;
             terminalPanel1.BringToFront();
             bar4.SelectedDockTab = 0;
-            terminalPanel1.QuickConnect(((ConnectionHistoryInfo)tSender.Tag).ConnectionInfo);
+            await terminalPanel1.QuickConnect(((ConnectionHistoryInfo)tSender.Tag).ConnectionInfo);
         }
 
         /// <summary>
@@ -1946,14 +1946,14 @@ namespace RACTClient
             terminalPanel1.ScriptWork(E_ScriptWorkType.RunCancel);
         }
 
-        private void mnuQuickConnect_Click(object sender, EventArgs e)
+        private async void mnuQuickConnect_Click(object sender, EventArgs e)
         {
             QuickConnect tConnectForm = new QuickConnect();
             tConnectForm.InitializeControl();
             if (tConnectForm.ShowDialog(this) == DialogResult.OK)
             {
                 tabTerminal.Selected = true;
-                terminalPanel1.QuickConnect(tConnectForm.QuickConnectInfo);
+                await terminalPanel1.QuickConnect(tConnectForm.QuickConnectInfo);
             }
         }
 
@@ -2188,7 +2188,7 @@ namespace RACTClient
         /// <summary>
         /// 탭으로 추가 합니다.
         /// </summary>
-        internal void AddTerminalTab(ITerminal mCTerminalEmulator)
+        internal void AddTerminalTab(ITactTerminal mCTerminalEmulator)
         {
             terminalPanel1.AddTerminal(mCTerminalEmulator);
         }

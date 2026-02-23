@@ -447,7 +447,10 @@
     <Compile Include="TerminalControl\MCSmallTerminal.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="TerminalControl\ITerminal.cs" />
+    <Compile Include="TerminalControl\ITactTerminal.cs" />
+    <Compile Include="TerminalControl\ITactTerminalFactory.cs" />
+    <Compile Include="TerminalControl\TactTerminalFactory.cs" />
+    <Compile Include="TerminalManagement\TerminalManager.cs" />
     <Compile Include="TerminalControl\MCTerminalControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

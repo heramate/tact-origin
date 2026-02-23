@@ -18,7 +18,7 @@ using System.Threading;
 namespace RACTClient
 {
     // Class name to match plan
-    public partial class RebexTerminalControl : SenderControl, ISerialEmulator, ITelnetEmulator, ITerminal
+    public partial class RebexTerminalControl : SenderControl, ISerialEmulator, ITelnetEmulator, ITactTerminal
     {
         private Rebex.TerminalEmulation.TerminalControl _rebexTerminal;
         private Ssh _ssh;

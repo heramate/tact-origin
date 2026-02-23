@@ -47,13 +47,13 @@ namespace RACTClient
             if (this.WindowState == FormWindowState.Minimized)
             {
                 m_IsClose = false;
-                ((ClientMain)AppGlobal.s_ClientMainForm).AddTerminalTab((ITerminal)this.Controls[0]);
+                ((ClientMain)AppGlobal.s_ClientMainForm).AddTerminalTab((ITactTerminal)this.Controls[0]);
                 this.Close();
 
             }
         }
 
-        internal void AddTerminalControl(ITerminal tEmulator)
+        internal void AddTerminalControl(ITactTerminal tEmulator)
         {
             this.Controls.Add((Control)tEmulator);
             tEmulator.OnTerminalStatusChange += new HandlerArgument2<object, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);

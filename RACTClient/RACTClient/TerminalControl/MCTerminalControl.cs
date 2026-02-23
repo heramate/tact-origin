@@ -44,7 +44,7 @@ namespace RACTClient
     ///   m_LastVisibleLine = (m_Rows - m_ScrollbackBuffer.Count - 1) .. 0
     ///   m_LastVisibleLine = m_VertScrollBar.Value - m_VertScrollBar.Maximum
     /// </remarks>
-    public class MCTerminalEmulator : SenderControl, ISerialEmulator, ITelnetEmulator, ITerminal
+    public class MCTerminalEmulator : SenderControl, ISerialEmulator, ITelnetEmulator, ITactTerminal
     {
         private System.ComponentModel.IContainer components;
         private DevComponents.DotNetBar.ContextMenuBar contextMenuBar1;
