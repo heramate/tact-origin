@@ -143,6 +143,7 @@
     <Compile Include="Adapters\IRebexConnection.cs" />
     <Compile Include="Adapters\RebexProxyFactory.cs" />
     <Compile Include="Adapters\SshConnectionAdapter.cs" />
+    <Compile Include="Adapters\SshTunnelManager.cs" />
     <Compile Include="Adapters\TelnetConnectionAdapter.cs" />
     <PackageReference Include="Rebex.Telnet" Version="7.0.9209" />
     <PackageReference Include="Rebex.SshShell" Version="7.0.9209" />
@@ -550,6 +551,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\ControlExtensions.cs" />
     <Compile Include="Utilities\RebexScriptingExtensions.cs" />
+    <Compile Include="Utilities\TunnelException.cs" />
     <Compile Include="Utilities\UIThreadDispatcher.cs" />
     <EmbeddedResource Include="ClientMain.resx">
       <SubType>Designer</SubType>

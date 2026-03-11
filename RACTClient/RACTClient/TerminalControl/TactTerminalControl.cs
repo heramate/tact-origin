@@ -1,10 +1,12 @@
+using C1.Win.C1FlexGrid;
 using DevComponents.DotNetBar;
 using RACTClient.Adapters;
-using RACTClient.Utilities.Extensions;
 using RACTClient.Utilities;
+using RACTClient.Utilities.Extensions;
 using RACTCommonClass;
 using RACTSerialProcess;
 using RACTTerminal;
+using Rebex.Net;
 using Rebex.TerminalEmulation;
 using System;
 using System.Collections.Generic;
@@ -24,6 +26,21 @@ namespace RACTClient
     {        
         private IRebexConnection _currentConnection; // 현재 연결 객체 관리
 
+        // [핵심 추가] 내가 점유 중인 터널 정보 (해제 시 필수)
+        private string _assignedTunnelKey = null;
+        private int _assignedProxyPort = 0; // 할당받은 포트 번호 저장 필드
+
+        // [추가] 재연결을 위한 접속 정보 보관용 필드
+        private List<string> _jumpServers;
+        private int _jumpHostPort;
+        private string _jumpUser;
+        private string _jumpPwd;
+
+        // [추가] 재접속 제어용 필드
+        private bool _isManualDisconnecting = false;     // 사용자가 직접 끊었는지 여부
+        private int _reconnectCount = 0;                 // 현재 재접속 시도 횟수
+        private const int MAX_RECONNECT_ATTEMPTS = 3;    // 최대 재접속 허용 횟수
+
         private DevComponents.DotNetBar.ContextMenuBar contextMenuBar1;
         private DevComponents.DotNetBar.ButtonItem cmPopUP; // 기존의 cmPopUP 역할
         private DevComponents.DotNetBar.ButtonItem mnuCopy;
@@ -41,7 +58,9 @@ namespace RACTClient
         private DevComponents.DotNetBar.ButtonItem mnuOption;
 
         // 동기화 객체
-        private ManualResetEvent m_MRE = new ManualResetEvent(false);
+        // [필드 변경]
+        // private ManualResetEvent m_MRE = new ManualResetEvent(false); // 제거
+        private TaskCompletionSource<ResultCommunicationData> _commTaskSource;
 
         // [수정] 수신 데이터 타입 명시 (ISenderObject 호환)
         private ResultCommunicationData m_Result;
@@ -268,6 +287,9 @@ namespace RACTClient
             this.BackColor = backColor;
             this.ForeColor = foreColor; // WinForm 컨트롤 속성도 맞춰줌
 
+            this.CursorStyle = Rebex.TerminalEmulation.CursorStyle.Block; // 1. 모양: 블록
+            this.CursorBlinkingInterval = 500; // 2. 속도: 500ms (0.5초) - 설정 안하면 안 깜빡일 수 있음
+
             this.Invalidate();
         }
 
@@ -395,6 +417,9 @@ namespace RACTClient
             e.BackColor = 0;
             e.ForeColor = 7;
 
+            e.BackColor = e.CellForeColor; // 커서 배경을 글자색으로
+            e.ForeColor = e.CellBackColor; 
+
             // (참고)
             // e.CellForeColor / e.CellBackColor는 "원래 글자의 색"을 알려주는 읽기 전용 속성일 가능성이 큽니다.
             // 예: "원래 글자가 빨간색일 때만 커서를 빨갛게 하라" 같은 로직을 짤 때 사용합니다.
@@ -409,124 +434,230 @@ namespace RACTClient
         /// <summary>
         /// 장비 접속을 수행합니다. (Rebex 통합 최종 구현)
         /// </summary>
+        /// <summary>
+        /// 장비 접속을 수행합니다.
+        /// </summary>
         public object ConnectDevice(object aDeviceInfo)
         {
             DeviceInfo = new DeviceInfo((DeviceInfo)aDeviceInfo);
 
-            // [추가] 재연결 시 이전 터미널 화면을 깨끗하게 비움
+            // 접속 정보 로드 (실제 운영 환경 매핑)
+            this._jumpServers = new List<string> { "127.0.0.1" };
+            this._jumpHostPort = 2221;
+            this._jumpUser = "user";
+            this._jumpPwd = "password";
+
             this.SafeInvoke(() => {
-                this.Screen.Clear(); // 전체 화면 지움
-                this.Screen.SetCursorPosition(0, 0); // 커서를 좌측 상단으로 이동
+                this.Screen.Clear();
+                this.Screen.SetCursorPosition(0, 0);
             });
 
-            m_ConnectionCommandSet = null;
-
-            // [Legacy Logic] 2023-06-13 VOIP AGW PORT 2001 치환
-            if (m_DeviceInfo.DevicePartCode == 13)
-            {
-                if (m_DeviceInfo.ModelID != 3727)
-                    m_DeviceInfo.TerminalConnectInfo.TelnetPort = 2001;
-            }
-
-            // [Legacy Logic] 터미널 로그 시작 (파일 저장 등)
-            try
-            {
-                // StartTerminalLog는 TactTerminalControl 또는 부모 클래스에 정의되어 있어야 함
-                StartTerminalLog(m_DeviceInfo);
-            }
-            catch (Exception ex)
-            {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "Log Start Failed: " + ex.Message);
-            }
-
-
-            // 1. 기존 연결 종료 및 상태 초기화
+            // 1. 기존 연결 정리 (새 접속 전 참조 카운트 다운)
             Disconnect();
+
             TerminalStatus = E_TerminalStatus.TryConnection;
 
-            // 3. Rebex 연결 (SSH / TELNET) - 비동기 실행으로 UI Freezing 방지
-            Task.Run(() =>
+            // 2. 비동기 접속 프로세스
+            Task.Run(async () =>
             {
-
                 try
                 {
-                    // 3-1. 프로토콜에 따른 어댑터 생성
+                    // [변경] 튜플 반환형 수신 (Port와 Key를 동시에 받아 저장)
+                    var result = await SshTunnelManager.GetOrCreateTunnelAsync(_jumpServers, _jumpHostPort, _jumpUser, _jumpPwd);
+
+                    _assignedProxyPort = result.Port;  // 해제 시 사용 위해 저장
+                    _assignedTunnelKey = result.Key;   // 세션 식별용 키 저장
+
+                    Proxy socksProxy = new Proxy
+                    {
+                        ProxyType = ProxyType.Socks5,
+                        Host = "127.0.0.1",
+                        Port = _assignedProxyPort
+                    };
+
+                    // 3. 타겟 장비 연결 로직
                     if (DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                     {
-                        ConnectionType = ConnectionTypes.RemoteTelnet; // Enum 확인 필요 why ssh is RemoteTelnet?
-                        _currentConnection = new SshConnectionAdapter();
+                        ConnectionType = ConnectionTypes.RemoteTelnet;
+                        var sshAdapter = new SshConnectionAdapter();
+                        sshAdapter.SetProxy(socksProxy);
+                        sshAdapter.Connect(DeviceInfo.IPAddress, 22);
+                        sshAdapter.Login(DeviceInfo.USERID, DeviceInfo.PWD);
+                        _currentConnection = sshAdapter;
                     }
                     else
                     {
                         ConnectionType = ConnectionTypes.RemoteTelnet;
-                        _currentConnection = new TelnetConnectionAdapter(
-                            DeviceInfo.IPAddress,
-                            DeviceInfo.TerminalConnectInfo.TelnetPort
-                        );
+                        var telnetAdapter = new TelnetConnectionAdapter();
+                        telnetAdapter.ConnectWithProxy(DeviceInfo.IPAddress, DeviceInfo.TerminalConnectInfo.TelnetPort, socksProxy);
+                        _currentConnection = telnetAdapter;
                     }
 
-
-                    // 3-2. 연결 수행 (내부적으로 RebexProxyFactory를 통해 프록시 자동 적용)
-                    // [Source Reference: Connect 메서드 내부에서 Factory 호출]
-                    int port = (DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
-                               ? 22
-                               : DeviceInfo.TerminalConnectInfo.TelnetPort;
-
-                    _currentConnection.Connect(DeviceInfo.IPAddress, port);
-
-                    // 3-3. SSH 로그인 수행 (Telnet은 Scripting으로 후처리)
-                    if (_currentConnection is SshConnectionAdapter)
-                    {
-                        _currentConnection.Login(DeviceInfo.USERID, DeviceInfo.PWD);
-                    }
-
-                    // 3-4. UI 스레드에서 터미널 바인딩 (SafeInvoke 사용)
                     this.SafeInvoke(() =>
                     {
-                        // 연결된 객체(Ssh/Telnet)를 Rebex TerminalControl에 바인딩
+                        if (this.IsDisposed) return;
                         this.Bind(_currentConnection.GetClientObject());
-                        
-                        // [추가] 서버측 종료 감지를 위한 이벤트 핸들러 연결
                         this.Disconnected += TactTerminalControl_Disconnected;
 
-                        //IsConnected = true;
                         TerminalStatus = E_TerminalStatus.Connection;
-
-                        ChangeStatusIcon(); // [Source Reference: Line 382]
-
-                        // 로그 기록
-                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation,
-                            $"Connected to {DeviceInfo.IPAddress} ({ConnectionType})");
+                        _reconnectCount = 0;
+                        ChangeStatusIcon();
                     });
-
-                    // 3-5. Telnet 자동 로그인 스크립트 실행
-                    if (_currentConnection is TelnetConnectionAdapter)
-                    {
-                        // 바인딩이 완료된 후 실행해야 하므로 UI 업데이트가 끝날 때까지 기다리거나
-                        // SafeInvoke 내부 로직이 완료된 시점에 호출되어야 함.
-                        // SafeInvoke는 비동기(Post)이므로, 순차 보장을 위해 별도 메서드 호출
-                        //PerformTelnetLogin(DeviceInfo.TelnetID1, DeviceInfo.TelnetPwd1);
-                    }
                 }
                 catch (Exception ex)
                 {
-                    // 연결 실패 처리
-                    this.SafeInvoke(() =>
-                    {
-                        TerminalStatus = E_TerminalStatus.Disconnected;
-                        AppGlobal.ShowMessage(AppGlobal.s_ClientMainForm,
-                            "접속 실패: " + ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error,
-                            $"Connection Error ({DeviceInfo.IPAddress}): {ex}");
-                    });
-
-                    // 자원 해제
-                    if (_currentConnection != null) _currentConnection.Dispose();
+                    HandleConnectionFailure(ex);
                 }
             });
 
             return null;
+        }
+
+        private void HandleConnectionFailure(Exception ex)
+        {
+            this.SafeInvoke(() =>
+            {
+                TerminalStatus = E_TerminalStatus.Disconnected;
+                AppGlobal.ShowMessage(AppGlobal.s_ClientMainForm,
+                    "접속 실패: " + ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, $"Connection Error ({DeviceInfo.IPAddress}): {ex}"); 
+
+                if (_currentConnection != null) _currentConnection.Dispose();
+
+                // 접속 시도 중 실패한 경우에도 재연결 큐를 돌리고 싶다면 여기서 TryReconnect 호출 가능
+            });
+        }
+
+        /// <summary>
+        /// Rebex 엔진에 의해 연결 끊김이 감지되었을 때 호출
+        /// </summary>
+        /// <summary>
+        /// Rebex 엔진 또는 서버에 의해 연결 끊김이 감지되었을 때 호출되는 이벤트 핸들러입니다.
+        /// </summary>
+        /// <summary>
+        /// Rebex 엔진 또는 서버에 의해 연결 끊김이 감지되었을 때 호출되는 이벤트 핸들러입니다.
+        /// </summary>
+        private void TactTerminalControl_Disconnected(object sender, EventArgs e)
+        {
+            // 1. 이벤트 중복 방지 (가장 먼저 수행)
+            this.Disconnected -= TactTerminalControl_Disconnected;
+
+            // 비동기 람다를 사용하여 SafeInvoke 호출
+            this.SafeInvoke(async () =>
+            {
+                try
+                {
+                    // 2. [핵심 변경] 비동기 방식의 터널 참조 해제
+                    // 키와 함께 '할당받았던 포트 번호'를 넘겨 풀(Pool)에서 정확한 세션을 찾습니다.
+                    if (!string.IsNullOrEmpty(_assignedTunnelKey))
+                    {
+                        await SshTunnelManager.ReleaseTunnelAsync(_assignedTunnelKey, _assignedProxyPort);
+
+                        // 자원 반납 후 필드 초기화
+                        _assignedTunnelKey = null;
+                        _assignedProxyPort = 0;
+                    }
+
+                    // 3. 자원 정리
+                    if (_currentConnection != null)
+                    {
+                        _currentConnection.Dispose();
+                        _currentConnection = null;
+                    }
+
+                    TerminalStatus = E_TerminalStatus.Disconnected;
+                    this.Unbind();
+
+                    // 4. 재접속 실행 여부 판단
+                    // (1) 사용자가 UI에서 Disconnect를 눌렀는가? (exit 감지 포함)
+                    // (2) 자동 재접속 옵션이 꺼져있는가? (AppGlobal 옵션 확인)
+                    if (_isManualDisconnecting)
+                    {
+                        this.Screen.Write("\r\n[RACT] Session closed gracefully. (No Reconnect)\r\n");
+                        return;
+                    }
+
+                    // (3) 재접속 허용 횟수를 초과했는가?
+                    if (_reconnectCount >= MAX_RECONNECT_ATTEMPTS)
+                    {
+                        this.Screen.Write($"\r\n[RACT] Connection failed after {MAX_RECONNECT_ATTEMPTS} attempts. Stopped.\r\n");
+                        _reconnectCount = 0;
+                        return;
+                    }
+
+                    // 5. 재접속 시도 (주석 해제 및 로직 활성화)
+                    _reconnectCount++;
+                    this.Screen.Write($"\r\n[RACT] Connection lost. Retrying ({_reconnectCount}/{MAX_RECONNECT_ATTEMPTS}) in 3s...\r\n");
+
+                    // UI 프리징 없이 대기
+                    await Task.Delay(3000);
+
+                    // 6. 최종 유효성 검사 (탭이 닫혔거나 프로그램 종료 중인지 확인)
+                    if (this.IsHandleCreated && !this.IsDisposed && !AppGlobal.s_IsProgramShutdown)
+                    {
+                        TryReconnect();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error,
+                        $"Disconnected Handler Error: {ex.Message}");
+                }
+            });
+        }
+
+        private void TryReconnect()
+        {
+            // 저장된 m_DeviceInfo를 사용하여 다시 ConnectDevice 호출
+            if (m_DeviceInfo != null)
+            {
+                //ConnectDevice(m_DeviceInfo);
+            }
+        }
+
+        /// <summary>
+        /// 연결을 종료하고 점유 중인 터널 자원을 반납합니다.
+        /// </summary>
+        public void Disconnect()
+        {
+            try
+            {
+                _isManualDisconnecting = true;
+                this.Disconnected -= TactTerminalControl_Disconnected;
+
+                // [핵심] 수정된 ReleaseTunnelAsync 호출
+                // 키와 포트 번호를 모두 전달하여 풀 내의 정확한 세션을 타겟팅합니다.
+                if (!string.IsNullOrEmpty(_assignedTunnelKey))
+                {
+                    string keyToRelease = _assignedTunnelKey;
+                    int portToRelease = _assignedProxyPort;
+
+                    // 비동기 해제 로직 실행 (Fire and Forget 또는 비동기 대기)
+                    Task.Run(() => SshTunnelManager.ReleaseTunnelAsync(keyToRelease, portToRelease));
+
+                    _assignedTunnelKey = null;
+                    _assignedProxyPort = 0;
+                }
+
+                if (_currentConnection != null)
+                {
+                    _currentConnection.Dispose();
+                    _currentConnection = null;
+                }
+
+                this.Unbind();
+                m_TerminalStatus = E_TerminalStatus.Disconnected;
+
+                this.SafeInvoke(() => ChangeStatusIcon());
+            }
+            catch (Exception ex)
+            {
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, $"Disconnect Error: {ex.Message}");
+            }
+            finally
+            {
+                _isManualDisconnecting = false;
+            }
         }
 
         private void StartTerminalLog(DeviceInfo info)
@@ -563,16 +694,13 @@ namespace RACTClient
         /// <summary>
         /// AppGlobal(서버)로부터 응답이 왔을 때 호출되는 콜백입니다.
         /// </summary>
+        // [응답 수신부 수정]
         public void ResultReceiver(ResultCommunicationData vResult)
         {
             this.m_Result = vResult;
 
-            // 대기 중인 스레드(WaitOne)를 깨웁니다.
-            try
-            {
-                m_MRE.Set();
-            }
-            catch { }
+            // 대기 중인 Task에 결과 전달 (TrySetResult는 스레드 안전하며 중복 호출 방지)
+            _commTaskSource?.TrySetResult(vResult);
         }
 
         /// <summary>
@@ -586,39 +714,51 @@ namespace RACTClient
         // =============================================================
         // 2. StartLoginProcess (메인 로직)
         // =============================================================
-
+        private bool _isAutoLoginProcessing = false; // 로그인 중복 실행 방지 플래그
         private void StartLoginProcess()
         {
-            Task.Run(() =>
+            // Task.Run 내에서 비동기 흐름을 타게 함
+            Task.Run(async () =>
             {
                 try
                 {
+                    // 1. 이미 실행 중이면 즉시 리턴
+                    if (_isAutoLoginProcessing) return;
+
                     var protocol = m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol;
 
-                    // Telnet 또는 SSH 접속이고, 자동 로그인이 필요한 상황인지 체크
+                    // 자동 로그인 조건 확인 (로그 추가로 추적성 강화)
                     if ((protocol == E_ConnectionProtocol.TELNET || protocol == E_ConnectionProtocol.SSHTelnet) &&
-                        AppGlobal.s_RACTClientMode == E_RACTClientMode.Online &&
-                        m_DeviceInfo.IsRegistered &&
-                        m_ConnectionCommandSet == null)
+                        AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                     {
-                        LogInfo("기본 접속 정보를 로드합니다.");
+                        LogInfo($"자동 로그인을 시도합니다. (Target: {m_DeviceInfo.IPAddress})");
 
-                        // [수정] 분리된 헬퍼 메서드 호출
-                        if (!RequestConnectionCommandSet())
+                        // 2. 명령 세트 로드 (이미 있으면 재사용, 없으면 로드)
+                        if (m_ConnectionCommandSet == null)
                         {
-                            return; // 로드 실패 시 중단
+                            if (!await RequestConnectionCommandSetAsync())
+                            {
+                                LogError("접속 명령 세트를 로드하지 못했습니다.");
+                                return;
+                            }
                         }
 
-                        // SSH는 정보만 로드하고 스크립트 실행은 안 함 (SshConnectionAdapter에서 처리)
                         if (protocol == E_ConnectionProtocol.SSHTelnet) return;
 
-                        // TELNET 스크립트 실행
+                        
+                        // 4. 스크립트 실행
                         ExecuteTelnetLoginScript();
                     }
                 }
                 catch (Exception ex)
                 {
                     LogError("StartLoginProcess Error: " + ex.Message);
+                }
+                finally
+                {
+                    // 로그인이 완전히 끝난 후나 실패 후에만 플래그 해제
+                    // 상황에 따라 성공 시에는 true를 유지하고 Disconnect 시에 false로 풀 수도 있습니다.
+                    _isAutoLoginProcessing = false;
                 }
             });
         }
@@ -627,7 +767,7 @@ namespace RACTClient
         // 3. RequestConnectionCommandSet (통신 및 대기 로직 분리)
         // =============================================================
 
-        private bool RequestConnectionCommandSet()
+        private async Task<bool> RequestConnectionCommandSetAsync()
         {
             try
             {
@@ -636,27 +776,31 @@ namespace RACTClient
                 tRequestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
                 tRequestData.RequestData = m_DeviceInfo;
 
-                // TL1 포트(1023) 특수 처리
                 if (m_DeviceInfo.TerminalConnectInfo.TelnetPort == 1023)
                 {
                     tRequestData.UserData = "TL1";
                 }
 
-                // 2. 초기화 (결과 비우기, 신호등 빨간불)
+                // 2. 초기화 (신규 비동기 대기 객체 생성)
                 m_Result = null;
-                m_MRE.Reset();
+                _commTaskSource = new TaskCompletionSource<ResultCommunicationData>();
 
-                // 3. 요청 전송 (this는 ISenderObject이므로 에러 없음)
+                // 3. 요청 전송
                 AppGlobal.SendRequestData(this, tRequestData);
 
-                // 4. 대기 (타임아웃 적용)
-                if (!m_MRE.WaitOne(AppGlobal.s_RequestTimeOut))
+                // 4. 비동기 대기 (타임아웃 적용)
+                // Task.WhenAny를 사용하여 실제 응답과 타임아웃 중 먼저 완료되는 쪽을 선택합니다.
+                var timeoutTask = Task.Delay(AppGlobal.s_RequestTimeOut);
+                var completedTask = await Task.WhenAny(_commTaskSource.Task, timeoutTask);
+
+                if (completedTask == timeoutTask)
                 {
                     LogWarning($"기본 접속 명령 로드 시간 초과. (IP: {m_DeviceInfo.IPAddress})");
                     return false;
                 }
 
                 // 5. 결과 유효성 검사
+                m_Result = await _commTaskSource.Task;
                 if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
                 {
                     LogWarning($"기본 접속 명령 로드 실패. (IP: {m_DeviceInfo.IPAddress})");
@@ -672,7 +816,7 @@ namespace RACTClient
                     return false;
                 }
 
-                // 7. 에러 메시지 초기화 (기존 로직 유지)
+                // 7. 에러 메시지 초기화 (기존 비즈니스 로직 유지)
                 foreach (var cmd in m_ConnectionCommandSet.CommandList)
                 {
                     cmd.ErrorString = "Login incorrect";
@@ -693,39 +837,77 @@ namespace RACTClient
 
         private void ExecuteTelnetLoginScript()
         {
-            // UI 제어 (화면 갱신 중지, 입력 차단)
-            this.RunSync(() =>
+            // Task.Run 내부라고 가정
+            Task.Run(async () =>
             {
-                this.SetDataProcessingMode(DataProcessingMode.None);
-                this.UserInputEnabled = false;
-                TerminalStatus = E_TerminalStatus.RunScript;
-            });
+                try
+                {
+                    // 1. UI 설정을 먼저 완료하고 확실히 돌아올 때까지 비동기로 기다립니다.
+                    // Control.Invoke(Sync) 대신 TaskCompletionSource를 활용한 비동기 Invoke 패턴입니다.
+                    await this.InvokeAsync(() =>
+                    {
+                        if (this.IsDisposed) return;
+                        this.SetDataProcessingMode(DataProcessingMode.None);
+                        this.UserInputEnabled = false;
+                        TerminalStatus = E_TerminalStatus.RunScript;
 
+                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "UI Mode set to None (Sequential)");
+                    });
+
+                    // 2. 이제 UI 스레드는 자유로워졌고(다른 탭 처리 가능), 
+                    // 현재 스레드는 모드 변경이 완료된 것을 보장받은 상태로 스크립트를 시작합니다.
+                    var scripting = this.Scripting;
+
+                    // [Screen 버퍼 조사]
+                    string snapshot = GetCurrentScreenText();
+                    if (snapshot.Contains("maximum users"))
+                        throw new Exception("접속 제한 감지");
+
+                    // [스크립트 실행]
+                    scripting.ExecuteConnectionCommand(m_ConnectionCommandSet, m_DeviceInfo);
+
+                    LogInfo("자동 로그인 완료.");
+                }
+                catch (Exception ex)
+                {
+                    LogError("Script Failed: " + ex.Message);
+                    this.SafeInvoke(() => Disconnect());
+                }
+                finally
+                {
+                    // 3. 복구 역시 비동기로 UI 스레드에 요청
+                    this.SafeInvoke(() =>
+                    {
+                        if (this.IsDisposed) return;
+                        this.SetDataProcessingMode(DataProcessingMode.Automatic);
+                        this.UserInputEnabled = true;
+                        this.TerminalStatus = this.IsConnected ? E_TerminalStatus.Connection : E_TerminalStatus.Disconnected;
+                    });
+                }
+            });
+        }
+
+        /// <summary>
+        /// 현재 터미널 화면에 출력된 전체 텍스트를 긁어옵니다.
+        /// </summary>
+        private string GetCurrentScreenText()
+        {
             try
             {
-                // [확장 메서드 사용] RebexScriptingExtensions에 구현된 로직 호출
-                // 1023 포트 여부는 내부에서 m_DeviceInfo를 통해 판단됨
-                this.Scripting.ExecuteConnectionCommand(m_ConnectionCommandSet, m_DeviceInfo);
+                // 1. 현재 화면의 크기 확인 (가로 컬럼 수, 세로 로우 수)
+                int cols = this.Screen.Columns;
+                int rows = this.Screen.Rows;
 
-                LogInfo("자동 로그인 완료.");
+                // 2. 전체 영역(0,0 부터 끝까지)의 텍스트를 배열로 획득
+                string[] lines = this.Screen.GetRegionText(0, 0, cols, rows);
+
+                // 3. 줄바꿈 문자로 합쳐서 반환 (TrimEnd로 우측 공백 제거 권장)
+                return string.Join(Environment.NewLine, lines.Select(l => l.TrimEnd()));
             }
             catch (Exception ex)
             {
-                LogError("Script Execution Failed: " + ex.Message);
-            }
-            finally
-            {
-                // UI 복구
-                this.SafeInvoke(() =>
-                {
-                    if (!this.IsDisposed)
-                    {
-                        this.SetDataProcessingMode(DataProcessingMode.Automatic);
-                        this.UserInputEnabled = true;
-                        TerminalStatus = E_TerminalStatus.Connection;
-                        this.Focus();
-                    }
-                });
+                System.Diagnostics.Debug.WriteLine("Screen Read Error: " + ex.Message);
+                return string.Empty;
             }
         }
 
@@ -956,71 +1138,48 @@ namespace RACTClient
             });
         }
 
-        public void Disconnect()
+        private StringBuilder _inputBuffer = new StringBuilder(); // 입력 문자열 추적
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            try
+            // 엔터키 입력 시 버퍼 확인
+            if (e.KeyCode == Keys.Enter)
             {
-                // 이벤트 핸들러 제거 (중복 처리 방지)
-                this.Disconnected -= TactTerminalControl_Disconnected;
+                string currentCmd = _inputBuffer.ToString().Trim().ToLower();
 
-                // [추가] 수동 종료 시 메시지 출력
-                if (this.IsConnected)
+                // 사용자가 종료 명령어를 입력했는지 확인
+                if (currentCmd == "exit" || currentCmd == "logout")
                 {
-                    this.Screen.Write("\r\n[RACT] Session disconnected by user.\r\n");
+                    _isManualDisconnecting = true;
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "User typed 'exit'. Disabling auto-reconnect.");
                 }
-
-                this.Unbind();
-
-                if (_currentConnection != null)
-                {
-                    _currentConnection.Dispose();
-                    _currentConnection = null;
-                }
-
-                m_TerminalStatus = E_TerminalStatus.Disconnected;
-
-                this.SafeInvoke(() => {
-                    ChangeStatusIcon();
-                });
+                _inputBuffer.Clear(); // 엔터 후 버퍼 초기화
             }
-            catch (Exception ex)
+            else if (e.KeyCode == Keys.Back)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, $"Disconnect Error: {ex.Message}");
+                if (_inputBuffer.Length > 0) _inputBuffer.Length--;
             }
+            else
+            {
+                // 텍스트 입력만 버퍼에 추가 (제어 문자 제외)
+                char c = GetCharFromKey(e.KeyCode);
+                if (!char.IsControl(c))
+                {
+                    _inputBuffer.Append(c);
+                }
+            }
+
+            base.OnKeyDown(e);
         }
 
-        /// <summary>
-        /// Rebex 터미널 엔진에서 연결 종료(exit 등)를 감지했을 때 호출됩니다.
-        /// </summary>
-        /// <summary>
-        /// Rebex 터미널 엔진에서 연결 종료(exit 등)를 감지했을 때 호출됩니다.
-        /// </summary>
-        private void TactTerminalControl_Disconnected(object sender, EventArgs e)
+        // KeyCode를 Char로 변환하는 간단한 헬퍼 (WinForms 기준)
+        private char GetCharFromKey(Keys key)
         {
-            this.Disconnected -= TactTerminalControl_Disconnected;
-
-            this.SafeInvoke(() =>
-            {
-                // 1. 터미널 화면에 종료 메시지 출력 (사용자 알림)
-                // \r\n을 사용하여 새로운 라인에 출력합니다.
-                this.Screen.Write("\r\n[RACT] Connection closed by foreign host.\r\n");
-
-                // 2. 내부 상태 업데이트
-                TerminalStatus = E_TerminalStatus.Disconnected;
-
-                // 3. 어댑터 자원 정리
-                if (_currentConnection != null)
-                {
-                    _currentConnection.Dispose();
-                    _currentConnection = null;
-                }
-
-                SaveDeviceLog("서버에 의해 연결이 종료되었습니다.");
-
-                // 4. 언바인딩 처리 (Rebex UI 스트림 연결 해제)
-                this.Unbind();
-            });
+            if (key >= Keys.A && key <= Keys.Z) return (char)('a' + (key - Keys.A));
+            if (key >= Keys.D0 && key <= Keys.D9) return (char)('0' + (key - Keys.D0));
+            return '\0';
         }
+
+
 
         public void DisplayResult(int aSessionID, string aResult)
         {

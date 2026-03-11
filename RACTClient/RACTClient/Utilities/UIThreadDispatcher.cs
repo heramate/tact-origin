@@ -109,5 +109,15 @@ namespace RACTClient.Utilities
                 }
             }
         }
+
+        public static Task InvokeAsync(this Control control, Action action)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            control.BeginInvoke(new Action(() => {
+                try { action(); tcs.SetResult(true); }
+                catch (Exception ex) { tcs.SetException(ex); }
+            }));
+            return tcs.Task;
+        }
     }
 }

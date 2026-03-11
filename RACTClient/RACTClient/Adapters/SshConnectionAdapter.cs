@@ -60,17 +60,6 @@ namespace RACTClient.Adapters
         public void Connect(string host, int port)
         {
             if (_ssh == null) _ssh = new Ssh();
-
-            // 1. 프록시 설정 자동 적용 (Factory 패턴 사용)
-            // [Source Reference: TerminalClientWinForm_MainForm.cs Line 451-452]
-            Proxy proxy = RebexProxyFactory.CreateProxy();
-            if (proxy != null)
-            {
-                _ssh.Proxy = proxy;
-            }
-
-            // 2. 연결 수행
-            // [Source Reference: TerminalClientWinForm_MainForm.cs Line 453]
             _ssh.Connect(host, port);
         }
 

@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using MKLibrary.MKData;
-
-using MKLibrary.MKNetwork;
-
-using System.Collections;
-using System.Threading;
-using System.IO;
-using System.IO.Compression;
+ï»¿using MKLibrary.MKData;
 using RACTCommonClass;
 using RACTServerCommon;
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Threading;
 
 
 namespace RACTServer
@@ -19,102 +13,106 @@ namespace RACTServer
     {
         public static bool m_IsRequestToStop = false;
         /// <summary>
-        /// ¼­¹öÀÇ ¹öÀü Á¤º¸ ÀÔ´Ï´Ù.
+        /// ì„œë²„ì˜ ë²„ì „ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         //public const string c_Version = "1.0.0.1";
-        public const string c_Version = "1.1.0.0"; // 2020-10-08 KwonTaeSUk [20°íµµÈ­(.NET¾÷±×·¹ÀÌµå)] .NET Framework 2.0 -> 4.8 (minor+1)
+        public const string c_Version = "1.1.0.0"; // 2020-10-08 KwonTaeSUk [20ê³ ë„í™”(.NETì—…ê·¸ë ˆì´ë“œ)] .NET Framework 2.0 -> 4.8 (minor+1)
         /// <summary>
-        /// ¼­¹ö ½ÃÀÛ À§Ä¡ÀÔ´Ï´Ù.
+        /// ì„œë²„ ì‹œì‘ ìœ„ì¹˜ì…ë‹ˆë‹¤.
         /// </summary>
         public static string m_StartupPath = string.Empty;
         /// <summary>
-        /// ¼­¹ö È¯°æ ¼³Á¤ÀÌ ÀúÀåµÈ XML ÆÄÀÏ¸íÀÔ´Ï´Ù.
+        /// ì„œë²„ í™˜ê²½ ì„¤ì •ì´ ì €ì¥ëœ XML íŒŒì¼ëª…ì…ë‹ˆë‹¤.
         /// </summary>
         public const string c_SystemConfigFileName = @"\SystemInfo.xml";
         /// <summary>
-        /// ¼­¹ö È¯°æ ¼³Á¤ Á¤º¸ÀÔ´Ï´Ù.
+        /// ì„œë²„ í™˜ê²½ ì„¤ì • ì •ë³´ì…ë‹ˆë‹¤.
         /// </summary>
         public static SystemConfig m_SystemInfo = null;
         /// <summary>
-        /// DB ¿¬°á Á¤º¸ ÀÔ´Ï´Ù.
+        /// DB ì—°ê²° ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         public static DBConnectionInfo m_DBConnectionInfo = null;
         /// <summary>
-        /// µ¥ÀÌÅÍº£ÀÌ½º Ç® °³Ã¼ÀÔ´Ï´Ù.
+        /// ë°ì´í„°ë² ì´ìŠ¤ í’€ ê°œì²´ì…ë‹ˆë‹¤.
         /// </summary>
         public static MKOleDBPool m_DBPool = null;
         /// <summary>
-        /// µ¥ÀÌÅÍº£ÀÌ½º Ç® °³Ã¼ÀÔ´Ï´Ù.
+        /// ë°ì´í„°ë² ì´ìŠ¤ í’€ ê°œì²´ì…ë‹ˆë‹¤.
         /// </summary>
         public static MKOleDBPool m_DBExecutePool = null;
         /// <summary>
-        /// JOB ID »ı¼º Å¬·¡½º ÀÔ´Ï´Ù.
+        /// JOB ID ìƒì„± í´ë˜ìŠ¤ ì…ë‹ˆë‹¤.
         /// </summary>
        // public static JobIDGenerator m_JobIDGenerator = null;
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ®¿Í Åë½ÅÇÒ Å¬·¡½º ÀÔ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ì™€ í†µì‹ í•  í´ë˜ìŠ¤ ì…ë‹ˆë‹¤.
         /// </summary>
         public static ClientCommunicationProcess m_ClientProcess = null;
         /// <summary>
-        /// ¸ğµ¨ ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ëª¨ë¸ ëª©ë¡ ì…ë‹ˆë‹¤.
         /// </summary>
         public static ModelInfoCollection m_ModelInfoCollection = null;
 
         /// <summary>
-        /// 15-09-10 Gunny Á¦ÇÑ ¸í·É¾î ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// 15-09-10 Gunny ì œí•œ ëª…ë ¹ì–´ ëª©ë¡ ì…ë‹ˆë‹¤.
         /// </summary>
         public static LimitCmdInfoCollection m_LimitCmdInfoCollection = null;
 
         /// <summary>
-        /// 15-09-30 Gunny ±âº» ¸í·É¾î ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// 15-09-30 Gunny ê¸°ë³¸ ëª…ë ¹ì–´ ëª©ë¡ ì…ë‹ˆë‹¤.
         /// </summary>
         public static DefaultCmdInfoCollection m_DefaultCmdInfoCollection = null;
 
         /// <summary>
-        /// 15-09-30 Gunny ±âº» ¸í·É¾î ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// 15-09-30 Gunny ê¸°ë³¸ ëª…ë ¹ì–´ ëª©ë¡ ì…ë‹ˆë‹¤.
         /// </summary>
         public static AutoCompleteCmdInfoCollection m_AutoCompleteCmdInfoCollection = null;
-        
+
         /// <summary>
-        /// 2013-05-02 - shinyn - µğ¹ÙÀÌ½ºÁ¤º¸ ¸ñ·ÏÀÔ´Ï´Ù.
+        /// 2013-05-02 - shinyn - ë””ë°”ì´ìŠ¤ì •ë³´ ëª©ë¡ì…ë‹ˆë‹¤.
         /// </summary>
         //public static DeviceInfoCollection m_DeviceInfos = null;
 
         /// <summary>
-        /// ·Î±× ÀúÀå ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ë¡œê·¸ ì €ì¥ í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static FileLogProcess m_LogProcess = null;
         /// <summary>
-        /// DB ·Î±× ÀúÀå ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// DB ë¡œê·¸ ì €ì¥ í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static DBLogProcess m_DBLogProcess = null;
         /// <summary>
-        /// ¼­¹ö ½ÇÇà ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ì„œë²„ ì‹¤í–‰ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         public static bool m_IsRun = false;
         /// <summary>
-        /// FACT ±×·ì Á¤º¸ ÀÔ´Ï´Ù.
+        /// FACT ê·¸ë£¹ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         public static FACTGroupInfo m_FACTGroupInfo;
         /// <summary>
-        /// µ¥¸ó °ü¸®ÀÚ ÀÔ´Ï´Ù.
+        /// ë°ëª¬ ê´€ë¦¬ì ì…ë‹ˆë‹¤.
         /// </summary>
         public static DaemonProcessManager s_DaemonProcessManager;
         /// <summary>
-        /// ¼­¹ö¿Í Åë½ÅÇÒ ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ì„œë²„ì™€ í†µì‹ í•  í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static ServiceManagerCommunicationProcess s_ServiceManagerCommunicationProcess = null;
         /// <summary>
-        /// ¼¼¼Ç °ü¸® Å¸ÀÓ ¾Æ¿ô ½Ã°£ ÀÔ´Ï´Ù.
+        /// ì„¸ì…˜ ê´€ë¦¬ íƒ€ì„ ì•„ì›ƒ ì‹œê°„ ì…ë‹ˆë‹¤.
         /// </summary>
+#if DEBUG
+        public static readonly int s_HealthCheckTimeOut = 3000;
+#else
         public static readonly int s_HealthCheckTimeOut = 30;
+#endif
         /// <summary>
-        /// ¸¶Áö¸· ·Î±×ÀÎ ÀÌÈÄ Á¦ÇÑ ±â°£ ÀÔ´Ï´Ù.(Day)
+        /// ë§ˆì§€ë§‰ ë¡œê·¸ì¸ ì´í›„ ì œí•œ ê¸°ê°„ ì…ë‹ˆë‹¤.(Day)
         /// </summary>
         public static int s_UnUsedLimit = 0;
 
         /// <summary>
-        /// ¾²·¹µå¸¦ °­Á¦ Á¾·áÇÕ´Ï´Ù.
+        /// ì“°ë ˆë“œë¥¼ ê°•ì œ ì¢…ë£Œí•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aThread"></param>
         public static void StopThread(Thread aThread)
@@ -135,9 +133,9 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ÁöÁ¤ÇÑ Å¬¶óÀÌ¾ğÆ®¿¡ °á°ú¸¦ Àü¼ÛÇÕ´Ï´Ù.
+        /// ì§€ì •í•œ í´ë¼ì´ì–¸íŠ¸ì— ê²°ê³¼ë¥¼ ì „ì†¡í•©ë‹ˆë‹¤.
         /// </summary>		
-        /// <param name="aResult">°á°ú µ¥ÀÌÅÍ ÀÔ´Ï´Ù.</param>
+        /// <param name="aResult">ê²°ê³¼ ë°ì´í„° ì…ë‹ˆë‹¤.</param>
         public static void SendResultClient(ResultCommunicationData aResult)
         {
             if (m_ClientProcess != null)
@@ -147,10 +145,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// °´Ã¼¸¦ ¾ĞÃàÇÑ ¸Ş¸ğ¸®½ºÆ®¸²À» ¹İÈ¯ ÇÕ´Ï´Ù.
+        /// ê°ì²´ë¥¼ ì••ì¶•í•œ ë©”ëª¨ë¦¬ìŠ¤íŠ¸ë¦¼ì„ ë°˜í™˜ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aValue">¾ĞÃàÇÒ °´Ã¼ ÀÔ´Ï´Ù.</param>
-        /// <returns>¸Ş¸ğ¸® ½ºÆ®¸² ÀÔ´Ï´Ù.</returns>
+        /// <param name="aValue">ì••ì¶•í•  ê°ì²´ ì…ë‹ˆë‹¤.</param>
+        /// <returns>ë©”ëª¨ë¦¬ ìŠ¤íŠ¸ë¦¼ ì…ë‹ˆë‹¤.</returns>
         public static CompressData ObjectCompress(object aValue)
         {
             byte[] tBytes = ObjectConverter.GetBytes(aValue);

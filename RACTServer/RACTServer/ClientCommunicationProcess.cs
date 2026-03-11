@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using RACTCommonClass;
@@ -13,36 +13,36 @@ namespace RACTServer
     public class ClientCommunicationProcess
     {
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ®¿Í Åë½ÅÇÒ °ÔÀÌÆ®¿şÀÌ ÀÔ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ì™€ í†µì‹ í•  ê²Œì´íŠ¸ì›¨ì´ ì…ë‹ˆë‹¤.
         /// </summary>
         private MKRemote m_RemoteGateway;
         /// <summary>
-        /// Á¢¼ÓÇÑ »ç¿ëÀÚ ¸ñ·ÏÀÌ ÀúÀå µË´Ï´Ù.
+        /// ì ‘ì†í•œ ì‚¬ìš©ì ëª©ë¡ì´ ì €ì¥ ë©ë‹ˆë‹¤.
         /// </summary>
         private UserInfoCollection m_UserInfoList = new UserInfoCollection();
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ¿äÃ»À» ÀúÀåÇÒ Å¥ ÀÔ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ìš”ì²­ì„ ì €ì¥í•  í ì…ë‹ˆë‹¤.
         /// </summary>
         private Queue<RequestCommunicationData> m_RequestQueue;
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ¿äÃ»¿¡ °á°ú¸¦ ¹İÈ¯ÇÏ´Â ÇÁ·Î¼¼½º ÀÔ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ìš”ì²­ì— ê²°ê³¼ë¥¼ ë°˜í™˜í•˜ëŠ” í”„ë¡œì„¸ìŠ¤ ì…ë‹ˆë‹¤.
         /// </summary>
         private ClientResponseProcess m_ClientResponseProcess = null;
         /// <summary>
-        /// ¿äÃ» Ã³¸® ½º·¹µå ÀÔ´Ï´Ù.
+        /// ìš”ì²­ ì²˜ë¦¬ ìŠ¤ë ˆë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Thread m_RequestProcessThread = null;
         /// <summary>
-        /// Á¢¼ÓµÈ »ç¿ëÀÚ, µ¥¸óÀÇ ¿¬°á »óÅÂ¸¦ È®ÀÎ ÇÕ´Ï´Ù.
+        /// ì ‘ì†ëœ ì‚¬ìš©ì, ë°ëª¬ì˜ ì—°ê²° ìƒíƒœë¥¼ í™•ì¸ í•©ë‹ˆë‹¤.
         /// </summary>
         private Thread m_HelathCheckThread = null;
         /// <summary>
-        /// Á¢¼ÓµÈ »ç¿ëÀÚ, µ¥¸óÀÇ ¿¬°á »óÅÂ¸¦ È®ÀÎ ÇÕ´Ï´Ù.
+        /// ì ‘ì†ëœ ì‚¬ìš©ì, ë°ëª¬ì˜ ì—°ê²° ìƒíƒœë¥¼ í™•ì¸ í•©ë‹ˆë‹¤.
         /// </summary>
         //private Thread m_DaemonHelathCheckThread = null;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ClientCommunicationProcess()
         {
@@ -60,7 +60,7 @@ namespace RACTServer
      
         }
         /// <summary>
-        /// Á¾·á Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¢…ë£Œ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         internal void Stop()
         {
@@ -78,7 +78,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// Á¢¼ÓµÈ »ç¿ëÀÚ, µ¥¸óÀÇ ¿¬°á »óÅÂ¸¦ È®ÀÎ ÇÕ´Ï´Ù.
+        /// ì ‘ì†ëœ ì‚¬ìš©ì, ë°ëª¬ì˜ ì—°ê²° ìƒíƒœë¥¼ í™•ì¸ í•©ë‹ˆë‹¤.
         /// </summary>
         private void HealthCheckProcess()
         {
@@ -105,7 +105,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// Á¢¼ÓµÈ »ç¿ëÀÚ, µ¥¸óÀÇ ¿¬°á »óÅÂ¸¦ È®ÀÎ ÇÕ´Ï´Ù.
+        /// ì ‘ì†ëœ ì‚¬ìš©ì, ë°ëª¬ì˜ ì—°ê²° ìƒíƒœë¥¼ í™•ì¸ í•©ë‹ˆë‹¤.
         /// </summary>
         private void DaemonHealthCheckProcess()
         {
@@ -119,7 +119,7 @@ namespace RACTServer
                         tProcessInfo = (DaemonProcessInfo)GlobalClass.s_DaemonProcessManager.DaemonProcessList.InnerList[i];
                         if (((TimeSpan)DateTime.Now.Subtract(tProcessInfo.LifeTime)).TotalSeconds >= 300)
                         {
-                            GlobalClass.m_LogProcess.PrintLog(string.Concat("%%% µ¥¸ó ¼¼¼Ç »èÁ¦", tProcessInfo.IP, ":", tProcessInfo.Port));
+                            GlobalClass.m_LogProcess.PrintLog(string.Concat("%%% ë°ëª¬ ì„¸ì…˜ ì‚­ì œ", tProcessInfo.IP, ":", tProcessInfo.Port));
                             GlobalClass.s_DaemonProcessManager.DaemonProcessList.RemoveAt(i);
                         }
                     }
@@ -132,7 +132,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ÇÁ·Î¼¼½º¸¦ ½ÃÀÛÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ í”„ë¡œì„¸ìŠ¤ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
         /// </summary>
         /// <returns></returns>
         public bool Start()
@@ -142,13 +142,13 @@ namespace RACTServer
             RemoteClientMethod tRemoteMethod = null;
             try
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "Å¬¶óÀÌ¾ğÆ® Ã¤³ÎÀ» »ı¼º ÇÕ´Ï´Ù.");
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "í´ë¼ì´ì–¸íŠ¸ ì±„ë„ì„ ìƒì„± í•©ë‹ˆë‹¤.");
                 m_RemoteGateway = new MKRemote(E_RemoteType.TCPRemote, GlobalClass.m_SystemInfo.ServerIP, GlobalClass.m_SystemInfo.ServerPort, GlobalClass.m_SystemInfo.ServerChannel);
                 while (tCount < 10)
                 {
                     if (m_RemoteGateway.StartRemoteServer(out tResult) != E_RemoteError.Success)
                     {
-                        GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, string.Concat("Å¬¶óÀÌ¾ğÆ® Ã¤³ÎÀ» »ı¼ºÇÒ ¼ö ¾ø½À´Ï´Ù. : ", tResult));
+                        GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, string.Concat("í´ë¼ì´ì–¸íŠ¸ ì±„ë„ì„ ìƒì„±í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. : ", tResult));
                         Thread.Sleep(3000);
                         tCount++;
                     }
@@ -158,11 +158,11 @@ namespace RACTServer
 
                 if (m_RemoteGateway == null)
                 {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, string.Format("Å¬¶óÀÌ¾ğÆ® IP: {0}  PortNo: {1}  ChannelName: {2}¿¡ ¿¬°á ÇÒ ¼ö ¾ø½À´Ï´Ù.", GlobalClass.m_SystemInfo.ServerIP, GlobalClass.m_SystemInfo.ServerPort, GlobalClass.m_SystemInfo.ServerChannel));
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, string.Format("í´ë¼ì´ì–¸íŠ¸ IP: {0}  PortNo: {1}  ChannelName: {2}ì— ì—°ê²° í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", GlobalClass.m_SystemInfo.ServerIP, GlobalClass.m_SystemInfo.ServerPort, GlobalClass.m_SystemInfo.ServerChannel));
                     return false;
                 }
 
-                //client ¿ø°İ ¸Ş¼Òµå¸¦ ¼³Á¤ÇÕ´Ï´Ù.
+                //client ì›ê²© ë©”ì†Œë“œë¥¼ ì„¤ì •í•©ë‹ˆë‹¤.
                 tRemoteMethod = new RemoteClientMethod();
                 tRemoteMethod.SetUserLoginHandler(UserInfoReceiver);
                 tRemoteMethod.SetUserLogOutHandler(UserLogoutReceiver);
@@ -184,7 +184,7 @@ namespace RACTServer
 
       
         /// <summary>
-        /// ÅÚ³İ Á¢¼Ó Á¤º¸¸¦ ¿äÃ» ÇÕ´Ï´Ù.
+        /// í…”ë„· ì ‘ì† ì •ë³´ë¥¼ ìš”ì²­ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientID"></param>
         /// <returns></returns>
@@ -209,7 +209,20 @@ namespace RACTServer
 
        
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ®ÀÇ °á°ú ¿äÃ»À» Ã³¸®ÇÕ´Ï´Ù.
+        /// ì„¸ì…˜ ë§Œë£Œ ê²°ê³¼ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
+        /// </summary>
+        private byte[] MakeSessionExpiredResult(int aClientID)
+        {
+            ArrayList tResults = new ArrayList();
+            ResultCommunicationData tResultData = new ResultCommunicationData();
+            tResultData.ClientID = aClientID;
+            tResultData.Error = new ErrorInfo(E_ErrorType.SessionExpired, "ì‚¬ìš©ì ì„¸ì…˜ì´ ë§Œë£Œë˜ì—ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ë¡œê·¸ì¸í•©ë‹ˆë‹¤.");
+            tResults.Add(ObjectConverter.GetBytes(tResultData));
+            return (byte[])ObjectConverter.GetBytes(tResults);
+        }
+
+        /// <summary>
+        /// í´ë¼ì´ì–¸íŠ¸ì˜ ê²°ê³¼ ìš”ì²­ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientID"></param>
         private byte[] ResultSender(int aClientID)
@@ -219,7 +232,14 @@ namespace RACTServer
             int tResultCount = 0;
             lock (m_UserInfoList)
             {
-                if (!m_UserInfoList.Contains(aClientID)) return null;
+                if (!m_UserInfoList.Contains(aClientID))
+                {
+                    if (aClientID != 0)
+                    {
+                        return MakeSessionExpiredResult(aClientID);
+                    }
+                    return null;
+                }
 
                 UserInfo tUserInfo = (UserInfo)m_UserInfoList[aClientID];
                 tUserInfo.LifeTime = DateTime.Now;
@@ -244,7 +264,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ¿äÃ»À» Ã³¸®ÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ìš”ì²­ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aData"></param>
         private void RequestReceiver(byte[] aData)
@@ -254,7 +274,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// Å¬¶óÀÌ¾îÆ® ¿äÃ»À» Ã³¸® ÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–´íŠ¸ ìš”ì²­ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ProcessClientRequest()
         {
@@ -272,10 +292,10 @@ namespace RACTServer
 
                     switch (tClientRequest.CommType)
                     {
-                        case E_CommunicationType.RequestUserLogout://·Î±×¾Æ¿ôÀ» ¿äÃ»ÇÕ´Ï´Ù.
+                        case E_CommunicationType.RequestUserLogout://ë¡œê·¸ì•„ì›ƒì„ ìš”ì²­í•©ë‹ˆë‹¤.
                             UserLogoutReceiver((int)tClientRequest.RequestData);
                             break;
-                        //case E_CommunicationType.RequestCommandProcess://¸í·ÉÃ³¸®¸¦ ¿äÃ»ÇÕ´Ï´Ù.
+                        //case E_CommunicationType.RequestCommandProcess://ëª…ë ¹ì²˜ë¦¬ë¥¼ ìš”ì²­í•©ë‹ˆë‹¤.
                         //    GlobalClass.m_TelnetProcessor.ExecuteCommand(tClientRequest);
                         //    break;
                         case E_CommunicationType.RequestSaveExcuteCommand :
@@ -297,7 +317,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// ·Î±× ÀúÀå ¿äÃ»À» Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ ì €ì¥ ìš”ì²­ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="tClientRequest"></param>
         private void SaveExcuteCommand(RequestCommunicationData tClientRequest)
@@ -306,7 +326,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ·Î±× ¾Æ¿ô Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ ì•„ì›ƒ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="tClientRequest"></param>
         private void UserLogoutReceiver(int aClientID)
@@ -317,17 +337,17 @@ namespace RACTServer
                 {
                     UserInfo tUserInfo = m_UserInfoList[aClientID];
                     UpdateUserLastLoginTime(tUserInfo);
-                    GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID, E_UserLogType.LogOut, tUserInfo.Account + " »ç¿ëÀÚ°¡ ·Î±×¾Æ¿ô Çß½À´Ï´Ù."));
+                    GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID, E_UserLogType.LogOut, tUserInfo.Account + " ì‚¬ìš©ìê°€ ë¡œê·¸ì•„ì›ƒ í–ˆìŠµë‹ˆë‹¤."));
 
-                    // 2013-04-26 - shinyn - »ç¿ëÀÚ ·Î±×¾Æ¿ô½Ã ClientID ·Î±×·Î ÀúÀå
-                    GlobalClass.m_LogProcess.PrintLog("Account : " + tUserInfo.Account + " ClientID : " + aClientID.ToString() + " »ç¿ëÀÚ°¡ ·Î±×¾Æ¿ô Çß½À´Ï´Ù");
+                    // 2013-04-26 - shinyn - ì‚¬ìš©ì ë¡œê·¸ì•„ì›ƒì‹œ ClientID ë¡œê·¸ë¡œ ì €ì¥
+                    GlobalClass.m_LogProcess.PrintLog("Account : " + tUserInfo.Account + " ClientID : " + aClientID.ToString() + " ì‚¬ìš©ìê°€ ë¡œê·¸ì•„ì›ƒ í–ˆìŠµë‹ˆë‹¤");
                     m_UserInfoList.Remove(aClientID);
                 }
             }
         }
 
         /// <summary>
-        /// »ç¿ëÀÚ Á¢¼ÓÀ» Ã³¸®ÇÕ´Ï´Ù.
+        /// ì‚¬ìš©ì ì ‘ì†ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aUserAccount"></param>
         /// <param name="aUserPassword"></param>
@@ -362,7 +382,7 @@ namespace RACTServer
 
                 if (tDataSet == null)
                 {
-                    return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnknownError, "µ¥ÀÌÅÍº£ÀÌ½º¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù."));
+                    return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnknownError, "ë°ì´í„°ë² ì´ìŠ¤ì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."));
                 }
 
                 UserInfo tUserInfo = null;
@@ -421,7 +441,7 @@ namespace RACTServer
                 }
                 else
                 {
-                   // m_FileLog.PrintLogEnter("ID°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.");
+                   // m_FileLog.PrintLogEnter("IDê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.");
                     return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.IncorrectID, ""));
                 }
 
@@ -435,10 +455,10 @@ namespace RACTServer
                         tDataSet.MoveNext();
                     }
                 }
-                //2019-03-25 KangBongHan Á¦ÇÑ¸í·É¾î ¸í·É¾îº° ±ÇÇÑ º¯°æ°Ç ¼öÁ¤
-                //2015-10-30 Á¦ÇÑ¸í·É¾î ±ÇÇÑ Àû¿ë.
-                //LimitedCmdUserÀÇ ±âº»°ªÀº false ÀÓ. (ÃÑ°ı»ç¿ëÀÚ µîÀº Á¦ÇÑ ¾øÀ½.)
-                //Supervisor´Â Á¦ÇÑ ¾øÀÌ »ç¿ë °¡´É ±×¿Ü 
+                //2019-03-25 KangBongHan ì œí•œëª…ë ¹ì–´ ëª…ë ¹ì–´ë³„ ê¶Œí•œ ë³€ê²½ê±´ ìˆ˜ì •
+                //2015-10-30 ì œí•œëª…ë ¹ì–´ ê¶Œí•œ ì ìš©.
+                //LimitedCmdUserì˜ ê¸°ë³¸ê°’ì€ false ì„. (ì´ê´„ì‚¬ìš©ì ë“±ì€ ì œí•œ ì—†ìŒ.)
+                //SupervisorëŠ” ì œí•œ ì—†ì´ ì‚¬ìš© ê°€ëŠ¥ ê·¸ì™¸ 
                 if (tUserType == E_UserType.Supervisor)
                 {
                     tUserInfo.LimitedCmdUser = false;
@@ -449,7 +469,7 @@ namespace RACTServer
                 }
 
 
-                //À¥¿¡¼­ ¼³Á¤ÇÏ´Â 3°³ÀÇ ±ÇÇÑ¿¡ ´ëÇØ¼­¸¸ Ã¼Å©ÇÔ.
+                //ì›¹ì—ì„œ ì„¤ì •í•˜ëŠ” 3ê°œì˜ ê¶Œí•œì— ëŒ€í•´ì„œë§Œ ì²´í¬í•¨.
                 /*
                 tDataSet = null;
                 //tQueryMessage = "SELECT * FROM dbo.RACT_USR_AUTH_DEF WHERE MenuTypeID=1";
@@ -508,16 +528,16 @@ namespace RACTServer
                 
                 if (tIsAlreadyLogin && aTerminalMode == E_TerminalMode.RACTClient)
                 {
-                    tLoginResult = new LoginResultInfo(E_LoginResult.AlreadyLogin, "°°Àº °èÁ¤À¸·Î ·Î±×ÀÎ µÇ¾îÀÖ½À´Ï´Ù.");
+                    tLoginResult = new LoginResultInfo(E_LoginResult.AlreadyLogin, "ê°™ì€ ê³„ì •ìœ¼ë¡œ ë¡œê·¸ì¸ ë˜ì–´ìˆìŠµë‹ˆë‹¤.");
                     return ObjectConverter.GetBytes(tLoginResult);
                 }
 
-                GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID,E_UserLogType.Login,aUserAccount +" »ç¿ëÀÚ°¡ ·Î±×ÀÎ Çß½À´Ï´Ù."));
+                GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID,E_UserLogType.Login,aUserAccount +" ì‚¬ìš©ìê°€ ë¡œê·¸ì¸ í–ˆìŠµë‹ˆë‹¤."));
 
-                // 2013-04-26 - shinyn - »ç¿ëÀÚ ·Î±×ÀÎ½Ã ClientID ·Î±×·Î ÀúÀå
-                GlobalClass.m_LogProcess.PrintLog("Account : " + aUserAccount + " ClientID : " + tUserInfo.ClientID.ToString() + " »ç¿ëÀÚ°¡ ·Î±×ÀÎ Çß½À´Ï´Ù");
+                // 2013-04-26 - shinyn - ì‚¬ìš©ì ë¡œê·¸ì¸ì‹œ ClientID ë¡œê·¸ë¡œ ì €ì¥
+                GlobalClass.m_LogProcess.PrintLog("Account : " + aUserAccount + " ClientID : " + tUserInfo.ClientID.ToString() + " ì‚¬ìš©ìê°€ ë¡œê·¸ì¸ í–ˆìŠµë‹ˆë‹¤");
 
-                // »ç¿ëÀÚ Á¤º¸¸¦ ÇØ½Ã Å×ÀÌºí¿¡ Ãß°¡ ÇÕ´Ï´Ù.
+                // ì‚¬ìš©ì ì •ë³´ë¥¼ í•´ì‹œ í…Œì´ë¸”ì— ì¶”ê°€ í•©ë‹ˆë‹¤.
                 lock (m_UserInfoList)
                 {
                     m_UserInfoList.Add(tUserInfo);
@@ -530,7 +550,7 @@ namespace RACTServer
                 tLoginResult.UserInfo = tUserInfo;
                 tLoginResult.LoginResult = E_LoginResult.Success;
 
-                //Á¢¼Ó Á¦ÇÑ ³¯Â¥¸¦ ¾÷µ¥ÀÌÆ® ÇÕ´Ï´Ù.
+                //ì ‘ì† ì œí•œ ë‚ ì§œë¥¼ ì—…ë°ì´íŠ¸ í•©ë‹ˆë‹¤.
                 tUserInfo.LastLoginTime = DateTime.Now;
 
                 UpdateUserLastLoginTime(tUserInfo);
@@ -546,7 +566,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// ¸¶Áö¸· Á¢¼Ó³¯Â¥¸¦ º¯°æ ÇÕ´Ï´Ù.
+        /// ë§ˆì§€ë§‰ ì ‘ì†ë‚ ì§œë¥¼ ë³€ê²½ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aUserInfo"></param>
         private void UpdateUserLastLoginTime(UserInfo aUserInfo)
@@ -565,7 +585,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// °á°ú µ¥ÀÌÅÍ¸¦ Å¬¶óÀÌ¾ğÆ®ÀÇ Àü¼Û ¸ñ·Ï¿¡ ÀúÀåÇÕ´Ï´Ù.
+        /// ê²°ê³¼ ë°ì´í„°ë¥¼ í´ë¼ì´ì–¸íŠ¸ì˜ ì „ì†¡ ëª©ë¡ì— ì €ì¥í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aResultData"></param>
         public void SendResultClient(ResultCommunicationData aResultData)
@@ -587,7 +607,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// °á°ú µ¥ÀÌÅÍ¸¦ Å¬¶óÀÌ¾ğÆ®ÀÇ Àü¼Û ¸ñ·Ï¿¡ ÀúÀå ÇÕ´Ï´Ù.
+        /// ê²°ê³¼ ë°ì´í„°ë¥¼ í´ë¼ì´ì–¸íŠ¸ì˜ ì „ì†¡ ëª©ë¡ì— ì €ì¥ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientID"></param>
         /// <param name="aResults"></param>
@@ -617,9 +637,9 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// »ç¿ëÀÚ Á¤º¸¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ì‚¬ìš©ì ì •ë³´ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="tClientID">Client ID ÀÔ´Ï´Ù.</param>
+        /// <param name="tClientID">Client ID ì…ë‹ˆë‹¤.</param>
         /// <returns></returns>
         internal UserInfo GetUserInfo(int tClientID)
         {
