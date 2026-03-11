@@ -97,6 +97,7 @@
     <Compile Include="DBConnectionInfo.cs" />
     <Compile Include="DaemonProcessManager.cs" />
     <Compile Include="DefaultConnectionCommandProcess.cs" />
+    <Compile Include="DeviceConnectionLogService.cs" />
     <Compile Include="DeviceProcess.cs" />
     <Compile Include="GroupProcess.cs" />
     <Compile Include="ScriptProcess.cs" />

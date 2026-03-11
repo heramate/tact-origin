@@ -1,62 +1,59 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-
-using System.Collections;
-using MKLibrary.MKData;
-
-using System.Net;
+ï»¿using MKLibrary.MKData;
 using RACTCommonClass;
-using System.Windows.Forms;
 using RACTServerCommon;
+using System;
+using System.Collections;
 using System.IO;
+using System.Net;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace RACTServer
 {
     public class RACTServer
     {
-		/// <summary>
-		/// ¼­¹ö¸¦ ½ÃÀÛÇÏ´Â ¾²·¹µåÀÔ´Ï´Ù.
-		/// </summary>
-		private Thread m_StartServerThread = null;
+        /// <summary>
+        /// ì„œë²„ë¥¼ ì‹œì‘í•˜ëŠ” ì“°ë ˆë“œì…ë‹ˆë‹¤.
+        /// </summary>
+        private Thread m_StartServerThread = null;
 
         private Thread m_ReloadCheckThread = null;
 
-		/// <summary>
-		/// Å¸ÀÓ¾Æ¿ôµÈ »ç¿ëÀÚ¸¦ ÀÚµ¿À¸·Î »èÁ¦Ã³¸® ÇÒÁö ¿©ºÎ ÀÔ´Ï´Ù. ( µğ¹ö±ë½Ã Å¬¶óÀÌ¾ğÆ® ¼¼¼ÇÀ» ÀÚµ¿À¸·Î Á¦°ÅÇÏ¸é µğ¹ö±ëÀÌ ¾ÈµÇ±â ¶§¹®)
-		/// </summary>
-		private bool m_IsTimeoutUserAutoDelete = false;
-		/// <summary>
-		/// ¼­¹ö °³Ã¼¸¦ »ı¼ºÇÕ´Ï´Ù.
-		/// </summary>
-		/// <param name="aStartupPath">½ÃÀÛ °æ·ÎÀÔ´Ï´Ù.</param>
-		public RACTServer(string aStartupPath) : this(aStartupPath, true) { }
-		/// <summary>
-		/// ¼­¹ö °³Ã¼¸¦ »ı¼ºÇÕ´Ï´Ù.
-		/// </summary>
-		/// <param name="aStartupPath"></param>
-		/// <param name="aIsTimeoutUserAutoDelete"></param>
+        /// <summary>
+        /// íƒ€ì„ì•„ì›ƒëœ ì‚¬ìš©ìë¥¼ ìë™ìœ¼ë¡œ ì‚­ì œì²˜ë¦¬ í• ì§€ ì—¬ë¶€ ì…ë‹ˆë‹¤. ( ë””ë²„ê¹…ì‹œ í´ë¼ì´ì–¸íŠ¸ ì„¸ì…˜ì„ ìë™ìœ¼ë¡œ ì œê±°í•˜ë©´ ë””ë²„ê¹…ì´ ì•ˆë˜ê¸° ë•Œë¬¸)
+        /// </summary>
+        private bool m_IsTimeoutUserAutoDelete = false;
+        /// <summary>
+        /// ì„œë²„ ê°œì²´ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
+        /// </summary>
+        /// <param name="aStartupPath">ì‹œì‘ ê²½ë¡œì…ë‹ˆë‹¤.</param>
+        public RACTServer(string aStartupPath) : this(aStartupPath, true) { }
+        /// <summary>
+        /// ì„œë²„ ê°œì²´ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
+        /// </summary>
+        /// <param name="aStartupPath"></param>
+        /// <param name="aIsTimeoutUserAutoDelete"></param>
         public RACTServer(string aStartupPath, bool aIsTimeoutUserAutoDelete)
-		{
-			GlobalClass.m_StartupPath = aStartupPath;
-			m_IsTimeoutUserAutoDelete = aIsTimeoutUserAutoDelete;
-		}
+        {
+            GlobalClass.m_StartupPath = aStartupPath;
+            m_IsTimeoutUserAutoDelete = aIsTimeoutUserAutoDelete;
+        }
 
-       
 
-		/// <summary>
-		/// ¼­¹ö¸¦ ½ÃÀÛÇÕ´Ï´Ù.
-		/// </summary>
-		/// <returns></returns>
-		public bool Start()
-		{
+
+        /// <summary>
+        /// ì„œë²„ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
+        /// </summary>
+        /// <returns></returns>
+        public bool Start()
+        {
             try
             {
-                GlobalClass.m_LogProcess = new FileLogProcess(Application.StartupPath +"\\System Log","ServerSystem");
+                GlobalClass.m_LogProcess = new FileLogProcess(Application.StartupPath + "\\System Log", "ServerSystem");
                 GlobalClass.m_LogProcess.Start();
 
                 GlobalClass.s_DaemonProcessManager = new DaemonProcessManager();
+                GlobalClass.s_DeviceConnectionLogService = new DeviceConnectionLogService();
 
                 if (!InitializeServer())
                 {
@@ -64,7 +61,7 @@ namespace RACTServer
                 }
                 GlobalClass.m_IsRun = true;
 
-                //¼­¹ö ½º·¡µå¸¦ ½ÃÀÛÇÕ´Ï´Ù.
+                //ì„œë²„ ìŠ¤ë˜ë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
                 m_StartServerThread = new Thread(new ThreadStart(StartServer));
                 m_StartServerThread.Start();
 
@@ -79,7 +76,7 @@ namespace RACTServer
             {
                 return false;
             }
-		}
+        }
 
         private void ProcessReloadCheck()
         {
@@ -97,21 +94,21 @@ namespace RACTServer
 
                     tStartTime = DateTime.Now;
 
-                    GlobalClass.m_LogProcess.PrintLog("==============================±âÃÊ µ¥ÀÌÅÍ¸¦ »õ·Î ¿Ã¸®±â ½ÃÀÛÇÕ´Ï´Ù.==============================");
+                    GlobalClass.m_LogProcess.PrintLog("==============================ê¸°ì´ˆ ë°ì´í„°ë¥¼ ìƒˆë¡œ ì˜¬ë¦¬ê¸° ì‹œì‘í•©ë‹ˆë‹¤.==============================");
 
                     if (!BaseDataLoadProcess.LoadBaseData())
                     {
-                        GlobalClass.m_LogProcess.PrintLog("'±âÃÊ µ¥ÀÌÅÍ ·Îµå¿¡ ½ÇÆĞÇÏ¿´½À´Ï´Ù.");
+                        GlobalClass.m_LogProcess.PrintLog("'ê¸°ì´ˆ ë°ì´í„° ë¡œë“œì— ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤.");
                     }
 
-                    //2011-10-01 hanjiyeon Ãß°¡ Telnet ±âº» Á¢¼Ó Å×½ºÆ® ÀÛ¾÷ ¼öÇà.
-                    // FOMS ¿¬µ¿ ½ÇÆĞ Á¶È¸´Â SP_FOMS_DEVICE_DISCORD_INFO ¸¦ ÀÌ¿ëÇÏ¿© FOMS ¿¬µ¿ ½ÇÆĞ Å×ÀÌºí¿¡¼­ Á÷Á¢ µ¥ÀÌÅÍ¸¦ ¾ò¾î¿À°í,
-                    // Telnet ±âº» Á¢¼Ó Å×½ºÆ® °á°ú ½ÇÆĞµÈ Àåºñ Á¶È¸´Â FACT ¼­¹ö¿¡¼­ ½Ã¼³¿¬µ¿ ÈÄ ¸í·ÉÀ» ½ÇÇàÇÏ¿© °á°ú¸¦ DB Ne_Ne Å×ÀÌºí°ú ¼­¹öÀÇ ¸Ş¸ğ¸®³»¿¡ ÀÖ´Â ÀåºñÁ¤º¸¿¡ Update ÇÑ´Ù.
+                    //2011-10-01 hanjiyeon ì¶”ê°€ Telnet ê¸°ë³¸ ì ‘ì† í…ŒìŠ¤íŠ¸ ì‘ì—… ìˆ˜í–‰.
+                    // FOMS ì—°ë™ ì‹¤íŒ¨ ì¡°íšŒëŠ” SP_FOMS_DEVICE_DISCORD_INFO ë¥¼ ì´ìš©í•˜ì—¬ FOMS ì—°ë™ ì‹¤íŒ¨ í…Œì´ë¸”ì—ì„œ ì§ì ‘ ë°ì´í„°ë¥¼ ì–»ì–´ì˜¤ê³ ,
+                    // Telnet ê¸°ë³¸ ì ‘ì† í…ŒìŠ¤íŠ¸ ê²°ê³¼ ì‹¤íŒ¨ëœ ì¥ë¹„ ì¡°íšŒëŠ” FACT ì„œë²„ì—ì„œ ì‹œì„¤ì—°ë™ í›„ ëª…ë ¹ì„ ì‹¤í–‰í•˜ì—¬ ê²°ê³¼ë¥¼ DB Ne_Ne í…Œì´ë¸”ê³¼ ì„œë²„ì˜ ë©”ëª¨ë¦¬ë‚´ì— ìˆëŠ” ì¥ë¹„ì •ë³´ì— Update í•œë‹¤.
 
                     tSpan = DateTime.Now - tStartTime;
                     if (tSpan.Seconds < 60)
                     {
-                        //µ¥ÀÌÅÍ °»½Å ÀÛ¾÷ÀÌ 60ÃÊ º¸´Ù Àû°Ô °É¸± °æ¿ì ´Ù½Ã RefreshData()ÇÔ¼ö°¡ È£ÃâµÇ±â ¶§¹®¿¡ ½Ã°£À» °è»ê¿¡ ±â´Ù¸®°Ô Ã³¸®ÇÑ´Ù.
+                        //ë°ì´í„° ê°±ì‹  ì‘ì—…ì´ 60ì´ˆ ë³´ë‹¤ ì ê²Œ ê±¸ë¦´ ê²½ìš° ë‹¤ì‹œ RefreshData()í•¨ìˆ˜ê°€ í˜¸ì¶œë˜ê¸° ë•Œë¬¸ì— ì‹œê°„ì„ ê³„ì‚°ì— ê¸°ë‹¤ë¦¬ê²Œ ì²˜ë¦¬í•œë‹¤.
                         Thread.Sleep((60 - tSpan.Seconds) * 1000);
                     }
 
@@ -122,17 +119,17 @@ namespace RACTServer
                 }
                 finally
                 {
-                    Thread.Sleep(1000);   //1ÃÊ¿¡ ÇÑ¹ø¾¿ Ã¼Å©
+                    Thread.Sleep(1000);   //1ì´ˆì— í•œë²ˆì”© ì²´í¬
                 }
             }
         }
 
 
-		/// <summary>
-		/// ¼­¹ö¸¦ Á¾·áÇÕ´Ï´Ù.
-		/// </summary>
-		public void Stop()
-		{
+        /// <summary>
+        /// ì„œë²„ë¥¼ ì¢…ë£Œí•©ë‹ˆë‹¤.
+        /// </summary>
+        public void Stop()
+        {
             GlobalClass.m_IsRun = false;
 
             if (GlobalClass.s_ServiceManagerCommunicationProcess != null)
@@ -152,7 +149,7 @@ namespace RACTServer
                 GlobalClass.m_ClientProcess = null;
             }
 
-            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "Àç·Îµù ÇÁ·Î¼¼½º¸¦ Á¾·á ÇÕ´Ï´Ù.");
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ì¬ë¡œë”© í”„ë¡œì„¸ìŠ¤ë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
             if (m_ReloadCheckThread != null)
             {
                 GlobalClass.m_IsRequestToStop = true;
@@ -166,48 +163,48 @@ namespace RACTServer
             }
 
 
-            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "¼­¹ö¸¦ Á¾·á ÇÕ´Ï´Ù.");
-			if (m_StartServerThread != null)
-			{
-				if (m_StartServerThread.ThreadState == ThreadState.Running)
-				{
-					m_StartServerThread.Abort();
-					m_StartServerThread.Join();
-				}
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ì„œë²„ë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
+            if (m_StartServerThread != null)
+            {
+                if (m_StartServerThread.ThreadState == ThreadState.Running)
+                {
+                    m_StartServerThread.Abort();
+                    m_StartServerThread.Join();
+                }
                 m_StartServerThread = null;
-			}
+            }
 
-			if (GlobalClass.m_DBPool != null)
-			{
-				lock (GlobalClass.m_DBPool)
-				{
-					try
-					{
-						GlobalClass.m_DBPool.StopDBPool();
-					}
-					catch (Exception) { }
-					GlobalClass.m_DBPool.Dispose();
-					GlobalClass.m_DBPool = null;
-				}
-			}
+            if (GlobalClass.m_DBPool != null)
+            {
+                lock (GlobalClass.m_DBPool)
+                {
+                    try
+                    {
+                        GlobalClass.m_DBPool.StopDBPool();
+                    }
+                    catch (Exception) { }
+                    GlobalClass.m_DBPool.Dispose();
+                    GlobalClass.m_DBPool = null;
+                }
+            }
 
-			if (GlobalClass.m_DBExecutePool != null)
-			{
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "µ¥ÀÌÅÍº£ÀÌ½º DBPool Á¢¼ÓÀ» Á¾·á ÇÕ´Ï´Ù.");
-				lock (GlobalClass.m_DBExecutePool)
-				{
-					try
-					{
-						GlobalClass.m_DBExecutePool.StopDBPool();
-					}
-					catch (Exception) { }
-					GlobalClass.m_DBExecutePool.Dispose();
-					GlobalClass.m_DBExecutePool = null;
-				}
-			}
+            if (GlobalClass.m_DBExecutePool != null)
+            {
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ë°ì´í„°ë² ì´ìŠ¤ DBPool ì ‘ì†ì„ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
+                lock (GlobalClass.m_DBExecutePool)
+                {
+                    try
+                    {
+                        GlobalClass.m_DBExecutePool.StopDBPool();
+                    }
+                    catch (Exception) { }
+                    GlobalClass.m_DBExecutePool.Dispose();
+                    GlobalClass.m_DBExecutePool = null;
+                }
+            }
             if (GlobalClass.m_DBLogProcess != null)
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "DB·Î±× ÇÁ·Î¼¼¼­¸¦ Á¾·á ÇÕ´Ï´Ù.");
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "DBë¡œê·¸ í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
                 GlobalClass.m_DBLogProcess.Dispose();
                 GlobalClass.m_DBLogProcess = null;
             }
@@ -215,176 +212,176 @@ namespace RACTServer
 
             if (GlobalClass.m_LogProcess != null)
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "·Î±× ÇÁ·Î¼¼¼­¸¦ Á¾·á ÇÕ´Ï´Ù.");
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ë¡œê·¸ í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.");
                 GlobalClass.m_LogProcess.Stop();
                 GlobalClass.m_LogProcess = null;
             }
 
-	
-		}
 
-		/// <summary>
-		/// ¼­¹ö ¼³Á¤ Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.
-		/// </summary>
-		/// <returns></returns>
-		public bool LoadSystemInfo()
-		{
-			ArrayList tSystemInfos = null;			
-			E_XmlError tXmlError = E_XmlError.Success;
-			try
-			{
+        }
+
+        /// <summary>
+        /// ì„œë²„ ì„¤ì • ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.
+        /// </summary>
+        /// <returns></returns>
+        public bool LoadSystemInfo()
+        {
+            ArrayList tSystemInfos = null;
+            E_XmlError tXmlError = E_XmlError.Success;
+            try
+            {
                 FileInfo tFileInfo = new FileInfo(GlobalClass.m_StartupPath + GlobalClass.c_SystemConfigFileName);
                 if (!tFileInfo.Exists) MKXML.ObjectToXML(tFileInfo.FullName, new SystemConfig());
 
-				tSystemInfos = MKXML.ObjectFromXML(GlobalClass.m_StartupPath + GlobalClass.c_SystemConfigFileName, typeof(SystemConfig), out tXmlError);
-				if (tSystemInfos == null) return false;
-				if (tSystemInfos.Count == 0) return false;
-				GlobalClass.m_SystemInfo = (SystemConfig)tSystemInfos[0];
+                tSystemInfos = MKXML.ObjectFromXML(GlobalClass.m_StartupPath + GlobalClass.c_SystemConfigFileName, typeof(SystemConfig), out tXmlError);
+                if (tSystemInfos == null) return false;
+                if (tSystemInfos.Count == 0) return false;
+                GlobalClass.m_SystemInfo = (SystemConfig)tSystemInfos[0];
 
-				GlobalClass.m_DBConnectionInfo = new DBConnectionInfo();
-				GlobalClass.m_DBConnectionInfo.DBServerIP = GlobalClass.m_SystemInfo.DBServerIP;
-				GlobalClass.m_DBConnectionInfo.DBName = GlobalClass.m_SystemInfo.DBName;
-				GlobalClass.m_DBConnectionInfo.UserID = GlobalClass.m_SystemInfo.UserID;
-				GlobalClass.m_DBConnectionInfo.Password = GlobalClass.m_SystemInfo.Password;
-				GlobalClass.m_DBConnectionInfo.DBConnectionCount = GlobalClass.m_SystemInfo.DBConnectionCount;
+                GlobalClass.m_DBConnectionInfo = new DBConnectionInfo();
+                GlobalClass.m_DBConnectionInfo.DBServerIP = GlobalClass.m_SystemInfo.DBServerIP;
+                GlobalClass.m_DBConnectionInfo.DBName = GlobalClass.m_SystemInfo.DBName;
+                GlobalClass.m_DBConnectionInfo.UserID = GlobalClass.m_SystemInfo.UserID;
+                GlobalClass.m_DBConnectionInfo.Password = GlobalClass.m_SystemInfo.Password;
+                GlobalClass.m_DBConnectionInfo.DBConnectionCount = GlobalClass.m_SystemInfo.DBConnectionCount;
 
-				return true;
-			}
-			catch (Exception ex)
-			{
+                return true;
+            }
+            catch (Exception ex)
+            {
                 GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
-				return false;
-			}
-		}
-
-       
+                return false;
+            }
+        }
 
 
-		/// <summary>
-		/// È¯°æ Á¤º¸¸¦ »ı¼ºÇÕ´Ï´Ù.
-		/// </summary>
-		/// <returns></returns>
-		public bool MakeSystemInfo()
-		{
-			IPAddress[] tIPAddress = null;
-			E_XmlError tXmlError = E_XmlError.Success;
-			SystemConfig tSystemInfo = null;
-			try
-			{
-				tIPAddress = Dns.GetHostEntry(Environment.MachineName).AddressList;
-				tSystemInfo = new SystemConfig();
 
-				tSystemInfo.ServerID = 0;
-				if (tIPAddress.Length > 0)
-				{
-					tSystemInfo.ServerIP = tIPAddress[0].ToString();
-					
-				}
-                // 2013-01-11 - shinyn - Å×½ºÆ®ÀÎ°æ¿ì FACT_TEST¿¡¼­ ÇÏµµ·Ï ¼öÁ¤
+
+        /// <summary>
+        /// í™˜ê²½ ì •ë³´ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
+        /// </summary>
+        /// <returns></returns>
+        public bool MakeSystemInfo()
+        {
+            IPAddress[] tIPAddress = null;
+            E_XmlError tXmlError = E_XmlError.Success;
+            SystemConfig tSystemInfo = null;
+            try
+            {
+                tIPAddress = Dns.GetHostEntry(Environment.MachineName).AddressList;
+                tSystemInfo = new SystemConfig();
+
+                tSystemInfo.ServerID = 0;
+                if (tIPAddress.Length > 0)
+                {
+                    tSystemInfo.ServerIP = tIPAddress[0].ToString();
+
+                }
+                // 2013-01-11 - shinyn - í…ŒìŠ¤íŠ¸ì¸ê²½ìš° FACT_TESTì—ì„œ í•˜ë„ë¡ ìˆ˜ì •
                 tSystemInfo.DBServerIP = Environment.MachineName + ",43218" + "\\FACT_TEST";
                 tSystemInfo.DBName = "FACT_TEST";
                 tSystemInfo.UserID = "sa";
                 tSystemInfo.Password = "factskB~2012";
-				//tSystemInfo.DBServerIP = Environment.MachineName + ",43218" + "\\FACT_MAIN";
+                //tSystemInfo.DBServerIP = Environment.MachineName + ",43218" + "\\FACT_MAIN";
                 //tSystemInfo.DBName = "FACT_TEST";
                 //tSystemInfo.UserID = "factdev";
                 //tSystemInfo.Password = "factdev";
 
                 tSystemInfo.ServerPort = 54321;
-				tSystemInfo.ServerChannel = "RemoteClient";
-				
-				
+                tSystemInfo.ServerChannel = "RemoteClient";
 
-				tXmlError = MKXML.ObjectToXML(string.Concat(GlobalClass.m_StartupPath, GlobalClass.c_SystemConfigFileName), tSystemInfo);
 
-				if (tXmlError == E_XmlError.Success)
-					return true;
-				else
-					return false;
-			}
-			catch (Exception ex)
-			{
+
+                tXmlError = MKXML.ObjectToXML(string.Concat(GlobalClass.m_StartupPath, GlobalClass.c_SystemConfigFileName), tSystemInfo);
+
+                if (tXmlError == E_XmlError.Success)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
                 GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
-				return false;
-			}
-		}
+                return false;
+            }
+        }
 
 
-		/// <summary>
-		/// ¼­¹ö¸¦ ÃÊ±âÈ­ÇÕ´Ï´Ù.
-		/// </summary>
-		/// <returns></returns>
-		private bool InitializeServer()
-		{
-			try
-			{
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "¼­¹ö¸¦ ÃÊ±âÈ­ ÇÕ´Ï´Ù.");
-				if (!LoadSystemInfo()) return false;
+        /// <summary>
+        /// ì„œë²„ë¥¼ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
+        /// </summary>
+        /// <returns></returns>
+        private bool InitializeServer()
+        {
+            try
+            {
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ì„œë²„ë¥¼ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.");
+                if (!LoadSystemInfo()) return false;
 
-				GlobalClass.m_DBPool = new MKOleDBPool(E_DatabaseServerType.MSSqlServer, 10);
-				GlobalClass.m_DBPool.StartDBPool();
+                GlobalClass.m_DBPool = new MKOleDBPool(E_DatabaseServerType.MSSqlServer, 10);
+                GlobalClass.m_DBPool.StartDBPool();
 
-				E_DBProcessError tError = E_DBProcessError.Success;
-				tError = GlobalClass.m_DBPool.OpenDatabase(GlobalClass.m_SystemInfo.DBConnectionCount, GlobalClass.m_SystemInfo.DBServerIP, GlobalClass.m_SystemInfo.DBName, GlobalClass.m_SystemInfo.UserID, GlobalClass.m_SystemInfo.Password);
-				if (tError != E_DBProcessError.Success)
-				{
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "µ¥ÀÌÅÍº£ÀÌ½º ¿­±â¸¦ ½ÇÆĞÇÏ¿´½À´Ï´Ù." + " " + tError.ToString());
-					return false;
-				}
-				else
-				{
-					GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "µ¥ÀÌÅÍº£ÀÌ½º DBPool¿¡ Á¢¼ÓÇÏ¿´½À´Ï´Ù.");
-				}
+                E_DBProcessError tError = E_DBProcessError.Success;
+                tError = GlobalClass.m_DBPool.OpenDatabase(GlobalClass.m_SystemInfo.DBConnectionCount, GlobalClass.m_SystemInfo.DBServerIP, GlobalClass.m_SystemInfo.DBName, GlobalClass.m_SystemInfo.UserID, GlobalClass.m_SystemInfo.Password);
+                if (tError != E_DBProcessError.Success)
+                {
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "ë°ì´í„°ë² ì´ìŠ¤ ì—´ê¸°ë¥¼ ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤." + " " + tError.ToString());
+                    return false;
+                }
+                else
+                {
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ë°ì´í„°ë² ì´ìŠ¤ DBPoolì— ì ‘ì†í•˜ì˜€ìŠµë‹ˆë‹¤.");
+                }
 
-				GlobalClass.m_DBExecutePool = new MKOleDBPool(E_DatabaseServerType.MSSqlServer, 10);
-				GlobalClass.m_DBExecutePool.StartDBPool();
+                GlobalClass.m_DBExecutePool = new MKOleDBPool(E_DatabaseServerType.MSSqlServer, 10);
+                GlobalClass.m_DBExecutePool.StartDBPool();
 
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, GlobalClass.m_SystemInfo.DBConnectionCount + " " + GlobalClass.m_SystemInfo.DBServerIP + " " + GlobalClass.m_SystemInfo.DBName + " " + GlobalClass.m_SystemInfo.UserID + " " + GlobalClass.m_SystemInfo.Password);				
-				tError = GlobalClass.m_DBExecutePool.OpenDatabase(GlobalClass.m_SystemInfo.DBConnectionCount, GlobalClass.m_SystemInfo.DBServerIP, GlobalClass.m_SystemInfo.DBName, GlobalClass.m_SystemInfo.UserID, GlobalClass.m_SystemInfo.Password);
-				if (tError != E_DBProcessError.Success)
-				{
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "µ¥ÀÌÅÍº£ÀÌ½º ¿­±â¸¦ ½ÇÆĞÇÏ¿´½À´Ï´Ù." + " " + tError.ToString());
-					return false;
-				}
-				else
-				{
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "µ¥ÀÌÅÍº£ÀÌ½º DBPool¿¡ Á¢¼ÓÇÏ¿´½À´Ï´Ù.");
-				}
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, GlobalClass.m_SystemInfo.DBConnectionCount + " " + GlobalClass.m_SystemInfo.DBServerIP + " " + GlobalClass.m_SystemInfo.DBName + " " + GlobalClass.m_SystemInfo.UserID + " " + GlobalClass.m_SystemInfo.Password);
+                tError = GlobalClass.m_DBExecutePool.OpenDatabase(GlobalClass.m_SystemInfo.DBConnectionCount, GlobalClass.m_SystemInfo.DBServerIP, GlobalClass.m_SystemInfo.DBName, GlobalClass.m_SystemInfo.UserID, GlobalClass.m_SystemInfo.Password);
+                if (tError != E_DBProcessError.Success)
+                {
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "ë°ì´í„°ë² ì´ìŠ¤ ì—´ê¸°ë¥¼ ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤." + " " + tError.ToString());
+                    return false;
+                }
+                else
+                {
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ë°ì´í„°ë² ì´ìŠ¤ DBPoolì— ì ‘ì†í•˜ì˜€ìŠµë‹ˆë‹¤.");
+                }
 
-				GlobalClass.m_DBLogProcess = new DBLogProcess(GlobalClass.m_DBPool, GlobalClass.m_StartupPath);
+                GlobalClass.m_DBLogProcess = new DBLogProcess(GlobalClass.m_DBPool, GlobalClass.m_StartupPath);
 
-				return true;
-			}
-			catch (Exception ex)
-			{
-				GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
-				return false;
-			}
-		}
+                return true;
+            }
+            catch (Exception ex)
+            {
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
+                return false;
+            }
+        }
 
-		/// <summary>
-		/// ¼­¹ö¸¦ ½ÃÀÛÇÕ´Ï´Ù.
-		/// </summary>
-		private void StartServer()
-		{
+        /// <summary>
+        /// ì„œë²„ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤.
+        /// </summary>
+        private void StartServer()
+        {
             if (!BaseDataLoadProcess.LoadBaseData())
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "±âÃÊ Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "ê¸°ì´ˆ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                 return;
             }
-			RemoteServerStart();
+            RemoteServerStart();
 
-            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "¼­¹ö ÃÊ±âÈ­°¡ ¿Ï·á µÇ¾ú½À´Ï´Ù.");
-		}
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ì„œë²„ ì´ˆê¸°í™”ê°€ ì™„ë£Œ ë˜ì—ˆìŠµë‹ˆë‹¤.");
+        }
 
-		/// <summary>
-		/// ¿ø°İ Ã¤³ÎÀ» ½ÃÀÛÇÕ´Ï´Ù.
-		/// </summary>
-		private void RemoteServerStart()
-		{			
-			try
-			{
-				//Jbo ID»ı¼ºÀÚ¸¦ ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// <summary>
+        /// ì›ê²© ì±„ë„ì„ ì‹œì‘í•©ë‹ˆë‹¤.
+        /// </summary>
+        private void RemoteServerStart()
+        {
+            try
+            {
+                //Jbo IDìƒì„±ìë¥¼ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
                 //GlobalClass.m_JobIDGenerator = new JobIDGenerator();
                 //GlobalClass.m_JobIDGenerator.Initialize();
 
@@ -399,13 +396,13 @@ namespace RACTServer
 
                 //GlobalClass.m_TelnetProcessor = new TelnetProcessor.TelnetProcessor(GlobalClass.m_DBLogProcess,GlobalClass.m_LogProcess);
                 //GlobalClass.m_TelnetProcessor.Start();
-			}
-			catch (Exception ex)
-			{
-				
-			}
-		}
+            }
+            catch (Exception ex)
+            {
 
-       
+            }
+        }
+
+
     }
 }

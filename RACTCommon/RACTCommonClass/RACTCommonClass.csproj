@@ -92,6 +92,7 @@
     <Compile Include="Data\ConnectionHistoryInfo.cs" />
     <Compile Include="Data\DaemonLauncherPartObject.cs" />
     <Compile Include="Data\DeviceCfgSaveInfo.cs" />
+    <Compile Include="Data\DeviceConnectionData.cs" />
     <Compile Include="Data\EnumUtil.cs" />
     <Compile Include="Data\E_CommandPart.cs" />
     <Compile Include="Data\FACT_CommandSet.cs" />

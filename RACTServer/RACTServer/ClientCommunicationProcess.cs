@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RACTCommonClass;
+﻿using MKLibrary.MKData;
 using MKLibrary.MKNetwork;
-using MKLibrary.MKData;
-using System.Threading;
+using RACTCommonClass;
+using System;
 using System.Collections;
-using RACTDaemonProcess;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace RACTServer
 {
@@ -57,7 +55,7 @@ namespace RACTServer
             m_HelathCheckThread = new Thread(new ThreadStart(HealthCheckProcess));
             m_HelathCheckThread.Start();
 
-     
+
         }
         /// <summary>
         /// 종료 처리 합니다.
@@ -71,7 +69,7 @@ namespace RACTServer
                 m_RemoteGateway.Dispose();
                 m_RemoteGateway = null;
             }
-           
+
             m_ClientResponseProcess.Stop();
             GlobalClass.StopThread(m_RequestProcessThread);
             GlobalClass.StopThread(m_HelathCheckThread);
@@ -88,9 +86,9 @@ namespace RACTServer
                 try
                 {
 
-                    for(int i = m_UserInfoList.Count-1; i >-1; i--)
+                    for (int i = m_UserInfoList.Count - 1; i > -1; i--)
                     {
-                        tUserInfo =(UserInfo) m_UserInfoList.InnerList[i];
+                        tUserInfo = (UserInfo)m_UserInfoList.InnerList[i];
                         if (((TimeSpan)DateTime.Now.Subtract(tUserInfo.LifeTime)).TotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
                         {
                             m_UserInfoList.RemoveAt(i);
@@ -168,7 +166,7 @@ namespace RACTServer
                 tRemoteMethod.SetUserLogOutHandler(UserLogoutReceiver);
                 tRemoteMethod.SetRequestHandler(RequestReceiver);
                 tRemoteMethod.SetResultHandler(ResultSender);
-               // tRemoteMethod.SetTelnetConnectionRequestHandler(TelnetConnectionRequestReceiver);
+                // tRemoteMethod.SetTelnetConnectionRequestHandler(TelnetConnectionRequestReceiver);
 
                 m_RemoteGateway.ServerObject = tRemoteMethod;
 
@@ -180,9 +178,9 @@ namespace RACTServer
                 return false;
             }
         }
-       
 
-      
+
+
         /// <summary>
         /// 텔넷 접속 정보를 요청 합니다.
         /// </summary>
@@ -204,10 +202,10 @@ namespace RACTServer
             }
         }
 
-        
 
 
-       
+
+
         /// <summary>
         /// 세션 만료 결과를 생성합니다.
         /// </summary>
@@ -286,7 +284,7 @@ namespace RACTServer
                     lock (m_RequestQueue)
                     {
                         if (m_RequestQueue.Count < 1) continue;
-                        tClientRequest =m_RequestQueue.Dequeue();
+                        tClientRequest = m_RequestQueue.Dequeue();
                     }
                     if (tClientRequest == null) continue;
 
@@ -298,8 +296,16 @@ namespace RACTServer
                         //case E_CommunicationType.RequestCommandProcess://명령처리를 요청합니다.
                         //    GlobalClass.m_TelnetProcessor.ExecuteCommand(tClientRequest);
                         //    break;
-                        case E_CommunicationType.RequestSaveExcuteCommand :
+                        case E_CommunicationType.RequestSaveExcuteCommand:
                             SaveExcuteCommand(tClientRequest);
+                            break;
+
+                        case E_CommunicationType.RequestOpenDeviceConnectionLog:
+                            OpenDeviceConnectionLog(tClientRequest);
+                            break;
+
+                        case E_CommunicationType.RequestCloseDeviceConnectionLog:
+                            CloseDeviceConnectionLog(tClientRequest);
                             break;
                         default:
                             m_ClientResponseProcess.AddRequest(tClientRequest);
@@ -308,7 +314,7 @@ namespace RACTServer
                 }
                 catch (Exception ex)
                 {
-                    
+
                 }
                 finally
                 {
@@ -353,7 +359,7 @@ namespace RACTServer
         /// <param name="aUserPassword"></param>
         /// <param name="aClientIP"></param>
         /// <returns></returns>
-        private byte[] UserInfoReceiver(string aUserAccount, string aUserPassword, string aClientIP,E_TerminalMode aTerminalMode )
+        private byte[] UserInfoReceiver(string aUserAccount, string aUserPassword, string aClientIP, E_TerminalMode aTerminalMode)
         {
             LoginResultInfo tLoginResult = null;
             E_UserType tUserType = E_UserType.Operator_Area;
@@ -374,11 +380,11 @@ namespace RACTServer
                 }
 
                 tQueryMessage = "EXEC SP_RACT_Get_UserInfo '{0}', '{1}'";
-                tQueryMessage = string.Format(tQueryMessage, aUserAccount,aUserPassword);
+                tQueryMessage = string.Format(tQueryMessage, aUserAccount, aUserPassword);
 
                 tDBWI.ExecuteQuery(tQueryMessage, out tDataSet);
 
-               
+
 
                 if (tDataSet == null)
                 {
@@ -395,7 +401,7 @@ namespace RACTServer
                     tUserInfo.IPAddress = tClientIPAddress;
                     tUserInfo.LifeTime = DateTime.Now;
                     tUserInfo.LastLoginTime = tDataSet.GetDateTime("RactLastLoginTime");
-                    
+
                     //tUserType = (E_UserType)tDataSet.GetInt32("UsrType");
                     if (tDataSet.GetInt32("UsrType") <= 0)
                     {
@@ -441,7 +447,7 @@ namespace RACTServer
                 }
                 else
                 {
-                   // m_FileLog.PrintLogEnter("ID가 존재하지 않습니다.");
+                    // m_FileLog.PrintLogEnter("ID가 존재하지 않습니다.");
                     return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.IncorrectID, ""));
                 }
 
@@ -525,14 +531,14 @@ namespace RACTServer
                     }
                 }
 
-                
+
                 if (tIsAlreadyLogin && aTerminalMode == E_TerminalMode.RACTClient)
                 {
                     tLoginResult = new LoginResultInfo(E_LoginResult.AlreadyLogin, "같은 계정으로 로그인 되어있습니다.");
                     return ObjectConverter.GetBytes(tLoginResult);
                 }
 
-                GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID,E_UserLogType.Login,aUserAccount +" 사용자가 로그인 했습니다."));
+                GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID, E_UserLogType.Login, aUserAccount + " 사용자가 로그인 했습니다."));
 
                 // 2013-04-26 - shinyn - 사용자 로그인시 ClientID 로그로 저장
                 GlobalClass.m_LogProcess.PrintLog("Account : " + aUserAccount + " ClientID : " + tUserInfo.ClientID.ToString() + " 사용자가 로그인 했습니다");
@@ -554,7 +560,7 @@ namespace RACTServer
                 tUserInfo.LastLoginTime = DateTime.Now;
 
                 UpdateUserLastLoginTime(tUserInfo);
-               
+
                 return ObjectConverter.GetBytes(tLoginResult);
 
             }
@@ -584,6 +590,110 @@ namespace RACTServer
             }
         }
 
+        private void OpenDeviceConnectionLog(RequestCommunicationData aClientRequest)
+        {
+            DeviceConnectionLogOpenRequestInfo tRequest = null;
+            DeviceConnectionLogOpenResultInfo tServiceResult = null;
+            UserInfo tUserInfo = null;
+
+            try
+            {
+                tRequest = (DeviceConnectionLogOpenRequestInfo)aClientRequest.RequestData;
+                tUserInfo = GetValidUserInfo(aClientRequest.ClientID);
+
+                if (tUserInfo == null)
+                {
+                    tServiceResult = new DeviceConnectionLogOpenResultInfo();
+                    tServiceResult.Success = false;
+                    tServiceResult.ErrorMessage = "로그인 세션이 유효하지 않습니다.";
+                    SendOpenDeviceConnectionLogResult(aClientRequest.ClientID, aClientRequest.OwnerKey, tServiceResult);
+                    return;
+                }
+
+                tServiceResult = GlobalClass.s_DeviceConnectionLogService.OpenLog(tUserInfo, tRequest);
+                SendOpenDeviceConnectionLogResult(aClientRequest.ClientID, aClientRequest.OwnerKey, tServiceResult);
+            }
+            catch (Exception ex)
+            {
+                tServiceResult = new DeviceConnectionLogOpenResultInfo();
+                tServiceResult.Success = false;
+                tServiceResult.ErrorMessage = ex.ToString();
+                SendOpenDeviceConnectionLogResult(aClientRequest.ClientID, aClientRequest.OwnerKey, tServiceResult);
+            }
+        }
+
+        private void CloseDeviceConnectionLog(RequestCommunicationData aClientRequest)
+        {
+            DeviceConnectionLogCloseRequestInfo tRequest = null;
+            DeviceConnectionLogCloseResultInfo tServiceResult = null;
+            UserInfo tUserInfo = null;
+
+            try
+            {
+                tRequest = (DeviceConnectionLogCloseRequestInfo)aClientRequest.RequestData;
+                tUserInfo = GetValidUserInfo(aClientRequest.ClientID);
+
+                if (tUserInfo == null)
+                {
+                    tServiceResult = new DeviceConnectionLogCloseResultInfo();
+                    tServiceResult.Success = false;
+                    tServiceResult.ErrorMessage = "로그인 세션이 유효하지 않습니다.";
+                    SendCloseDeviceConnectionLogResult(aClientRequest.ClientID, aClientRequest.OwnerKey, tServiceResult);
+                    return;
+                }
+
+                tServiceResult = GlobalClass.s_DeviceConnectionLogService.CloseLog(tUserInfo, tRequest);
+                SendCloseDeviceConnectionLogResult(aClientRequest.ClientID, aClientRequest.OwnerKey, tServiceResult);
+            }
+            catch (Exception ex)
+            {
+                tServiceResult = new DeviceConnectionLogCloseResultInfo();
+                tServiceResult.Success = false;
+                tServiceResult.ErrorMessage = ex.ToString();
+                SendCloseDeviceConnectionLogResult(aClientRequest.ClientID, aClientRequest.OwnerKey, tServiceResult);
+            }
+        }
+
+        private UserInfo GetValidUserInfo(int aClientID)
+        {
+            lock (m_UserInfoList)
+            {
+                if (!m_UserInfoList.Contains(aClientID))
+                {
+                    return null;
+                }
+
+                return (UserInfo)m_UserInfoList[aClientID];
+            }
+        }
+
+        private void SendOpenDeviceConnectionLogResult(int aClientID, int aOwnerKey, DeviceConnectionLogOpenResultInfo aResult)
+        {
+            ResultCommunicationData tResult = new ResultCommunicationData();
+            tResult.ClientID = aClientID;
+            tResult.OwnerKey = aOwnerKey;
+            tResult.ResultData = aResult;
+            tResult.Error = new ErrorInfo(
+                aResult.Success ? E_ErrorType.NoError : E_ErrorType.LogicError,
+                aResult.ErrorMessage ?? string.Empty);
+
+            SendResultClient(tResult);
+        }
+
+        private void SendCloseDeviceConnectionLogResult(int aClientID, int aOwnerKey, DeviceConnectionLogCloseResultInfo aResult)
+        {
+            ResultCommunicationData tResult = new ResultCommunicationData();
+            tResult.ClientID = aClientID;
+            tResult.OwnerKey = aOwnerKey;
+            tResult.ResultData = aResult;
+            tResult.Error = new ErrorInfo(
+                aResult.Success ? E_ErrorType.NoError : E_ErrorType.LogicError,
+                aResult.ErrorMessage ?? string.Empty);
+
+            SendResultClient(tResult);
+        }
+
+
         /// <summary>
         /// 결과 데이터를 클라이언트의 전송 목록에 저장합니다.
         /// </summary>
@@ -603,7 +713,7 @@ namespace RACTServer
             }
             catch (Exception ex)
             {
-                
+
             }
         }
         /// <summary>
@@ -632,7 +742,7 @@ namespace RACTServer
             }
             catch (Exception ex)
             {
-               
+
             }
         }
 
@@ -643,9 +753,9 @@ namespace RACTServer
         /// <returns></returns>
         internal UserInfo GetUserInfo(int tClientID)
         {
-           return m_UserInfoList[tClientID];
+            return m_UserInfoList[tClientID];
         }
 
-        
+
     }
 }

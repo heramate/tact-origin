@@ -102,7 +102,7 @@ namespace RACTServer
         /// 세션 관리 타임 아웃 시간 입니다.
         /// </summary>
 #if DEBUG
-        public static readonly int s_HealthCheckTimeOut = 3000;
+        public static readonly int s_HealthCheckTimeOut = 30;
 #else
         public static readonly int s_HealthCheckTimeOut = 30;
 #endif
@@ -110,6 +110,9 @@ namespace RACTServer
         /// 마지막 로그인 이후 제한 기간 입니다.(Day)
         /// </summary>
         public static int s_UnUsedLimit = 0;
+
+        public static DeviceConnectionLogService s_DeviceConnectionLogService = null;
+
 
         /// <summary>
         /// 쓰레드를 강제 종료합니다.
