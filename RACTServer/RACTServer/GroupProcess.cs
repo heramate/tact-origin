@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using RACTCommonClass;
@@ -24,10 +24,10 @@ namespace RACTServer
                 tGroupRequestInfo = (GroupRequestInfo)aClientRequest.RequestData;
                 tGroupInfo = tGroupRequestInfo.GroupInfo;
 
-                // 2013-08-13 - shinyn-  »óÀ§, ÃÖ»óÀ§ ±×·ì ¾ÆÀÌµğ µî·Ï
+                // 2013-08-13 - shinyn-  ìƒìœ„, ìµœìƒìœ„ ê·¸ë£¹ ì•„ì´ë”” ë“±ë¡
                 tQueryString = "EXEC SP_RACT_Modify_GroupInfo {0}, {1}, {2}, '{3}', '{4}','{5}','{6}'";
 
-                // 2013-01-18 - shinyn - ±×·ìµî·Ï½Ã¿¡´Â ¾ÆÀÌµğ¸¦ null·Î º¸³À´Ï´Ù.
+                // 2013-01-18 - shinyn - ê·¸ë£¹ë“±ë¡ì‹œì—ëŠ” ì•„ì´ë””ë¥¼ nullë¡œ ë³´ëƒ…ë‹ˆë‹¤.
                 string tGroupID = tGroupInfo.ID;
 
                 if (tGroupRequestInfo.WorkType == E_WorkType.Add)
@@ -77,7 +77,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ±×·ì Á¤º¸¸¦ Àü¼ÛÇÒ ¸Ş¼­µåÀÔ´Ï´Ù.
+        /// ê·¸ë£¹ ì •ë³´ë¥¼ ì „ì†¡í•  ë©”ì„œë“œì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void GroupInfoReceiver(RequestCommunicationData aClientRequest)
@@ -115,14 +115,14 @@ namespace RACTServer
                         for (int i = 0; i < tDataSet.RecordCount; i++)
                         {
                             tGroupInfo = new GroupInfo();
-                            // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                            // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                             tGroupInfo.ID = tDataSet.GetString("ID");
                             tGroupInfo.Name = tDataSet.GetString("Name");
                             tGroupInfo.Description = tDataSet.GetString("Description");
 
 
-                            // 2013-08-13 - shinyn - »óÀ§±×·ì¾ÆÀÌµğ, ÃÖ»óÀ§±×·ì¾ÆÀÌµğ, ±×·ì ¼ø¼­¾ÆÀÌµğ, ·¹º§¾ÆÀÌµğ
-                            // ÀÔ·ÂÇÏ¿©, ³ªÁß¿¡ Á¶È¸½Ã ´Ü°èº°·Î Ç¥½ÃÇÏµµ·Ï ÇÑ´Ù.
+                            // 2013-08-13 - shinyn - ìƒìœ„ê·¸ë£¹ì•„ì´ë””, ìµœìƒìœ„ê·¸ë£¹ì•„ì´ë””, ê·¸ë£¹ ìˆœì„œì•„ì´ë””, ë ˆë²¨ì•„ì´ë””
+                            // ì…ë ¥í•˜ì—¬, ë‚˜ì¤‘ì— ì¡°íšŒì‹œ ë‹¨ê³„ë³„ë¡œ í‘œì‹œí•˜ë„ë¡ í•œë‹¤.
                             tGroupInfo.TOP_ID = tDataSet.GetString("TOP_ID");
                             tGroupInfo.UP_ID = tDataSet.GetString("UP_ID");
                             tGroupInfo.LEVEL = tDataSet.GetInt32("LEVEL_1");
@@ -131,7 +131,7 @@ namespace RACTServer
                             tGroupInfo.UserID = tDataSet.GetInt32("UserID");
 
 
-                            // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                            // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                             tGroupInfoCollection.Add(tGroupInfo.ID, tGroupInfo);
 
                             tDataSet.MoveNext();
@@ -141,23 +141,23 @@ namespace RACTServer
 
                         for (int i = 0; i < tDataSet.RecordCount; i++)
                         {
-                            // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                            // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                             if (tGroupInfoCollection.ContainsKey(tDataSet["RACTGroupID"].ToString()))
                             {
-                                // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                                // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                                 tGroupInfo = (GroupInfo)tGroupInfoCollection[tDataSet["RACTGroupID"].ToString()];
                             }
                             else
                             {
 
                                 tGroupInfo = new GroupInfo();
-                                // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                                // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                                 tGroupInfo.ID = tDataSet.GetString("RACTGroupID");
                                 tGroupInfo.Name = tDataSet.GetString("RACTName");
                                 tGroupInfo.Description = tDataSet.GetString("RACTDescription");
 
-                                // 2013-08-13 - shinyn - »óÀ§±×·ì¾ÆÀÌµğ, ÃÖ»óÀ§±×·ì¾ÆÀÌµğ, ±×·ì ¼ø¼­¾ÆÀÌµğ, ·¹º§¾ÆÀÌµğ
-                                // ÀÔ·ÂÇÏ¿©, ³ªÁß¿¡ Á¶È¸½Ã ´Ü°èº°·Î Ç¥½ÃÇÏµµ·Ï ÇÑ´Ù.
+                                // 2013-08-13 - shinyn - ìƒìœ„ê·¸ë£¹ì•„ì´ë””, ìµœìƒìœ„ê·¸ë£¹ì•„ì´ë””, ê·¸ë£¹ ìˆœì„œì•„ì´ë””, ë ˆë²¨ì•„ì´ë””
+                                // ì…ë ¥í•˜ì—¬, ë‚˜ì¤‘ì— ì¡°íšŒì‹œ ë‹¨ê³„ë³„ë¡œ í‘œì‹œí•˜ë„ë¡ í•œë‹¤.
 
                                 tGroupInfo.TOP_ID = tDataSet.GetString("RACTGroupID");
                                 tGroupInfo.UP_ID = "";
@@ -173,11 +173,11 @@ namespace RACTServer
                             tDeviceInfo.DeviceID = tDataSet.GetInt32("NeID");
                             tDeviceInfo.ModelID = tDataSet.GetInt32("ModelID");
 
-                            // 2013-01-01 - shinyn - ModelName°ª ÀÔ·Â
+                            // 2013-01-01 - shinyn - ModelNameê°’ ì…ë ¥
                             tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
                             tDeviceInfo.DevicePartCode = tDataSet.GetInt32("ModelTypeCode");
 
-                            // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                            // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                             tDeviceInfo.GroupID = tGroupInfo.ID;
                             tDeviceInfo.Name = tDataSet.GetString("NeName");
                             tDeviceInfo.TerminalConnectInfo.TelnetPort = tDataSet.GetInt32("TelnetPort");
@@ -202,27 +202,27 @@ namespace RACTServer
                             tDeviceInfo.CenterName = tDataSet.GetString("CenterName");
                             tDeviceInfo.TpoName = tDataSet.GetString("TpoName");
 
-                            // 2013-01-18 - shinyn - ¼öµ¿Àåºñµî·Ï ±¸ºĞ °¡Á®¿À±â
+                            // 2013-01-18 - shinyn - ìˆ˜ë™ì¥ë¹„ë“±ë¡ êµ¬ë¶„ ê°€ì ¸ì˜¤ê¸°
                             tDeviceInfo.DeviceType = (E_DeviceType)tDataSet.GetInt32("DeviceType");
 
-                            //2013-05-02 - shinyn - ±âº»Á¢¼Ó Á¤º¸¸¦ °¡Á®¿Â´Ù.
+                            //2013-05-02 - shinyn - ê¸°ë³¸ì ‘ì† ì •ë³´ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
                             tDeviceInfo.WAIT = tDataSet.GetString("WAIT1");
                             tDeviceInfo.USERID = tDataSet.GetString("USERID1");
                             tDeviceInfo.PWD = tDataSet.GetString("PWD1");
                             tDeviceInfo.USERID2 = tDataSet.GetString("USERID2");
                             tDeviceInfo.PWD2 = tDataSet.GetString("PWD2");
 
-                            // 2013-08-09 - shinyn - MoreString,MoreMark¸¦ °¡Á®¿Â´Ù.
+                            // 2013-08-09 - shinyn - MoreString,MoreMarkë¥¼ ê°€ì ¸ì˜¨ë‹¤.
                             tDeviceInfo.MoreString = tDataSet.GetString("MoreString");
                             tDeviceInfo.MoreMark = tDataSet.GetString("MoreMark");
 
-                            //2013-08-14 -shinyn - »ç¿ëÀÚ ±×·ìÀÎ °æ¿ì »ç¿ëÀÚ ÀÌ¸§,¾ÆÀÌµğ,°èÁ¤À» °¡Á®¿Â´Ù.
+                            //2013-08-14 -shinyn - ì‚¬ìš©ì ê·¸ë£¹ì¸ ê²½ìš° ì‚¬ìš©ì ì´ë¦„,ì•„ì´ë””,ê³„ì •ì„ ê°€ì ¸ì˜¨ë‹¤.
                             tDeviceInfo.UsrName = tDataSet.GetString("UsrName");
                             tDeviceInfo.UsrID = tDataSet.GetInt32("UsrID");
                             tDeviceInfo.Account = tDataSet.GetString("Account");
 
 #if Debug
-                            // 2013-01-11 - shinyn - Å×½ºÆ® Àåºñ ¾ÆÀÌÇÇ·Î ½ÇÇàµÊ
+                            // 2013-01-11 - shinyn - í…ŒìŠ¤íŠ¸ ì¥ë¹„ ì•„ì´í”¼ë¡œ ì‹¤í–‰ë¨
                             /*
                             tDeviceInfo.IPAddress = "10.30.1.58";
                             tDeviceInfo.TelnetID1 = "root";
@@ -259,7 +259,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ¿äÃ»À» Ã³¸® ÇÕ´Ï´Ù.
+        /// ìš”ì²­ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestProcess(RequestCommunicationData aClientRequest)
@@ -279,7 +279,7 @@ namespace RACTServer
 
 
         /// <summary>
-        /// 2013-09-09-shinyn- »ç¿ëÀÚ ¸®½ºÆ® ¿äÃ»À» Ã³¸®ÇÕ´Ï´Ù.
+        /// 2013-09-09-shinyn- ì‚¬ìš©ì ë¦¬ìŠ¤íŠ¸ ìš”ì²­ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestRactUserListProcess(RequestCommunicationData aClientRequest)
@@ -292,7 +292,7 @@ namespace RACTServer
 
 
         /// <summary>
-        /// 2013-09-09 - shinyn - RACT »ç¿ëÀÚ¸®½ºÆ®¸¦ Àü¼ÛÇÒ ¸Ş¼­µåÀÔ´Ï´Ù.
+        /// 2013-09-09 - shinyn - RACT ì‚¬ìš©ìë¦¬ìŠ¤íŠ¸ë¥¼ ì „ì†¡í•  ë©”ì„œë“œì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void RactUserListReceiver(RequestCommunicationData aClientRequest)
@@ -317,7 +317,7 @@ namespace RACTServer
                 tRequestInfo = (string[])aClientRequest.RequestData;
 
                 /*
-                @SearchType as varchar(10), -- 1:ÀÌ¸§ 2:°èÁ¤
+                @SearchType as varchar(10), -- 1:ì´ë¦„ 2:ê³„ì •
                 @SearchValue as varchar(20),
                 @DeleteUserID as int
                 */
@@ -337,7 +337,7 @@ namespace RACTServer
 
                     if (tDataSet != null)
                     {
-                        // »ç¿ëÀÚ ¸ñ·ÏÀ» Ãß°¡ÇÕ´Ï´Ù.
+                        // ì‚¬ìš©ì ëª©ë¡ì„ ì¶”ê°€í•©ë‹ˆë‹¤.
                         for (int i = 0; i < tDataSet.RecordCount; i++)
                         {
                             tUserInfo = new UserInfo();
@@ -368,7 +368,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 2013-09-09 -shinyn-»ç¿ëÀÚ °øÀ¯ Àåºñ ¸ñ·Ï ÀúÀåÇÏ´Â ¿äÃ»À» Ã³¸®ÇÕ´Ï´Ù.
+        /// 2013-09-09 -shinyn-ì‚¬ìš©ì ê³µìœ  ì¥ë¹„ ëª©ë¡ ì €ì¥í•˜ëŠ” ìš”ì²­ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestAddShareDeviceProcess(RequestCommunicationData aClientRequest)
@@ -377,7 +377,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 2013-09-09 - shinyn - »ç¿ëÀÚ °øÀ¯ Àåºñ ¸ñ·ÏÀ» ÀúÀå, Àü¼ÛÇÒ ¸Ş¼­µåÀÔ´Ï´Ù.
+        /// 2013-09-09 - shinyn - ì‚¬ìš©ì ê³µìœ  ì¥ë¹„ ëª©ë¡ì„ ì €ì¥, ì „ì†¡í•  ë©”ì„œë“œì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void AddShareDeviceInfoReceiver(RequestCommunicationData aClientRequest)
@@ -395,11 +395,11 @@ namespace RACTServer
                 tResultData = new ResultCommunicationData(aClientRequest);
                 tRequestInfo = (GroupInfo)aClientRequest.RequestData;
 
-                // 2013-09-09 - shinyn - »ç¿ëÀÚ±×·ì Ãß°¡ÇÏ°í ±×·ì ¾ÆÀÌµğ¸¦ ¹İÈ¯ÇÑ´Ù.
+                // 2013-09-09 - shinyn - ì‚¬ìš©ìê·¸ë£¹ ì¶”ê°€í•˜ê³  ê·¸ë£¹ ì•„ì´ë””ë¥¼ ë°˜í™˜í•œë‹¤.
 
                 tQueryString = "EXEC SP_RACT_Modify_GroupInfo {0}, {1}, {2}, '{3}', '{4}','{5}','{6}';";
 
-                // 2013-01-18 - shinyn - ±×·ìµî·Ï½Ã¿¡´Â ¾ÆÀÌµğ¸¦ null·Î º¸³À´Ï´Ù.
+                // 2013-01-18 - shinyn - ê·¸ë£¹ë“±ë¡ì‹œì—ëŠ” ì•„ì´ë””ë¥¼ nullë¡œ ë³´ëƒ…ë‹ˆë‹¤.
                 string tGroupID = "null";
 
 
@@ -432,9 +432,9 @@ namespace RACTServer
 
                 foreach (DeviceInfo aDeviceInfo in tRequestInfo.DeviceList)
                 {
-                    // 2013-01-18 - shinyn - ¼öµ¿Àåºñµî·ÏÀ» À§ÇÑ ÇÁ·Î½ÃÀú ¼öÁ¤ Àû¿ë
-                    // 2013-05-02 - shinyn - ¼öµ¿Àåºñµî·Ï¿¡ ÇÁ·ÒÇÁÆ® ÀúÀå Ãß°¡
-                    // 2013-08-09 - shinyn - MoreString, MoreMark ÀúÀå
+                    // 2013-01-18 - shinyn - ìˆ˜ë™ì¥ë¹„ë“±ë¡ì„ ìœ„í•œ í”„ë¡œì‹œì € ìˆ˜ì • ì ìš©
+                    // 2013-05-02 - shinyn - ìˆ˜ë™ì¥ë¹„ë“±ë¡ì— í”„ë¡¬í”„íŠ¸ ì €ì¥ ì¶”ê°€
+                    // 2013-08-09 - shinyn - MoreString, MoreMark ì €ì¥
                     tQueryString = "EXEC SP_RACT_MODIFY_DEVICEINFO {0},{1},{2},{3},{4},{5},{6},'{7}',{8},{9},{10},{11},{12}," +
                                    "'{13}','{14}','{15}','{16}','{17}','{18}','{19}','{20}','{21}','{22}','{23}','{24}','{25}','{26}','{27}'";
 
@@ -522,7 +522,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// »ç¿ëÀÚ ±ÇÈ¯¿¡ ÇØ´çÇÏ´Â ±×·ìÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ì‚¬ìš©ì ê¶Œí™˜ì— í•´ë‹¹í•˜ëŠ” ê·¸ë£¹ì„ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="tUserInfo"></param>
         /// <returns></returns>
@@ -542,13 +542,13 @@ namespace RACTServer
             FACTGroupInfo tUserFACTGroupInfo = null;
             try
             {
-                //±×·ì Á¤º¸¸¦ ·Îµå ÇÕ´Ï´Ù ---------------------------------------------------------
+                //ê·¸ë£¹ ì •ë³´ë¥¼ ë¡œë“œ í•©ë‹ˆë‹¤ ---------------------------------------------------------
                 tUserFACTGroupInfo = new FACTGroupInfo();
 
                 tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
                 tDBWI.ExecuteQuery(string.Format(SQLQuery.SelectFACTGroupInfo(), aUserInfo.GetCenterCode), out tDataSet);
 
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "»ç¿ëÀÚº° FACT ±×·ìÁ¤º¸¸¦ ·Îµå ÇÕ´Ï´Ù.");
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "ì‚¬ìš©ìë³„ FACT ê·¸ë£¹ì •ë³´ë¥¼ ë¡œë“œ í•©ë‹ˆë‹¤.");
 
                 if (tDataSet != null)
                 {

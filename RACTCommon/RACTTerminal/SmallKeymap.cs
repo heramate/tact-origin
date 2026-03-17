@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Collections;
@@ -6,7 +6,7 @@ using System.Collections;
 namespace RACTTerminal
 {
     /// <summary>
-    /// Key Map ÀÔ´Ï´Ù.
+    /// Key Map ì…ë‹ˆë‹¤.
     /// </summary>
     public class SmallKeyMap
     {
@@ -90,7 +90,7 @@ namespace RACTTerminal
         }
 
         /// <summary>
-        /// ÇØ´ç ¹®ÀÚ¸¦ Ã£½À´Ï´Ù.
+        /// í•´ë‹¹ ë¬¸ìë¥¼ ì°¾ìŠµë‹ˆë‹¤.
         /// </summary>
         public KeyInfo Find(UInt16 aScanCode, Boolean aExtendFlag, string aModifier, UInt32 aModeFlags)
         {

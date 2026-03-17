@@ -1,24 +1,24 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace RACTTerminal
 {
     /// <summary>
-    /// Negotiate Parse Event Args ÀÔ´Ï´Ù.
+    /// Negotiate Parse Event Args ìž…ë‹ˆë‹¤.
     /// </summary>
     public struct NegotiateParserEventArgs
     {
         /// <summary>
-        /// Action ÀÔ´Ï´Ù.
+        /// Action ìž…ë‹ˆë‹¤.
         /// </summary>
         public E_NegotiateActions m_Action;
         /// <summary>
-        /// ÇöÀç Char ÀÔ´Ï´Ù.
+        /// í˜„ìž¬ Char ìž…ë‹ˆë‹¤.
         /// </summary>
         public Char m_CurChar;
         /// <summary>
-        /// ÇöÀç Sequence ÀÔ´Ï´Ù.
+        /// í˜„ìž¬ Sequence ìž…ë‹ˆë‹¤.
         /// </summary>
         public string m_CurSequence;
        

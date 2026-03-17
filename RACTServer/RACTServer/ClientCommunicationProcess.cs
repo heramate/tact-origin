@@ -444,6 +444,13 @@ namespace RACTServer
                         tDBWI.ExecuteNoneQuery(string.Format("update usr_user set IsUseRACT = 0 where account ='{0}'", aUserAccount));
                         return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnUsedLimit, ""));
                     }
+
+                    // 20260305 ShinMyungsu USER접근강화
+                    if (tDataSet["CoCode"] == DBNull.Value || tDataSet.GetInt32("CoCode") == 0)
+                    {
+                        return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.NothingCoCode, ""));
+                    }
+                    //====================================================================================================
                 }
                 else
                 {
@@ -459,6 +466,25 @@ namespace RACTServer
                     {
                         tUserInfo.Centers.Add(tDataSet.GetString("centerCode"));
                         tDataSet.MoveNext();
+                    }
+                }
+
+                // 20260209 ShinMyungsu User별 장비접근권한 강화  User가 Bp사면 MangTypeCd를 가져온다.
+                tDataSet.CurrentTableIndex++;
+                string tMangTypeCd = "";
+                if (tDataSet.RecordCount > 0)
+                {
+                    for (int i = 0; i < tDataSet.RecordCount; i++)
+                    {
+                        tMangTypeCd = tDataSet.GetString("MangTypeCd");
+                        tDataSet.MoveNext();
+                    }
+
+                    string[] tMangTypeCds = tMangTypeCd.Split('|');
+
+                    for (int i = 0; i < tMangTypeCds.Length; i++)
+                    {
+                        if (tMangTypeCds[i].ToString().Length > 1) tUserInfo.MangTypes.Add(tMangTypeCds[i].ToString());
                     }
                 }
                 //2019-03-25 KangBongHan 제한명령어 명령어별 권한 변경건 수정

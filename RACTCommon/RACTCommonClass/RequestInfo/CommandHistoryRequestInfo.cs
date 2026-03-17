@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,12 +9,12 @@ namespace RACTCommonClass
     {
 
         /// <summary>
-        /// Connection Log ID ÀÔ´Ï´Ù.
+        /// Connection Log ID ìž…ë‹ˆë‹¤.
         /// </summary>
         private int m_ConnectionLogID;
 
         /// <summary>
-        /// Connection Log ID °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Connection Log ID ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public int ConnectionLogID
         {

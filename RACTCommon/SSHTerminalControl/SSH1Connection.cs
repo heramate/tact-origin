@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------------------
+ï»¿/* ---------------------------------------------------------------------------
  *
  * Copyright (c) Routrek Networks, Inc.    All Rights Reserved..
  * 
@@ -237,7 +237,7 @@ namespace Routrek.SSHCV1
 				else
 				{
 					string t = e.StackTrace;
-					throw new SSHException(e.Message); //IOExceptionˆÈŠO‚Í‚İ‚ÈSSHException‚É‚µ‚Ä‚µ‚Ü‚¤
+					throw new SSHException(e.Message); //IOExceptionëŒ¥ë‘–ê¶¼ê·’ê¶¶SSHExceptionê¶¸ê¶¢ê¶²ê¶¢ê·ê¶
 				}
 			}
 		}
@@ -293,7 +293,7 @@ namespace Routrek.SSHCV1
 
 			//building response
 			MemoryStream bos = new MemoryStream();
-			bos.Write(rawchallenge, 0, rawchallenge.Length); //!!mindterm‚Å‚Í“ª‚ª‚O‚©‚Ç‚¤‚©‚Å•Ï‚Èƒnƒ“ƒhƒŠƒ“ƒO‚ª‚ ‚Á‚½
+			bos.Write(rawchallenge, 0, rawchallenge.Length); //!!mindtermê¶³ê¶¼ë²†ê¶•ê´¥ê¶”ê¶µê¶ê¶”ê¶³ë¹¾ê¶¶ê¸ªê¹›ê¸¤ê¹ê¹›ê¸ê¶•ê¶‡ê¶¯ê¶«
 			bos.Write(_sessionID, 0, _sessionID.Length);
 			byte[] response = new MD5CryptoServiceProvider().ComputeHash(bos.ToArray());
 

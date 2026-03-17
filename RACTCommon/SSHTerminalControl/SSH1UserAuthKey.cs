@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------------------
+ï»¿/* ---------------------------------------------------------------------------
  *
  * Copyright (c) Routrek Networks, Inc.    All Rights Reserved..
  * 
@@ -64,7 +64,7 @@ namespace Routrek.SSHCV1
 			_publicExponent = reader.ReadMPInt();
 			byte[] comment = reader.ReadString();
 			byte[] prvt = reader.ReadAll();
-			//•K—v‚È‚ç•œ†
+			//ë· ë¾´ê¶¶ê·ë¸³ëœ‚
 			CipherAlgorithm algo = (CipherAlgorithm)cipher[1];
 			if(algo!=0) {
 				Cipher c = CipherFactory.CreateCipher(SSHProtocol.SSH1, algo, ConvertToKey(passphrase));

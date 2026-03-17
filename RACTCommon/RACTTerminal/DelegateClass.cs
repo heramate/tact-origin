@@ -1,23 +1,23 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace RACTTerminal
 {
     /// <summary>
-    /// ���� �м� �̺�Ʈ �ڵ鷯 �Դϴ�.
+    /// 협상 분석 이벤트 핸들러 입니다.
     /// </summary>
     public delegate void NegotiateParserEventHandler(object Sender, NegotiateParserEventArgs e);
     /// <summary>
-    /// Ű���� �̺�Ʈ �ڵ鷯 �Դϴ�.
+    /// 키보드 이벤트 핸들러 입니다.
     /// </summary>
     public delegate void KeyboardEventHandler(object aSender, string aString);
     /// <summary>
-    /// Ű���� �̺�Ʈ �ڵ鷯 �Դϴ�.
+    /// 키보드 이벤트 핸들러 입니다.
     /// </summary>
     public delegate void ControlKeyboardEventHandler(object aSender, KeyInfo aKeyMap);
     /// <summary>
-    /// ���ΰ�ħ �ڵ鷯 �Դϴ�.
+    /// 새로고침 핸들러 입니다.
     /// </summary>
     public delegate void RefreshEventHandler();
     public delegate void RxdTextEventHandler(string sReceived);

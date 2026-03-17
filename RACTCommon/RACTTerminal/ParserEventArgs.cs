@@ -1,33 +1,33 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace RACTTerminal
 {
     /// <summary>
-    /// ParserEventArgs �Դϴ�.
+    /// ParserEventArgs 입니다.
     /// </summary>
     public struct ParserEventArgs
     {
         /// <summary>
-        /// Action �Դϴ�.
+        /// Action 입니다.
         /// </summary>
         private E_Actions m_Action;
         /// <summary>
-        /// Char �Դϴ�.
+        /// Char 입니다.
         /// </summary>
         private Char m_CurChar;
         /// <summary>
-        /// Sequence �Դϴ�.
+        /// Sequence 입니다.
         /// </summary>
         private string m_CurSequence;
         /// <summary>
-        /// Params �Դϴ�.
+        /// Params 입니다.
         /// </summary>
         private Params m_CurParams;
 
         /// <summary>
-        /// �⺻ ������ �Դϴ�.
+        /// 기본 생성자 입니다.
         /// </summary>
         public ParserEventArgs(E_Actions aActions, Char aChar,string aString,Params aParams)
         {
@@ -37,7 +37,7 @@ namespace RACTTerminal
             m_CurParams = aParams;
         }
         /// <summary>
-        /// Action �Դϴ�.
+        /// Action 입니다.
         /// </summary>
         public E_Actions Action
         {
@@ -45,7 +45,7 @@ namespace RACTTerminal
             set { m_Action = value; }
         }
         /// <summary>
-        /// Char �Դϴ�.
+        /// Char 입니다.
         /// </summary>
         public Char CurChar
         {
@@ -53,7 +53,7 @@ namespace RACTTerminal
             set { m_CurChar = value; }
         }
         /// <summary>
-        /// Sequence �Դϴ�.
+        /// Sequence 입니다.
         /// </summary>
         public string CurSequence
         {
@@ -61,7 +61,7 @@ namespace RACTTerminal
             set { m_CurSequence = value; }
         }
         /// <summary>
-        /// Params �Դϴ�.
+        /// Params 입니다.
         /// </summary>
         public Params CurParams
         {

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using MKLibrary.MKNetwork;
@@ -10,7 +10,7 @@ namespace RACTDaemonProcess
     public class ServerCommunicationProcess
     {
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ServerCommunicationProcess(){}
 
@@ -26,9 +26,9 @@ namespace RACTDaemonProcess
         }
 
         /// <summary>
-        /// ¼­¹ö¿¡ ¿¬°áÀ» ½Ãµµ ÇÕ´Ï´Ù.
+        /// ì„œë²„ì— ì—°ê²°ì„ ì‹œë„ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <returns>¿¬°á ½Ãµµ ¼º°ø ¿©ºÎ ÀÔ´Ï´Ù.</returns>
+        /// <returns>ì—°ê²° ì‹œë„ ì„±ê³µ ì—¬ë¶€ ì…ë‹ˆë‹¤.</returns>
         public E_ConnectError TryServerConnect()
         {
             int tTryCount = 0;
@@ -38,16 +38,16 @@ namespace RACTDaemonProcess
 
             if (DaemonGlobal.s_ServerRemoteGateway == null)
             {
-                // 2019.01.25 KwonTaeSuk È¯°æ¼³Á¤ÆÄÀÏ Á¤¸®(DaemonLauncherConfig.xml, DaemonProcessConfig.xml)
-                //DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("¼­¹ö¿¡ Á¢¼ÓÀ» ½Ãµµ ÇÕ´Ï´Ù. ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerPort, DaemonGlobal.s_DaemonConfig.ServerChannel));
+                // 2019.01.25 KwonTaeSuk í™˜ê²½ì„¤ì •íŒŒì¼ ì •ë¦¬(DaemonLauncherConfig.xml, DaemonProcessConfig.xml)
+                //DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("ì„œë²„ì— ì ‘ì†ì„ ì‹œë„ í•©ë‹ˆë‹¤. ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerPort, DaemonGlobal.s_DaemonConfig.ServerChannel));
                 //DaemonGlobal.s_ServerRemoteGateway = new MKRemote(E_RemoteType.TCPRemote, DaemonGlobal.s_DaemonConfig.ServerIP, DaemonGlobal.s_DaemonConfig.ServerPort, DaemonGlobal.s_DaemonConfig.ServerChannel);
-                DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("¼­¹ö¿¡ Á¢¼ÓÀ» ½Ãµµ ÇÕ´Ï´Ù. ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
+                DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("ì„œë²„ì— ì ‘ì†ì„ ì‹œë„ í•©ë‹ˆë‹¤. ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
                 DaemonGlobal.s_ServerRemoteGateway = new MKRemote(E_RemoteType.TCPRemote, DaemonGlobal.s_DaemonConfig.ServerIP, DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName);
             }
 
             if (DaemonGlobal.s_ServerRemoteGateway == null)
             {
-                // s_FileLog.PrintLogEnter("IP:" + s_ServerIP + " PortNo:" + s_ServerPort + " ChannelName : " + s_ChannelName +"¿¡ ¿¬°á ÇÒ ¼ö ¾ø½À´Ï´Ù.");
+                // s_FileLog.PrintLogEnter("IP:" + s_ServerIP + " PortNo:" + s_ServerPort + " ChannelName : " + s_ChannelName +"ì— ì—°ê²° í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
                 return E_ConnectError.LocalFail;
             }
             else
@@ -64,8 +64,8 @@ namespace RACTDaemonProcess
 
                         if (DaemonGlobal.s_ServerRemoteGateway.ConnectServer(out tErrorString) != E_RemoteError.Success)
                         {
-                            DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("¼­¹ö¿¡ Á¢¼ÓÇÏÁö ¸øÇß½À´Ï´Ù ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
-                            // s_FileLog.PrintLogEnter(string.Concat("¼­¹ö¿¡ ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù. ¼­¹ö°¡ Á¤»óÀûÀ¸·Î ½ÃÀÛµÇ¾ú´ÂÁö ¶Ç´Â FireWallÀÌ ÀÛµ¿ÁßÀÎÁö È®ÀÎ ÇÏ½Ê½Ã¿À. :", tErrorString));
+                            DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("ì„œë²„ì— ì ‘ì†í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤ ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
+                            // s_FileLog.PrintLogEnter(string.Concat("ì„œë²„ì— ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì„œë²„ê°€ ì •ìƒì ìœ¼ë¡œ ì‹œì‘ë˜ì—ˆëŠ”ì§€ ë˜ëŠ” FireWallì´ ì‘ë™ì¤‘ì¸ì§€ í™•ì¸ í•˜ì‹­ì‹œì˜¤. :", tErrorString));
                             //return E_ConnectError.LinkFail;
                         }
                         else
@@ -85,7 +85,7 @@ namespace RACTDaemonProcess
                     }
                     catch (Exception ex)
                     {
-                        DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("¼­¹ö¿¡ Á¢¼ÓÇÏÁö ¸øÇß½À´Ï´Ù ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
+                        DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("ì„œë²„ì— ì ‘ì†í•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤ ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
                         DaemonGlobal.s_IsServerConnected = false;
                         //s_FileLog.PrintLogEnter("[E] TryServerConnect: " + ex.ToString());
                        //if (((TimeSpan)DateTime.Now.Subtract(tSDate)).TotalSeconds > 60)
@@ -94,13 +94,13 @@ namespace RACTDaemonProcess
                         //}
                     }
                 }
-                DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("¼­¹ö¿¡ Á¢¼Ó¿Ï·á ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
+                DaemonGlobal.s_FileLogProcess.PrintLog(string.Concat("ì„œë²„ì— ì ‘ì†ì™„ë£Œ ", DaemonGlobal.s_DaemonConfig.ServerIP, ":", DaemonGlobal.s_DaemonConfig.ServerDaemonPort, DaemonGlobal.s_DaemonConfig.ServerDaemonChannelName));
                 return E_ConnectError.NoError;
             }
         }
 
         /// <summary>
-        /// ·Î±×ÀÎ °á°ú¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ì¸ ê²°ê³¼ë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private bool ProcessLoginResult(object tResult)
         {

@@ -1,42 +1,42 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace RACTTerminal
 {
     /// <summary>
-    /// Ű ���� �Դϴ�.
+    /// 키 정보 입니다.
     /// </summary>
     [Serializable]
     public class KeyInfo
     {
         /// <summary>
-        /// Scan Code �Դϴ�.
+        /// Scan Code 입니다.
         /// </summary>
         private UInt16 m_ScanCode;
         /// <summary>
-        /// Extend Flag �Դϴ�.
+        /// Extend Flag 입니다.
         /// </summary>
         private Boolean m_ExtendFlag;
         /// <summary>
-        /// Modifier �Դϴ�.
+        /// Modifier 입니다.
         /// </summary>
         private string m_Modifier;
         /// <summary>
-        /// Out String �Դϴ�.
+        /// Out String 입니다.
         /// </summary>
         private string m_Outstring;
         /// <summary>
-        /// Flag �Դϴ�.
+        /// Flag 입니다.
         /// </summary>
         private UInt32 m_Flag;
         /// <summary>
-        /// Flag Value �Դϴ�.
+        /// Flag Value 입니다.
         /// </summary>
         private UInt32 m_FlagValue;
        
         /// <summary>
-        /// �⺻ ���� �Դϴ�.
+        /// 기본 성자 입니다.
         /// </summary>
         public KeyInfo(UInt16 aScanCode, Boolean aExtendFlag, string aModifier, string aOutstring, UInt32 aFlag, UInt32 aFlagValue)
         {

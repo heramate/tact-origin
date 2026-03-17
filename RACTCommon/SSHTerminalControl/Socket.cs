@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Text;
 using System.IO;
 using System.Net.Sockets;
@@ -136,7 +136,7 @@ namespace Routrek.SSHC
 		}
 	}
 
-	//System.IO.Socket‚ÆIChannelEventReceiver‚ğ’ŠÛ‰»‚·‚é
+	//System.IO.Socketê¶´IChannelEventReceiverê·©ë­»ë¤­ë¸ê¶¥ê·¡
 	internal abstract class AbstractSocket {
 		
 		protected IByteArrayHandler _handler;

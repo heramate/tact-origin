@@ -1,4 +1,4 @@
-using System;
+О╩©using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,31 +8,31 @@ namespace RACTCommonClass
     public class DaemonLoginResultInfo
     {
         /// <summary>
-        /// ╥н╠вюн ╟А╟З ют╢о╢ы.
+        /// К║°Й╥╦Л²╦ Й╡╟ЙЁ╪ Л·┘К▀┬К▀╓.
         /// </summary>
         private E_LoginResult m_LoginResult = E_LoginResult.UnknownError;
 
         /// <summary>
-        /// ╪Ё╦М ют╢о╢ы.
+        /// Л└╓К╙┘ Л·┘К▀┬К▀╓.
         /// </summary>
         private string m_Description;
 
         /// <summary>
-        /// Client ID ют╢о╢ы.
+        /// Client ID Л·┘К▀┬К▀╓.
         /// </summary>
         private int m_ClientID;
 
         /// <summary>
-        /// Daemon Process Info ют╢о╢ы.
+        /// Daemon Process Info Л·┘К▀┬К▀╓.
         /// </summary>
         private DaemonProcessInfo m_DaemonInfo;
 
         /// <summary>
-        /// ╠Б╨╩ ╩Щ╪╨юз ют╢о╢ы.
+        /// Й╦╟КЁ╦ Л┐²Л└╠Л·░ Л·┘К▀┬К▀╓.
         /// </summary>
         public DaemonLoginResultInfo() { }
         /// <summary>
-        /// ╠Б╨╩ ╩Щ╪╨юз ют╢о╢ы.
+        /// Й╦╟КЁ╦ Л┐²Л└╠Л·░ Л·┘К▀┬К▀╓.
         /// </summary>
         /// <param name="aResult"></param>
         public DaemonLoginResultInfo(E_LoginResult aResult)
@@ -41,7 +41,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// Daemon Process Info ╟║а╝©ю╟еЁ╙ ╪Ёа╓ гу╢о╢ы.
+        /// Daemon Process Info Й╟─Л═╦Л≤╓Й╠╟К┌≤ Л└╓Л═∙ М∙╘К▀┬К▀╓.
         /// </summary>
         public DaemonProcessInfo DaemonInfo
         {
@@ -50,7 +50,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// Client ID ╟║а╝©ю╟еЁ╙ ╪Ёа╓ гу╢о╢ы.
+        /// Client ID Й╟─Л═╦Л≤╓Й╠╟К┌≤ Л└╓Л═∙ М∙╘К▀┬К▀╓.
         /// </summary>
         public int ClientID
         {
@@ -59,7 +59,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// ╪Ё╦М ╟║а╝©ю╟еЁ╙ ╪Ёа╓ гу╢о╢ы.
+        /// Л└╓К╙┘ Й╟─Л═╦Л≤╓Й╠╟К┌≤ Л└╓Л═∙ М∙╘К▀┬К▀╓.
         /// </summary>
         public string Description
         {
@@ -68,7 +68,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// ╥н╠вюн ╟А╟З ╟║а╝©ю╟еЁ╙ ╪Ёа╓ гу╢о╢ы.
+        /// К║°Й╥╦Л²╦ Й╡╟ЙЁ╪ Й╟─Л═╦Л≤╓Й╠╟К┌≤ Л└╓Л═∙ М∙╘К▀┬К▀╓.
         /// </summary>
         public E_LoginResult LoginResult
         {

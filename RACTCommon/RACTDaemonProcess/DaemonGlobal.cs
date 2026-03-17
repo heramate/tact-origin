@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using MKLibrary.MKNetwork;
@@ -10,79 +10,79 @@ namespace RACTDaemonProcess
     public static class DaemonGlobal
     {
         /// <summary>
-        /// µ¥¸ó Á¤º¸ ÀÔ´Ï´Ù.
+        /// ë°ëª¬ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         public static DaemonConfig s_DaemonConfig = null;
         /// <summary>
-        /// µ¥¸ó ½ÇÇà ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ë°ëª¬ ì‹¤í–‰ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         public static bool s_IsRun = false;
         /// <summary>
-        /// Telnet ¸í·É Ã³¸®ÇÒ Å¬·¡½º ÀÔ´Ï´Ù.
+        /// Telnet ëª…ë ¹ ì²˜ë¦¬í•  í´ë˜ìŠ¤ ì…ë‹ˆë‹¤.
         /// </summary>
         public static TelnetProcessor.TelnetProcessor s_TelnetProcessor = null;
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ®¿Í Åë½ÅÇÒ ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ì™€ í†µì‹ í•  í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static ClientCommunicationProcess s_ClientCommunicationProcess = null;
         /// <summary>
-        /// ¼­¹ö¿Í Åë½ÅÇÒ ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ì„œë²„ì™€ í†µì‹ í•  í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static ServerCommunicationProcess s_ServerCommunicationProcess = null;
         /// <summary>
-        /// ¸®¸ğÆ®Åë½ÅÀ» À§ÇÑ ¿ø°İ°´Ã¼ÀÔ´Ï´Ù.
+        /// ë¦¬ëª¨íŠ¸í†µì‹ ì„ ìœ„í•œ ì›ê²©ê°ì²´ì…ë‹ˆë‹¤.
         /// </summary>
         public static MKRemote s_ServerRemoteGateway = null;
         /// <summary>
-        /// ¿äÃ» Å¥ ÀÔ´Ï´Ù.
+        /// ìš”ì²­ í ì…ë‹ˆë‹¤.
         /// </summary>
         public static Queue<CommunicationData> s_RequestQueue = new Queue<CommunicationData>();
         /// <summary>
-        /// ¿äÃ»ÀÚ ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ìš”ì²­ì ëª©ë¡ ì…ë‹ˆë‹¤.
         /// </summary>
         public static Dictionary<int, ISenderObject> s_SenderList = new Dictionary<int, ISenderObject>();
         /// <summary>
-        /// ¼­¹ö¿¡ Á¢¼Ó µÇ¾ú´ÂÁö ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ì„œë²„ì— ì ‘ì† ë˜ì—ˆëŠ”ì§€ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         public static bool s_IsServerConnected;
         /// <summary>
-        /// µ¥¸ó Á¤º¸ ÀÔ´Ï´Ù.
+        /// ë°ëª¬ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         public static DaemonProcessInfo s_DaemonProcessInfo = null;
         /// <summary>
-        /// ·Î±× ÀúÀå¿ë ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// ë¡œê·¸ ì €ì¥ìš© í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static FileLogProcess s_FileLogProcess = null;
         /// <summary>
-        /// ¼¼¼Ç °ü¸® Å¸ÀÓ ¾Æ¿ô ½Ã°£ ÀÔ´Ï´Ù.
+        /// ì„¸ì…˜ ê´€ë¦¬ íƒ€ì„ ì•„ì›ƒ ì‹œê°„ ì…ë‹ˆë‹¤.
         /// </summary>
         public static readonly int s_HealthCheckTimeOut = 25;
         /// <summary>
         /// 2018-10-29 KANGBONGHAN
-        /// Kam¼­¹ö¿Í Åë½ÅÇÒ ÇÁ·Î¼¼¼­ ÀÔ´Ï´Ù.
+        /// Kamì„œë²„ì™€ í†µì‹ í•  í”„ë¡œì„¸ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         public static KamServerCommunicationProcess s_KamServerCommunicationProcess = null;
 		/// <summary>
-        /// Kam¼­¹ö¿Í ¸®¸ğÆ®Åë½ÅÀ» À§ÇÑ ¿ø°İ°´Ã¼ÀÔ´Ï´Ù.
+        /// Kamì„œë²„ì™€ ë¦¬ëª¨íŠ¸í†µì‹ ì„ ìœ„í•œ ì›ê²©ê°ì²´ì…ë‹ˆë‹¤.
         /// </summary>
         public static MKRemote s_KamServerRemoteGateway = null;
         /// <summary>
-        /// KamServerCommunication Thread ½ÇÇà ¿©ºÎ  
+        /// KamServerCommunication Thread ì‹¤í–‰ ì—¬ë¶€  
         /// </summary>
         public static bool s_IsKamRun = false;
         /// <summary>
-        /// KAM Å¥ ÀÔ´Ï´Ù.
+        /// KAM í ì…ë‹ˆë‹¤.
         /// </summary>
         public static Queue<CommunicationData> s_RequestKamQueue = new Queue<CommunicationData>();
         /// <summary>
-        /// KAM ¼­¹ö¿¡ Á¢¼Ó µÇ¾ú´ÂÁö ¿©ºÎ ÀÔ´Ï´Ù.
+        /// KAM ì„œë²„ì— ì ‘ì† ë˜ì—ˆëŠ”ì§€ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         public static bool s_IsKamServerConnected;
 
         /// <summary>
-        /// ÁöÁ¤ÇÑ Å¬¶óÀÌ¾ğÆ®¿¡ °á°ú¸¦ Àü¼ÛÇÕ´Ï´Ù.
+        /// ì§€ì •í•œ í´ë¼ì´ì–¸íŠ¸ì— ê²°ê³¼ë¥¼ ì „ì†¡í•©ë‹ˆë‹¤.
         /// </summary>		
-        /// <param name="aResult">°á°ú µ¥ÀÌÅÍ ÀÔ´Ï´Ù.</param>
+        /// <param name="aResult">ê²°ê³¼ ë°ì´í„° ì…ë‹ˆë‹¤.</param>
         public static void SendResultClient(ResultCommunicationData aResult)
         {
             if (s_ClientCommunicationProcess != null)
@@ -96,9 +96,9 @@ namespace RACTDaemonProcess
         }
 
         /// <summary>
-        /// ÅÍ³Î¸µ ¿äÃ» °á°ú ¹İÈ¯ ÈÄ Å¬¶óÀÌ¾ğÆ®ÀÇ ¿äÃ»À» Àü¼Û ÇÕ´Ï´Ù.
+        /// í„°ë„ë§ ìš”ì²­ ê²°ê³¼ ë°˜í™˜ í›„ í´ë¼ì´ì–¸íŠ¸ì˜ ìš”ì²­ì„ ì „ì†¡ í•©ë‹ˆë‹¤.
         /// </summary>		
-        /// <param name="aResult">°á°ú µ¥ÀÌÅÍ ÀÔ´Ï´Ù.</param>
+        /// <param name="aResult">ê²°ê³¼ ë°ì´í„° ì…ë‹ˆë‹¤.</param>
         public static void SendRequsetSSHTunnel(RequestCommunicationData aResult)
         {
             if (s_ClientCommunicationProcess != null)
@@ -112,10 +112,10 @@ namespace RACTDaemonProcess
         }
 
         /// <summary>
-        /// ¿äÃ» µ¥ÀÌÅÍ¸¦ Àü¼ÛÇÕ´Ï´Ù.
+        /// ìš”ì²­ ë°ì´í„°ë¥¼ ì „ì†¡í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="vSender">Àü¼ÛÀÚ ÀÔ´Ï´Ù.</param>
-        /// <param name="vCommunicationData">Àü¼Û µ¥ÀÌÅÍ ÀÔ´Ï´Ù.</param>
+        /// <param name="vSender">ì „ì†¡ì ì…ë‹ˆë‹¤.</param>
+        /// <param name="vCommunicationData">ì „ì†¡ ë°ì´í„° ì…ë‹ˆë‹¤.</param>
         public static void SendDaemonRequestData(ISenderObject vSender, CommunicationData vCommunicationData)
         {
             if (vSender != null)
@@ -129,7 +129,7 @@ namespace RACTDaemonProcess
             }
         }
         /// <summary>
-        /// ¾²·¹µå¸¦ °­Á¦ Á¾·áÇÕ´Ï´Ù.
+        /// ì“°ë ˆë“œë¥¼ ê°•ì œ ì¢…ë£Œí•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aThread"></param>
         public static void StopThread(Thread aThread)
@@ -150,9 +150,9 @@ namespace RACTDaemonProcess
         }
 
         /// <summary>
-        /// ¿äÃ» Àü¼ÛÀÚ¸¦ Ãß°¡ ÇÕ´Ï´Ù.
+        /// ìš”ì²­ ì „ì†¡ìë¥¼ ì¶”ê°€ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="vSender">Àü¼ÛÀÚ ÀÔ´Ï´Ù.</param>
+        /// <param name="vSender">ì „ì†¡ì ì…ë‹ˆë‹¤.</param>
         public static void AddSender(ISenderObject vSender)
         {
             lock (s_SenderList)
@@ -165,11 +165,11 @@ namespace RACTDaemonProcess
         }
 
         /// <summary>
-        /// ·Î±×ÀÎ ¹× ¼­¹ö ¿¬°áÀ» Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ì¸ ë° ì„œë²„ ì—°ê²°ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="vID">»ç¿ëÀÚ ¾ÆÀÌµğ ÀÔ´Ï´Ù.</param>
-        /// <param name="vPwd">»ç¿ëÀÚ ÆĞ½º¿öµå ÀÔ´Ï´Ù.</param>
-        /// <param name="vIPAddress">»ç¿ëÀÚ ¾ÆÀÌÇÇ ÁÖ¼Ò ÀÔ´Ï´Ù.</param>
+        /// <param name="vID">ì‚¬ìš©ì ì•„ì´ë”” ì…ë‹ˆë‹¤.</param>
+        /// <param name="vPwd">ì‚¬ìš©ì íŒ¨ìŠ¤ì›Œë“œ ì…ë‹ˆë‹¤.</param>
+        /// <param name="vIPAddress">ì‚¬ìš©ì ì•„ì´í”¼ ì£¼ì†Œ ì…ë‹ˆë‹¤.</param>
         public static bool LoginConnect()
         {
             string tLogMessage = "";
@@ -178,7 +178,7 @@ namespace RACTDaemonProcess
             {
                 RemoteClientMethod tSPO = (RemoteClientMethod)DaemonGlobal.s_ServerRemoteGateway.ServerObject;
 
-                // 2019.01.25 KwonTaeSuk È¯°æ¼³Á¤ÆÄÀÏ Á¤¸®(DaemonLauncherConfig.xml, DaemonProcessConfig.xml)
+                // 2019.01.25 KwonTaeSuk í™˜ê²½ì„¤ì •íŒŒì¼ ì •ë¦¬(DaemonLauncherConfig.xml, DaemonProcessConfig.xml)
                 //DaemonLoginResultInfo tConnectResult = (DaemonLoginResultInfo)ObjectConverter.GetObject(tSPO.CallDaemonConnectHandler(DaemonGlobal.s_DaemonConfig.DaemonIP, DaemonGlobal.s_DaemonConfig.DaemonPort,DaemonConfig.s_DaemonRemoteChannelName));
                 DaemonLoginResultInfo tConnectResult = (DaemonLoginResultInfo)ObjectConverter.GetObject(tSPO.CallDaemonConnectHandler(DaemonGlobal.s_DaemonConfig.DaemonIP, DaemonGlobal.s_DaemonConfig.DaemonPort, DaemonGlobal.s_DaemonConfig.DaemonChannelName));
                 if (tConnectResult.LoginResult != E_LoginResult.Success)
@@ -187,7 +187,7 @@ namespace RACTDaemonProcess
                 }
                 else
                 {
-                    //AppGlobal.s_FileLog.PrintLogEnter("·Î±×ÀÎ¿¡ " + s_LoginResult.Result.ToString() + "Çß½À´Ï´Ù. " + DateTime.Now.ToString());
+                    //AppGlobal.s_FileLog.PrintLogEnter("ë¡œê·¸ì¸ì— " + s_LoginResult.Result.ToString() + "í–ˆìŠµë‹ˆë‹¤. " + DateTime.Now.ToString());
                     // AppGlobal.s_FileLog.PrintLogEnter("[Login] : " + tLogMessage);
                     DaemonGlobal.s_DaemonProcessInfo = tConnectResult.DaemonInfo;
                     return true;
@@ -195,7 +195,7 @@ namespace RACTDaemonProcess
             }
             catch (Exception ex)
             {
-                //AppGlobal.ShowMessage(AppGlobal.s_ClientMainForm, "¼­¹ö¿Í ¿¬°áÇÒ ¼ö ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //AppGlobal.ShowMessage(AppGlobal.s_ClientMainForm, "ì„œë²„ì™€ ì—°ê²°í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 // AppGlobal.s_FileLog.PrintLogEnter(ex.ToString() + DateTime.Now.ToString());
             }
             return false;

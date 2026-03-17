@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------------------
+﻿/* ---------------------------------------------------------------------------
  *
  * Copyright (c) Routrek Networks, Inc.    All Rights Reserved..
  * 
@@ -255,7 +255,7 @@ namespace Routrek.PKI
 			for(int i = 0; i < pad.Length; i++) {
 				byte[] b = new byte[1];
 				rand.NextBytes(b);
-				while(b[0] == 0) rand.NextBytes(b); //0�ł͂��߂�
+				while(b[0] == 0) rand.NextBytes(b); //0궳궼궬귕궬
 				pad[i] = b[0];
 			}
 

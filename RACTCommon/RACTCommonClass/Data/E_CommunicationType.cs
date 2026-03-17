@@ -153,6 +153,11 @@ namespace RACTCommonClass
         /// 터미널 접속 요청 로그
         /// </summary>
         RequestOpenDeviceConnectionLog,
+
+        /// <summary>
+        /// 20260213 ShinMyungsu  User별 장비접속권한(MangTypeCd 망구분) 클라이언트에서 망구분(MangTypeCd)체크시
+        /// </summary>
+        RequestSearchDeviceAuth,
         /// <summary>
         /// 터미널 종료 요청 로그
         /// </summary>

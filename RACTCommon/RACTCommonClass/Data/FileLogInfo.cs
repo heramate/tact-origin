@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,21 +7,21 @@ namespace RACTCommonClass
     public class FileLogInfo
     {
         /// <summary>
-        /// Log Type ÀÔ´Ï´Ù.
+        /// Log Type ì…ë‹ˆë‹¤.
         /// </summary>
         private E_FileLogType m_LogType = E_FileLogType.Infomation;
         /// <summary>
-        /// Log ¸Ş½ÃÁö ÀÔ´Ï´Ù.
+        /// Log ë©”ì‹œì§€ ì…ë‹ˆë‹¤.
         /// </summary>
         private string m_Message;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ìì…ë‹ˆë‹¤.
         /// </summary>
         public FileLogInfo() { }
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ìì…ë‹ˆë‹¤.
         /// </summary>
         public FileLogInfo(E_FileLogType aLogType, string aMessage)
         {
@@ -30,7 +30,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// Log ¸Ş½ÃÁö °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Log ë©”ì‹œì§€ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public string Message
         {
@@ -40,7 +40,7 @@ namespace RACTCommonClass
 
 
         /// <summary>
-        /// Log Type °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Log Type ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public E_FileLogType LogType
         {

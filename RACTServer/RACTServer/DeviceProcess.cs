@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+Ôªøusing MKLibrary.MKData;
 using RACTCommonClass;
-using System.Collections;
-using MKLibrary.MKData;
+using System;
 
 namespace RACTServer
 {
     public class DeviceProcess
     {
         /// <summary>
-        /// ø‰√ª¿ª √≥∏Æ «’¥œ¥Ÿ.
+        /// ÏöîÏ≤≠ÏùÑ Ï≤òÎ¶¨ Ìï©ÎãàÎã§.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestProcess(RequestCommunicationData aClientRequest)
@@ -29,7 +26,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ¿Â∫Ò ¡§∫∏∏¶ ¿¸º€«“ ∏ﬁº≠µÂ ¿‘¥œ¥Ÿ.
+        /// Ïû•ÎπÑ Ï†ïÎ≥¥Î•º Ï†ÑÏÜ°Ìï† Î©îÏÑúÎìú ÏûÖÎãàÎã§.
         /// </summary>
         /// <param name="aClientRequest"></param>
         public static void DeviceInfoReceiver(RequestCommunicationData aClientRequest)
@@ -63,12 +60,12 @@ namespace RACTServer
 
                     for (int i = 0; i < tDataSet.RecordCount; i++)
                     {
-                        
+
                         tDeviceInfo = new DeviceInfo();
                         tDeviceInfo.DeviceID = int.Parse(tDataSet["NeID"].ToString());
                         tDeviceInfo.ModelID = tDataSet.GetInt32("ModelID");
 
-                        
+
 
                         tDeviceInfo.Name = tDataSet["NeName"].ToString();
                         tDeviceInfo.ORG1Code = tDataSet["org1_id"].ToString();
@@ -76,7 +73,7 @@ namespace RACTServer
                         tDeviceInfo.BranchCode = tDataSet["org2_id"].ToString();
                         tDeviceInfo.CenterCode = tDataSet["CenterCode"].ToString();
                         tDeviceInfo.IPAddress = tDataSet["MasterIP"].ToString();
-                        
+
                         tDeviceInfo.InputFlag = (E_FlagType)(tDataSet.GetBool("InputFlag").GetHashCode());
                         tDeviceInfo.DeviceNumber = tDataSet.GetString("devicenum");
                         tDeviceInfo.DevicePartCode = tDataSet.GetInt32("ModelTypeCode");
@@ -90,10 +87,10 @@ namespace RACTServer
                         tDeviceInfo.TpoName = tDataSet.GetString("TpoName");
                         tDeviceInfo.CenterName = tDataSet.GetString("BizPlsName");
                         tDeviceInfo.DeviceGroupName = tDataSet.GetString("GroupName");
-                        // shinyn - 2012-12-13 - NE Group ID int -> string ºˆ¡§ 'B' PON(Biz) -> FOMsø¨µø ∞™ø° µ˚∏• ºˆ¡§
+                        // shinyn - 2012-12-13 - NE Group ID int -> string ÏàòÏ†ï 'B' PON(Biz) -> FOMsÏó∞Îèô Í∞íÏóê Îî∞Î•∏ ÏàòÏ†ï
                         tDeviceInfo.GroupID = tDataSet.GetString("GroupID").Length > 0 ? tDataSet.GetString("GroupID") : "-1";
 
-                        // 2013-01-11 - shinyn - ∏µ®∏Ì ±◊∏Æ∞Ì ¡¢º”¡§∫∏ ∞°¡Æø¿±‚
+                        // 2013-01-11 - shinyn - Î™®Îç∏Î™Ö Í∑∏Î¶¨Í≥† Ï†ëÏÜçÏ†ïÎ≥¥ Í∞ÄÏ†∏Ïò§Í∏∞
                         tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
 
 #if DEBUG
@@ -110,7 +107,7 @@ namespace RACTServer
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine("≈¨∂Û¿Ãæ∆Æø° ¿¸º€«œ¥¬ ¿Â∫Ò ¥Îºˆ : " + tDeviceInfoCollection.Count.ToString());
+                System.Diagnostics.Debug.WriteLine("ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ï†ÑÏÜ°ÌïòÎäî Ïû•ÎπÑ ÎåÄÏàò : " + tDeviceInfoCollection.Count.ToString());
                 if (tDeviceInfoCollection.Count > 0) tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
             }
             catch (Exception ex)
@@ -119,164 +116,168 @@ namespace RACTServer
             }
             finally
             {
-				if (tDataSet != null)
-                	MKOleDBClass.CloseDataSet(tDataSet);
+                if (tDataSet != null)
+                    MKOleDBClass.CloseDataSet(tDataSet);
             }
 
             GlobalClass.SendResultClient(tResultData);
-       }
+        }
 
         /// <summary>
-        /// ¥‹¿œ ¿Â∫Ò∏¶ ºˆ¡§«’¥œ¥Ÿ.
+        /// Îã®Ïùº Ïû•ÎπÑÎ•º ÏàòÏ†ïÌï©ÎãàÎã§.
         /// </summary>
         /// <param name="aClientRequest"></param>
-       private static void ModifyDeviceInfo(RequestCommunicationData aClientRequest)
-       {
-           ResultCommunicationData tResultData = null;
-           DeviceRequestInfo tDeviceRequestInfo;
-           DeviceInfo tDeviceInfo;
+        private static void ModifyDeviceInfo(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            DeviceRequestInfo tDeviceRequestInfo;
+            DeviceInfo tDeviceInfo;
 
-           try
-           {
-               tResultData = new ResultCommunicationData(aClientRequest);
-               tDeviceRequestInfo = (DeviceRequestInfo)aClientRequest.RequestData;
-               tDeviceInfo = tDeviceRequestInfo.DeviceInfo;
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+                tDeviceRequestInfo = (DeviceRequestInfo)aClientRequest.RequestData;
+                tDeviceInfo = tDeviceRequestInfo.DeviceInfo;
 
-               makeQuery(tDeviceRequestInfo.WorkType,tDeviceRequestInfo.UserID, tDeviceInfo);
+                makeQuery(tDeviceRequestInfo.WorkType, tDeviceRequestInfo.UserID, tDeviceInfo);
 
-               tResultData.ResultData = tDeviceInfo;
-               GlobalClass.SendResultClient(tResultData);
-           }
-           catch (Exception ex)
-           {
-               tResultData.Error.Error = E_ErrorType.UnKnownError;
-               GlobalClass.SendResultClient(tResultData);
-               Console.WriteLine(ex.Message);
-           }
-       }
+                tResultData.ResultData = tDeviceInfo;
+                GlobalClass.SendResultClient(tResultData);
+            }
+            catch (Exception ex)
+            {
+                tResultData.Error.Error = E_ErrorType.UnKnownError;
+                GlobalClass.SendResultClient(tResultData);
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         /// <summary>
-        /// ¿œ∞˝ ¿Â∫Ò µÓ∑œ ±‚¥…¿ª ºˆ«‡«’¥œ¥Ÿ.
+        /// ÏùºÍ¥Ñ Ïû•ÎπÑ Îì±Î°ù Í∏∞Îä•ÏùÑ ÏàòÌñâÌï©ÎãàÎã§.
         /// </summary>
         /// <param name="tClientRequest"></param>
-       internal static void RequestBatchRegisteration(RequestCommunicationData aClientRequest)
-       {
-           ResultCommunicationData tResultData = null;
-           DeviceCollectionRequestInfo tDeviceCollectionRequestInfo;
-           DeviceInfoCollection tDeviceInfoList;
+        internal static void RequestBatchRegisteration(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            DeviceCollectionRequestInfo tDeviceCollectionRequestInfo;
+            DeviceInfoCollection tDeviceInfoList;
 
-           try
-           {
-               tResultData = new ResultCommunicationData(aClientRequest);
-               tDeviceCollectionRequestInfo = (DeviceCollectionRequestInfo)aClientRequest.RequestData;
-               tDeviceInfoList = tDeviceCollectionRequestInfo.DeviceInfoList;
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+                tDeviceCollectionRequestInfo = (DeviceCollectionRequestInfo)aClientRequest.RequestData;
+                tDeviceInfoList = tDeviceCollectionRequestInfo.DeviceInfoList;
 
-               foreach(DeviceInfo tDeviceInfo in tDeviceInfoList)
-               {
-                   tDeviceInfo.GroupID = tDeviceCollectionRequestInfo.GroupID;
-                   tDeviceInfo.TerminalConnectInfo = tDeviceCollectionRequestInfo.ConnectionInfo;
-                   makeQuery(tDeviceCollectionRequestInfo.WorkType, tDeviceCollectionRequestInfo.UserID, tDeviceInfo);
-               }
-               tResultData.ResultData = tDeviceInfoList;
-               GlobalClass.SendResultClient(tResultData);
-           }
-           catch (Exception ex)
-           {
-               tResultData.Error.Error = E_ErrorType.UnKnownError;
-               GlobalClass.SendResultClient(tResultData);
-               Console.WriteLine(ex.Message);
-           }
-       }
+                foreach (DeviceInfo tDeviceInfo in tDeviceInfoList)
+                {
+                    tDeviceInfo.GroupID = tDeviceCollectionRequestInfo.GroupID;
+                    tDeviceInfo.TerminalConnectInfo = tDeviceCollectionRequestInfo.ConnectionInfo;
+                    makeQuery(tDeviceCollectionRequestInfo.WorkType, tDeviceCollectionRequestInfo.UserID, tDeviceInfo);
+                }
+                tResultData.ResultData = tDeviceInfoList;
+                GlobalClass.SendResultClient(tResultData);
+            }
+            catch (Exception ex)
+            {
+                tResultData.Error.Error = E_ErrorType.UnKnownError;
+                GlobalClass.SendResultClient(tResultData);
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         /// <summary>
-        /// DB∑Œ ¿¸º€«“ ƒı∏Æ∏¶ ∏∏µÏ¥œ¥Ÿ.
+        /// DBÎ°ú Ï†ÑÏÜ°Ìï† ÏøºÎ¶¨Î•º ÎßåÎì≠ÎãàÎã§.
         /// </summary>
         /// <param name="tDeviceRequestInfo"></param>
         /// <param name="tDeviceInfo"></param>
         private static void makeQuery(E_WorkType aWorkType, int aUserID, DeviceInfo aDeviceInfo)
-       {
-           MKDBWorkItem tDBWI = null;
-           MKDataSet tDataSet = null;
-           string tQueryString = "";
+        {
+            MKDBWorkItem tDBWI = null;
+            MKDataSet tDataSet = null;
+            string tQueryString = "";
 
 
-           // 2013-01-18 - shinyn - ºˆµø¿Â∫ÒµÓ∑œ¿ª ¿ß«— «¡∑ŒΩ√¿˙ ºˆ¡§ ¿˚øÎ
-           // 2013-05-02 - shinyn - ºˆµø¿Â∫ÒµÓ∑œø° «¡∑“«¡∆Æ ¿˙¿Â √ﬂ∞°
-           // 2013-08-09 - shinyn - MoreString, MoreMark ¿˙¿Â
-           tQueryString = "EXEC SP_RACT_MODIFY_DEVICEINFO {0},{1},{2},{3},{4},{5},{6},'{7}',{8},{9},{10},{11},{12}," +
-                          "'{13}','{14}','{15}','{16}','{17}','{18}','{19}','{20}','{21}','{22}','{23}','{24}','{25}','{26}','{27}'";
+            // 2013-01-18 - shinyn - ÏàòÎèôÏû•ÎπÑÎì±Î°ùÏùÑ ÏúÑÌïú ÌîÑÎ°úÏãúÏ†Ä ÏàòÏ†ï Ï†ÅÏö©
+            // 2013-05-02 - shinyn - ÏàòÎèôÏû•ÎπÑÎì±Î°ùÏóê ÌîÑÎ°¨ÌîÑÌä∏ Ï†ÄÏû• Ï∂îÍ∞Ä
+            // 2013-08-09 - shinyn - MoreString, MoreMark Ï†ÄÏû•
+            tQueryString = "EXEC SP_RACT_MODIFY_DEVICEINFO {0},{1},{2},{3},{4},{5},{6},'{7}',{8},{9},{10},{11},{12}," +
+                           "'{13}','{14}','{15}','{16}','{17}','{18}','{19}','{20}','{21}','{22}','{23}','{24}','{25}','{26}','{27}'";
 
-           try
-           {
-               switch (aDeviceInfo.DeviceType)
-               {
-                   case E_DeviceType.NeGroup:
-                       tQueryString = string.Format(tQueryString, (int)aWorkType,
-                                       aDeviceInfo.GroupID,
-                                       aUserID,
-                                       aDeviceInfo.DeviceID,
-                                       (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol,
-                                       (int)aDeviceInfo.DeviceType,
-                                       aDeviceInfo.TerminalConnectInfo.TelnetPort,
-                                       aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName,
-                                       aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate,
-                                       aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits,
-                                       (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity,
-                                       (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits,
-                                       (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake,
-                                       "", "", "", "", "", "", "", "", "", "", "", "", "",
-                                       aDeviceInfo.MoreString,
-                                       aDeviceInfo.MoreMark);
-                       break;
-                   case E_DeviceType.UserNeGroup:
-                       tQueryString = string.Format(tQueryString, (int)aWorkType,
-                                       aDeviceInfo.GroupID,
-                                       aUserID,
-                                       aDeviceInfo.DeviceID,
-                                       (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol,
-                                       (int)aDeviceInfo.DeviceType,
-                                       aDeviceInfo.TerminalConnectInfo.TelnetPort,
-                                       aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName,
-                                       aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate,
-                                       aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits,
-                                       (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity,
-                                       (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits,
-                                       (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake,
-                                       aDeviceInfo.ModelName,
-                                       aDeviceInfo.IPAddress,
-                                       aDeviceInfo.TelnetID1,
-                                       aDeviceInfo.TelnetPwd1,
-                                       aDeviceInfo.TelnetID2,
-                                       aDeviceInfo.TelnetPwd2,
-                                       aDeviceInfo.Name,
-                                       aDeviceInfo.TpoName,
-                                       aDeviceInfo.WAIT,
-                                       aDeviceInfo.USERID,
-                                       aDeviceInfo.PWD,
-                                       aDeviceInfo.USERID2,
-                                       aDeviceInfo.PWD2,
-                                       aDeviceInfo.MoreString,
-                                       aDeviceInfo.MoreMark);
-                       break;
-               }
-           }
-           catch (Exception ex)
-           {
-               System.Diagnostics.Debug.Write(ex.ToString());
-           }
+            try
+            {
+                switch (aDeviceInfo.DeviceType)
+                {
+                    case E_DeviceType.NeGroup:
+                        tQueryString = string.Format(tQueryString, (int)aWorkType,
+                                        aDeviceInfo.GroupID,
+                                        aUserID,
+                                        aDeviceInfo.DeviceID,
+                                        (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol,
+                                        (int)aDeviceInfo.DeviceType,
+                                        aDeviceInfo.TerminalConnectInfo.TelnetPort,
+                                        aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName,
+                                        aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate,
+                                        aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits,
+                                        (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity,
+                                        (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits,
+                                        (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake,
+                                        "", "", "", "", "", "", "", "", "", "", "", "", "",
+                                        aDeviceInfo.MoreString,
+                                        aDeviceInfo.MoreMark);
+                        break;
+                    case E_DeviceType.UserNeGroup:
+                        tQueryString = string.Format(tQueryString, (int)aWorkType,
+                                        aDeviceInfo.GroupID,
+                                        aUserID,
+                                        aDeviceInfo.DeviceID,
+                                        (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol,
+                                        (int)aDeviceInfo.DeviceType,
+                                        aDeviceInfo.TerminalConnectInfo.TelnetPort,
+                                        aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName,
+                                        aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate,
+                                        aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits,
+                                        (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity,
+                                        (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits,
+                                        (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake,
+                                        aDeviceInfo.ModelName,
+                                        aDeviceInfo.IPAddress,
+                                        aDeviceInfo.TelnetID1,
+                                        aDeviceInfo.TelnetPwd1,
+                                        aDeviceInfo.TelnetID2,
+                                        aDeviceInfo.TelnetPwd2,
+                                        aDeviceInfo.Name,
+                                        aDeviceInfo.TpoName,
+                                        aDeviceInfo.WAIT,
+                                        aDeviceInfo.USERID,
+                                        aDeviceInfo.PWD,
+                                        aDeviceInfo.USERID2,
+                                        aDeviceInfo.PWD2,
+                                        aDeviceInfo.MoreString,
+                                        aDeviceInfo.MoreMark);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.Write(ex.ToString());
+            }
 
-           tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-           if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
-           {
-               Console.WriteLine(tDBWI.ExecuteQuery(tQueryString, out tDataSet));
-           }
-		   
-		   if (tDataSet != null)
-           		MKOleDBClass.CloseDataSet(tDataSet);
+            tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
+            if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+            {
+                Console.WriteLine(tDBWI.ExecuteQuery(tQueryString, out tDataSet));
+            }
 
-       }
+            if (tDataSet != null)
+                MKOleDBClass.CloseDataSet(tDataSet);
 
-        internal static void RequestFactDeviceSearchProcess(RequestCommunicationData aClientRequest)
+        }
+        /// <summary>
+        /// 20260227  ShinMyungsu  USERÏ†ëÍ∑ºÍ∂åÌïú  GetMangKb Ï∂îÍ∞Ä
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        /// <param name="GetMangKb">ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÏÑú MangTypeCdÎ•º Ï≤¥ÌÅ¨ÌïòÎäîÏßÄ Ïó¨Î∂Ä, True :Ï≤¥ÌÅ¨, False : Ï≤¥ÌÅ¨ÌïòÏßÄ ÏïäÎäîÎã§</param>
+        internal static void RequestFactDeviceSearchProcess(RequestCommunicationData aClientRequest, bool GetMangKb = false)
         {
             ResultCommunicationData tResultData = null;
             DeviceInfoCollection tDeviceInfoCollection = new DeviceInfoCollection();
@@ -291,17 +292,25 @@ namespace RACTServer
                 tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(aClientRequest.ClientID);
                 DeviceSearchInfo tSearchInfo = aClientRequest.RequestData as DeviceSearchInfo;
 
-                // ±πº“∏Ì¿∏∑Œ ∞Àªˆ«œ¥¬ ±‚¥…√ﬂ∞°
-                tQueryString = "EXEC SP_RACT_GET_SearchDEVICEINFO '{0}','{1}','{2}',{3},{4},'{5}','{6}','{7}','{8}','{9}', {10}";
-
-
+                // Íµ≠ÏÜåÎ™ÖÏúºÎ°ú Í≤ÄÏÉâÌïòÎäî Í∏∞Îä•Ï∂îÍ∞Ä
+                // 20260209 ShinMyungsu UserÎ≥Ñ Ïû•ÎπÑÏ†ëÍ∑ºÍ∂åÌïú MangTypeCd(ÎßùÍµ¨Î∂Ñ) Ï∂îÍ∞Ä
+                tQueryString = "EXEC SP_RACT_GET_SearchDEVICEINFO '{0}','{1}','{2}',{3},{4},'{5}','{6}','{7}','{8}','{9}', {10}, '{11}'";
+                //tQueryString = "EXEC SP_RACT_GET_SearchDEVICEINFO '{0}','{1}','{2}',{3},{4},'{5}','{6}','{7}','{8}','{9}', {10}";
 
                 string tCenterCode = tSearchInfo.IsCheckPermission ? tUserInfo.GetCenterCode : "";
 
+                // 20260209 ShinMyungsu UserÎ≥Ñ Ïû•ÎπÑÏ†ëÍ∑ºÍ∂åÌïú MangTypeCd(ÎßùÍµ¨Î∂Ñ) Ï∂îÍ∞Ä
+                // 20260227 ShinMyungsu ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÏÑú MangTypeCd(ÎßùÍµ¨Î∂Ñ)ÏùÑ Ï≤¥ÌÅ¨ÌïòÎäî Í≤ΩÏö∞ Ï†ÅÏö©
+                string tMangTypeCd = "";
+                if (!GetMangKb)
+                {
+                    tMangTypeCd = tUserInfo.GetMangType;
+                }
+                //===================================================================================
 
                 if (tSearchInfo.SelectFACTGroupInfo != null && !tSearchInfo.SelectFACTGroupInfo.ORG1Code.Equals("0"))
                 {
-                    // ±πº“∏Ì¿∏∑Œ ∞Àªˆ«œ¥¬ ±‚¥…√ﬂ∞°
+                    // Íµ≠ÏÜåÎ™ÖÏúºÎ°ú Í≤ÄÏÉâÌïòÎäî Í∏∞Îä•Ï∂îÍ∞Ä
                     tQueryString = string.Format(tQueryString
                         , tCenterCode
                         , tSearchInfo.DeviceIPAddress
@@ -313,12 +322,13 @@ namespace RACTServer
                         , tSearchInfo.SelectFACTGroupInfo.BranchCode
                         , tSearchInfo.SelectFACTGroupInfo.ORG1Code
                         , tSearchInfo.TpoName
-                        , tSearchInfo.IPTyep);
+                        , tSearchInfo.IPTyep
+                        , tMangTypeCd);     // 20260209 ShinMyungsu UserÎ≥Ñ Ïû•ÎπÑÏ†ëÍ∑ºÍ∂åÌïú MangTypeCd(ÎßùÍµ¨Î∂Ñ) Ï∂îÍ∞Ä 
 
                 }
                 else
                 {
-                    // ±πº“∏Ì¿∏∑Œ ∞Àªˆ«œ¥¬ ±‚¥…√ﬂ∞°
+                    // Íµ≠ÏÜåÎ™ÖÏúºÎ°ú Í≤ÄÏÉâÌïòÎäî Í∏∞Îä•Ï∂îÍ∞Ä
                     tQueryString = string.Format(tQueryString,
                                                  tCenterCode,
                                                  tSearchInfo.DeviceIPAddress,
@@ -330,7 +340,8 @@ namespace RACTServer
                                                  "",
                                                  "",
                                                  tSearchInfo.TpoName,
-                                                 tSearchInfo.IPTyep);
+                                                 tSearchInfo.IPTyep,
+                                                 tMangTypeCd);     // 20260209 ShinMyungsu UserÎ≥Ñ Ïû•ÎπÑÏ†ëÍ∑ºÍ∂åÌïú MangTypeCd(ÎßùÍµ¨Î∂Ñ) Ï∂îÍ∞Ä      
                 }
 
                 tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
@@ -345,7 +356,7 @@ namespace RACTServer
                     DeviceInfo tDeviceInfo;
                     tDeviceInfoCollection = new DeviceInfoCollection();
 
-                    // 2013-05-16- shinyn - ∫¸∏•ø¨∞· ø¿∑˘ πﬂª˝
+                    // 2013-05-16- shinyn - Îπ†Î•∏Ïó∞Í≤∞ Ïò§Î•ò Î∞úÏÉù
                     if (tDataSet.RecordCount < 1)
                     {
                         tDeviceInfoCollection.Add(new DeviceInfo());
@@ -376,18 +387,21 @@ namespace RACTServer
                         tDeviceInfo.TpoName = tDataSet.GetString("TpoName");
                         tDeviceInfo.CenterName = tDataSet.GetString("BizPlsName");
                         tDeviceInfo.DeviceGroupName = tDataSet.GetString("GroupName");
-                        // shinyn - 2012-12-13 - NE Group ID int -> string ºˆ¡§ 'B' PON(Biz) -> FOMsø¨µø ∞™ø° µ˚∏• ºˆ¡§
+                        // shinyn - 2012-12-13 - NE Group ID int -> string ÏàòÏ†ï 'B' PON(Biz) -> FOMsÏó∞Îèô Í∞íÏóê Îî∞Î•∏ ÏàòÏ†ï
                         tDeviceInfo.GroupID = tDataSet.GetString("GroupID").Length > 0 ? tDataSet.GetString("GroupID") : "-1";
 
-                        // 2013-01-11 - shinyn - ∏µ®∏Ì ∞°¡Æø¿±‚
+                        // 2013-01-11 - shinyn - Î™®Îç∏Î™Ö Í∞ÄÏ†∏Ïò§Í∏∞
                         tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
 
-                        // ±πº“∏Ì¿∏∑Œ ¡∂»∏«—∞·∞˙ π›»Ø
+                        // Íµ≠ÏÜåÎ™ÖÏúºÎ°ú Ï°∞ÌöåÌïúÍ≤∞Í≥º Î∞òÌôò
                         tDeviceInfo.TpoName = tDataSet.GetString("TpoName");
 
-                        //¿Â∫Ò ø¨∞·Ω√ ªÁøÎ«œ¥¬ ∫Øºˆ ∫Ø∞Ê
-                        // TerminalConnectInfo ∏¶ »∞øÎ«“ ºˆ ¿÷µµ∑œ ºˆ¡§ ≈◊Ω∫∆Æ
+                        //Ïû•ÎπÑ Ïó∞Í≤∞Ïãú ÏÇ¨Ïö©ÌïòÎäî Î≥ÄÏàò Î≥ÄÍ≤Ω
+                        // TerminalConnectInfo Î•º ÌôúÏö©Ìï† Ïàò ÏûàÎèÑÎ°ù ÏàòÏ†ï ÌÖåÏä§Ìä∏
                         tDeviceInfo.TerminalConnectInfo.IPAddress = tDeviceInfo.IPAddress;
+
+                        //20260227 ShinMyungsu  USERÏ†ëÍ∑ºÍ∂åÌïú  ÏÇ¨Ïö©ÏûêÏùò ÎßùÍµ¨Î∂ÑÏúºÎ°ú Ï†ëÏÜçÍ∂åÌïúÏùÑ Ï≤¥ÌÅ¨ÌïòÍ∏∞ ÏúÑÌï¥ÏÑú , MangTypeCd (ÎßùÍµ¨Î∂Ñ)
+                        tDeviceInfo.MangTypeCd = tDataSet.GetString("MangTypeCd");
 
 #if DEBUG
                         /*
@@ -409,7 +423,7 @@ namespace RACTServer
 
 
 
-                System.Diagnostics.Debug.WriteLine("≈¨∂Û¿Ãæ∆Æø° ¿¸º€«œ¥¬ ¿Â∫Ò ¥Îºˆ : " + tDeviceInfoCollection.Count.ToString());
+                System.Diagnostics.Debug.WriteLine("ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ï†ÑÏÜ°ÌïòÎäî Ïû•ÎπÑ ÎåÄÏàò : " + tDeviceInfoCollection.Count.ToString());
 
                 tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
 
@@ -428,160 +442,160 @@ namespace RACTServer
             GlobalClass.SendResultClient(tResultData);
         }
 
-       /// <summary>
-       /// 2013-05-02- shinyn - ¿œπ›¿Â∫Ò, ªÁøÎ¿⁄µÓ∑œ¿Â∫Òø° µ˚∂Û ¿Â∫Ò∏ÆΩ∫∆Æ ¡∂»∏«œ±‚.
-       /// </summary>
-       /// <param name="aClientRequest"></param>
-       internal static void RequestSearchDeviceForType(RequestCommunicationData aClientRequest)
-       {
-           ResultCommunicationData tResultData = null;
-           DeviceInfoCollection tDeviceInfoCollection = new DeviceInfoCollection();
-           UserInfo tUserInfo = null;
-           MKDBWorkItem tDBWI = null;
-           MKDataSet tDataSet = null;
-           string tQueryString = "";
+        /// <summary>
+        /// 2013-05-02- shinyn - ÏùºÎ∞òÏû•ÎπÑ, ÏÇ¨Ïö©ÏûêÎì±Î°ùÏû•ÎπÑÏóê Îî∞Îùº Ïû•ÎπÑÎ¶¨Ïä§Ìä∏ Ï°∞ÌöåÌïòÍ∏∞.
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        internal static void RequestSearchDeviceForType(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            DeviceInfoCollection tDeviceInfoCollection = new DeviceInfoCollection();
+            UserInfo tUserInfo = null;
+            MKDBWorkItem tDBWI = null;
+            MKDataSet tDataSet = null;
+            string tQueryString = "";
 
-           try
-           {
-               tResultData = new ResultCommunicationData(aClientRequest);
-               tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(aClientRequest.ClientID);
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+                tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(aClientRequest.ClientID);
 
-               // 0:¿Â∫Ò±∏∫– 1:æ∆¿Ã««¡÷º“ 2:ªÁøÎ¿⁄æ∆¿Ãµ 
-               string[] tArrRequest = aClientRequest.RequestData as string[];
+                // 0:Ïû•ÎπÑÍµ¨Î∂Ñ 1:ÏïÑÏù¥ÌîºÏ£ºÏÜå 2:ÏÇ¨Ïö©ÏûêÏïÑÏù¥Îîî 
+                string[] tArrRequest = aClientRequest.RequestData as string[];
 
-               tQueryString = "EXEC SP_RACT_SEARCH_DEVICE_FOR_TYPE '{0}','{1}',{2}; ";
-               tQueryString = string.Format(tQueryString,
-                                            tArrRequest[0],
-                                            tArrRequest[1],
-                                            tArrRequest[2]);
+                tQueryString = "EXEC SP_RACT_SEARCH_DEVICE_FOR_TYPE '{0}','{1}',{2}; ";
+                tQueryString = string.Format(tQueryString,
+                                             tArrRequest[0],
+                                             tArrRequest[1],
+                                             tArrRequest[2]);
 
-               tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-               if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
-               {
-                   System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                   tResultData.Error.Error = E_ErrorType.UnKnownError;
-                   tResultData.Error.ErrorString = tDBWI.ErrorString;
-               }
-               else
-               {
-                   DeviceInfo tDeviceInfo;
-                   tDeviceInfoCollection = new DeviceInfoCollection();
+                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
+                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
+                    tResultData.Error.Error = E_ErrorType.UnKnownError;
+                    tResultData.Error.ErrorString = tDBWI.ErrorString;
+                }
+                else
+                {
+                    DeviceInfo tDeviceInfo;
+                    tDeviceInfoCollection = new DeviceInfoCollection();
 
-                   for (int i = 0; i < tDataSet.RecordCount; i++)
-                   {
+                    for (int i = 0; i < tDataSet.RecordCount; i++)
+                    {
 
-                       tDeviceInfo = new DeviceInfo();
-                       tDeviceInfo.DeviceID = int.Parse(tDataSet["NeID"].ToString());
-                       tDeviceInfo.Name = tDataSet["NeName"].ToString();
+                        tDeviceInfo = new DeviceInfo();
+                        tDeviceInfo.DeviceID = int.Parse(tDataSet["NeID"].ToString());
+                        tDeviceInfo.Name = tDataSet["NeName"].ToString();
 
-                       tDeviceInfo.IPAddress = tDataSet["MasterIP"].ToString();
+                        tDeviceInfo.IPAddress = tDataSet["MasterIP"].ToString();
 
-                       tDeviceInfo.TelnetID1 = tDataSet.GetString("TelnetID_1").Trim();
-                       tDeviceInfo.TelnetID2 = tDataSet.GetString("TelnetID_2").Trim();
-                       tDeviceInfo.TelnetPwd1 = tDataSet.GetString("Passwd_1").Trim();
-                       tDeviceInfo.TelnetPwd2 = tDataSet.GetString("Passwd_2").Trim();
+                        tDeviceInfo.TelnetID1 = tDataSet.GetString("TelnetID_1").Trim();
+                        tDeviceInfo.TelnetID2 = tDataSet.GetString("TelnetID_2").Trim();
+                        tDeviceInfo.TelnetPwd1 = tDataSet.GetString("Passwd_1").Trim();
+                        tDeviceInfo.TelnetPwd2 = tDataSet.GetString("Passwd_2").Trim();
 
-                       tDeviceInfo.ORG2Name = tDataSet.GetString("ORG2_Name");
-                       tDeviceInfo.CenterName = tDataSet.GetString("CenterName");
-                       tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
-                       tDeviceInfo.DeviceType = (E_DeviceType)tDataSet.GetInt32("DeviceType");
-                       tDeviceInfo.WAIT = tDataSet.GetString("WAIT1");
-                       tDeviceInfo.USERID = tDataSet.GetString("USERID1");
-                       tDeviceInfo.PWD = tDataSet.GetString("PWD1");
-                       tDeviceInfo.USERID2 = tDataSet.GetString("USERID2");
-                       tDeviceInfo.PWD2 = tDataSet.GetString("PWD2");
+                        tDeviceInfo.ORG2Name = tDataSet.GetString("ORG2_Name");
+                        tDeviceInfo.CenterName = tDataSet.GetString("CenterName");
+                        tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
+                        tDeviceInfo.DeviceType = (E_DeviceType)tDataSet.GetInt32("DeviceType");
+                        tDeviceInfo.WAIT = tDataSet.GetString("WAIT1");
+                        tDeviceInfo.USERID = tDataSet.GetString("USERID1");
+                        tDeviceInfo.PWD = tDataSet.GetString("PWD1");
+                        tDeviceInfo.USERID2 = tDataSet.GetString("USERID2");
+                        tDeviceInfo.PWD2 = tDataSet.GetString("PWD2");
 
-                       tDataSet.MoveNext();
+                        tDataSet.MoveNext();
 
-                       tDeviceInfoCollection.Add(tDeviceInfo);
-                   }
-               }
+                        tDeviceInfoCollection.Add(tDeviceInfo);
+                    }
+                }
 
-               System.Diagnostics.Debug.WriteLine("≈¨∂Û¿Ãæ∆Æø° ¿¸º€«œ¥¬ ¿Â∫Ò ¥Îºˆ : " + tDeviceInfoCollection.Count.ToString());
+                System.Diagnostics.Debug.WriteLine("ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ï†ÑÏÜ°ÌïòÎäî Ïû•ÎπÑ ÎåÄÏàò : " + tDeviceInfoCollection.Count.ToString());
 
-               tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
+                tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
 
-           }
-           catch (Exception ex)
-           {
-               System.Diagnostics.Debug.WriteLine(ex.ToString());
-           }
-           finally
-           {
-               if (tDataSet != null)
-                   MKOleDBClass.CloseDataSet(tDataSet);
-               tDeviceInfoCollection.Clear();
-           }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                if (tDataSet != null)
+                    MKOleDBClass.CloseDataSet(tDataSet);
+                tDeviceInfoCollection.Clear();
+            }
 
-           GlobalClass.SendResultClient(tResultData);
-       }
-
-       /// <summary>
-       /// 2017.06.21 - NoSeungPil - RCCS ∑Œ±◊¿Œ ±‚¥…√ﬂ∞°
-       /// RMS CMTS ¿Â∫Ò ¡§∫∏ ∞Àªˆ
-       /// </summary>
-       /// <param name="aClientRequest"></param>
-       internal static void RequestSearchRMSCMTSDevice(RequestCommunicationData aClientRequest)
-       {
-           ResultCommunicationData tResultData = null;
-           DeviceInfoCollection tDeviceInfoCollection = new DeviceInfoCollection();
-           MKDBWorkItem tDBWI = null;
-           MKDataSet tDataSet = null;
-           string tQueryString = "";
-
-           try
-           {
-               tResultData = new ResultCommunicationData(aClientRequest);
-               DeviceSearchInfo tSearchInfo = aClientRequest.RequestData as DeviceSearchInfo;
-
-               tQueryString = "SELECT TOP 1 [lgname] ,[lgpwd] FROM [FACT_MAIN].[dbo].[FOMS_RMS_CMTS_DEVICE] WHERE [cmtsid] = '{0}'; ";
-               tQueryString = string.Format(tQueryString,
-                                            tSearchInfo.DeviceIPAddress);
-
-               tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-               if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
-               {
-                   System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                   tResultData.Error.Error = E_ErrorType.UnKnownError;
-                   tResultData.Error.ErrorString = tDBWI.ErrorString;
-               }
-               else
-               {
-                   DeviceInfo tDeviceInfo = new DeviceInfo();
-
-                   if (tDataSet != null)
-                   {
-                       for (int i = 0; i < tDataSet.RecordCount; i++)
-                       {
-                           tDeviceInfo.IPAddress = tSearchInfo.DeviceIPAddress;
-                           tDeviceInfo.TelnetID1 = tDataSet.GetString("lgname").Trim();
-                           tDeviceInfo.TelnetPwd1 = tDataSet.GetString("lgpwd").Trim();
-                       }
-                   }
-
-                   tDeviceInfoCollection.Add(tDeviceInfo);
-
-               }
-
-               tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
-
-           }
-           catch (Exception ex)
-           {
-               System.Diagnostics.Debug.WriteLine(ex.ToString());
-           }
-           finally
-           {
-               if (tDataSet != null)
-                   MKOleDBClass.CloseDataSet(tDataSet);
-               tDeviceInfoCollection.Clear();
-           }
-
-           GlobalClass.SendResultClient(tResultData);
-       }
+            GlobalClass.SendResultClient(tResultData);
+        }
 
         /// <summary>
-        /// 2013-04-22 - shinyn - ø©∑Ø¥Î¿« IP ¿Â∫Ò∏ÆΩ∫∆Æ∏¶ ∫“∑Øø…¥œ¥Ÿ.
+        /// 2017.06.21 - NoSeungPil - RCCS Î°úÍ∑∏Ïù∏ Í∏∞Îä•Ï∂îÍ∞Ä
+        /// RMS CMTS Ïû•ÎπÑ Ï†ïÎ≥¥ Í≤ÄÏÉâ
+        /// </summary>
+        /// <param name="aClientRequest"></param>
+        internal static void RequestSearchRMSCMTSDevice(RequestCommunicationData aClientRequest)
+        {
+            ResultCommunicationData tResultData = null;
+            DeviceInfoCollection tDeviceInfoCollection = new DeviceInfoCollection();
+            MKDBWorkItem tDBWI = null;
+            MKDataSet tDataSet = null;
+            string tQueryString = "";
+
+            try
+            {
+                tResultData = new ResultCommunicationData(aClientRequest);
+                DeviceSearchInfo tSearchInfo = aClientRequest.RequestData as DeviceSearchInfo;
+
+                tQueryString = "SELECT TOP 1 [lgname] ,[lgpwd] FROM [FACT_MAIN].[dbo].[FOMS_RMS_CMTS_DEVICE] WHERE [cmtsid] = '{0}'; ";
+                tQueryString = string.Format(tQueryString,
+                                             tSearchInfo.DeviceIPAddress);
+
+                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
+                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
+                    tResultData.Error.Error = E_ErrorType.UnKnownError;
+                    tResultData.Error.ErrorString = tDBWI.ErrorString;
+                }
+                else
+                {
+                    DeviceInfo tDeviceInfo = new DeviceInfo();
+
+                    if (tDataSet != null)
+                    {
+                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        {
+                            tDeviceInfo.IPAddress = tSearchInfo.DeviceIPAddress;
+                            tDeviceInfo.TelnetID1 = tDataSet.GetString("lgname").Trim();
+                            tDeviceInfo.TelnetPwd1 = tDataSet.GetString("lgpwd").Trim();
+                        }
+                    }
+
+                    tDeviceInfoCollection.Add(tDeviceInfo);
+
+                }
+
+                tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                if (tDataSet != null)
+                    MKOleDBClass.CloseDataSet(tDataSet);
+                tDeviceInfoCollection.Clear();
+            }
+
+            GlobalClass.SendResultClient(tResultData);
+        }
+
+        /// <summary>
+        /// 2013-04-22 - shinyn - Ïó¨Îü¨ÎåÄÏùò IP Ïû•ÎπÑÎ¶¨Ïä§Ìä∏Î•º Î∂àÎü¨ÏòµÎãàÎã§.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestFactIPDeviceSearchProcess(RequestCommunicationData aClientRequest)
@@ -605,7 +619,9 @@ namespace RACTServer
                 string tIPTyep = IPDeviceSearch[0];
                 string tIPList = IPDeviceSearch[1];
 
-                tQueryString = "EXEC SP_RACT_GET_SearchDEVICEINFO_IPList '{0}' , {1};";
+                // 20260211 ShinMyungsu UserÎ≥Ñ Ïû•ÎπÑÏ†ëÍ∑ºÍ∂åÌïú MangTypeCd(ÎßùÍµ¨Î∂Ñ) Ï∂îÍ∞Ä
+                tQueryString = "EXEC SP_RACT_GET_SearchDEVICEINFO_IPList '{0}' , {1}, '{2}';";
+                //tQueryString = "EXEC SP_RACT_GET_SearchDEVICEINFO_IPList '{0}' , {1};";
 
                 tQueryString = string.Format(tQueryString, tIPList, tIPTyep);
 
@@ -646,10 +662,10 @@ namespace RACTServer
                         tDeviceInfo.TpoName = tDataSet.GetString("TpoName");
                         tDeviceInfo.CenterName = tDataSet.GetString("BizPlsName");
                         tDeviceInfo.DeviceGroupName = tDataSet.GetString("GroupName");
-                        // shinyn - 2012-12-13 - NE Group ID int -> string ºˆ¡§ 'B' PON(Biz) -> FOMsø¨µø ∞™ø° µ˚∏• ºˆ¡§
+                        // shinyn - 2012-12-13 - NE Group ID int -> string ÏàòÏ†ï 'B' PON(Biz) -> FOMsÏó∞Îèô Í∞íÏóê Îî∞Î•∏ ÏàòÏ†ï
                         tDeviceInfo.GroupID = tDataSet.GetString("GroupID").Length > 0 ? tDataSet.GetString("GroupID") : "-1";
 
-                        // 2013-01-11 - shinyn - ∏µ®∏Ì ∞°¡Æø¿±‚
+                        // 2013-01-11 - shinyn - Î™®Îç∏Î™Ö Í∞ÄÏ†∏Ïò§Í∏∞
                         tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
 
 
@@ -659,7 +675,7 @@ namespace RACTServer
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine("≈¨∂Û¿Ãæ∆Æø° ¿¸º€«œ¥¬ ¿Â∫Ò ¥Îºˆ : " + tDeviceInfoCollection.Count.ToString());
+                System.Diagnostics.Debug.WriteLine("ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ï†ÑÏÜ°ÌïòÎäî Ïû•ÎπÑ ÎåÄÏàò : " + tDeviceInfoCollection.Count.ToString());
 
                 tResultData.ResultData = GlobalClass.ObjectCompress(tDeviceInfoCollection);
 
@@ -677,5 +693,5 @@ namespace RACTServer
 
             GlobalClass.SendResultClient(tResultData);
         }
-   }
+    }
 }

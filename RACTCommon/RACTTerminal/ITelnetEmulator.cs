@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,7 +7,7 @@ namespace RACTTerminal
     //public interface ITelnetEmulator
     //{
     //    /// <summary>
-    //    /// °á°ú¸¦ Ç¥½Ã ÇÕ´Ï´Ù.
+    //    /// ê²°ê³¼ë¥¼ í‘œì‹œ í•©ë‹ˆë‹¤.
     //    /// </summary>
     //    /// <param name="aResult"></param>
     //    //void DisplayResult(int aSessionID,string aResult);

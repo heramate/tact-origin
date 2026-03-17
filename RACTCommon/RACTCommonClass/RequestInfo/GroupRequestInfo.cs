@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,22 +8,22 @@ namespace RACTCommonClass
     public class GroupRequestInfo
     {
         /// <summary>
-        /// User ID ÀÔ´Ï´Ù.
+        /// User ID ìž…ë‹ˆë‹¤.
         /// </summary>
         private int m_UserID;
 
         /// <summary>
-        /// Work Type ÀÔ´Ï´Ù.
+        /// Work Type ìž…ë‹ˆë‹¤.
         /// </summary>
         private E_WorkType m_WorkType;
 
         /// <summary>
-        /// GroupInfo ÀÔ´Ï´Ù.
+        /// GroupInfo ìž…ë‹ˆë‹¤.
         /// </summary>
         private GroupInfo m_GroupInfo;
 
         /// <summary>
-        /// GroupInfo °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// GroupInfo ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public GroupInfo GroupInfo
         {
@@ -32,7 +32,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// Work Type °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Work Type ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public E_WorkType WorkType
         {
@@ -40,7 +40,7 @@ namespace RACTCommonClass
             set { m_WorkType = value; }
         }
         /// <summary>
-        /// User ID °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// User ID ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public int UserID
         {

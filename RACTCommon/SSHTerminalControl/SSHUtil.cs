@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------------------
+ï»¿/* ---------------------------------------------------------------------------
  *
  * Copyright (c) Routrek Networks, Inc.    All Rights Reserved..
  * 
@@ -129,7 +129,7 @@ namespace Routrek.SSHC
 			return ret;
 		}
 		/**
-		* Network-byte-order‚Å32ƒrƒbƒg’l‚ğ‘‚«‚ŞB
+		* Network-byte-orderê¶³32ê¸®ê¸ê¸£ë­ ê·©ë£•ê¶–ëœ›ê·”ê°ƒ
 		*/
 		public static void WriteIntToByteArray(byte[] dst, int pos, int data) {
 			uint udata = (uint)data;

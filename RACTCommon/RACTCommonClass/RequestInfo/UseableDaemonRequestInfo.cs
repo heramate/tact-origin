@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,12 +8,12 @@ namespace RACTCommonClass
     public class UseableDaemonRequestInfo
     {
         /// <summary>
-        /// Client ID ÀÔ´Ï´Ù.
+        /// Client ID ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_ClientID;
 
         /// <summary>
-        /// Á¢¼Ó ÇÏÁö ¸øÇÑ Daemon ID ¸ñ·Ï ÀÔ´Ï´Ù.
+        /// ì ‘ì† í•˜ì§€ ëª»í•œ Daemon ID ëª©ë¡ ì…ë‹ˆë‹¤.
         /// </summary>
         private List<int> m_DisconnectDaemonList;
 
@@ -24,7 +24,7 @@ namespace RACTCommonClass
         }
 
         /// <summary>
-        /// Á¢¼Ó ÇÏÁö ¸øÇÑ Daemon ID ¸ñ·Ï °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// ì ‘ì† í•˜ì§€ ëª»í•œ Daemon ID ëª©ë¡ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public List<int> DisconnectDaemonList
         {
@@ -32,7 +32,7 @@ namespace RACTCommonClass
             set { m_DisconnectDaemonList = value; }
         }
         /// <summary>
-        /// Client ID °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Client ID ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public int ClientID
         {

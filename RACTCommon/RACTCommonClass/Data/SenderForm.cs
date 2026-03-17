@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,7 +12,7 @@ using DevComponents.DotNetBar;
 namespace RACTCommonClass
 {
    /// <summary>
-	/// SenderForm¿¡ ´ëÇÑ ¿ä¾à ¼³¸íÀÔ´Ï´Ù.
+	/// SenderFormì— ëŒ€í•œ ìš”ì•½ ì„¤ëª…ì…ë‹ˆë‹¤.
 	/// </summary>
     public partial class SenderForm : Office2007Form, ISenderObject
 	{
@@ -24,7 +24,7 @@ namespace RACTCommonClass
 		}
 
 		/// <summary>
-		/// »ç¿ë ÁßÀÎ ¸ğµç ¸®¼Ò½º¸¦ Á¤¸®ÇÕ´Ï´Ù.
+		/// ì‚¬ìš© ì¤‘ì¸ ëª¨ë“  ë¦¬ì†ŒìŠ¤ë¥¼ ì •ë¦¬í•©ë‹ˆë‹¤.
 		/// </summary>
 		protected override void Dispose( bool disposing )
 		{
@@ -37,7 +37,7 @@ namespace RACTCommonClass
 
 			try
 			{
-				//ÀÓ½Ã ½º·¡µå¸¦ ÁßÁö ÇÕ´Ï´Ù.
+				//ì„ì‹œ ìŠ¤ë˜ë“œë¥¼ ì¤‘ì§€ í•©ë‹ˆë‹¤.
 				if(m_SenderThread != null)
 				{
 					if(m_SenderThread.IsAlive)
@@ -62,23 +62,23 @@ namespace RACTCommonClass
 			base.Dispose( disposing );
 		}
         /// <summary>
-        /// ÀÓ½Ã ½º·¡µå ÀÔ´Ï´Ù.
+        /// ì„ì‹œ ìŠ¤ë˜ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         protected Thread m_SenderThread = null;
         /// <summary>
-        /// °á°ú ÀúÀå °´Ã¼ ÀÔ´Ï´Ù.
+        /// ê²°ê³¼ ì €ì¥ ê°ì²´ ì…ë‹ˆë‹¤.
         /// </summary>
         protected ResultCommunicationData m_Result = null;
 
         protected CommandResultItem m_WorkResult = null;
 
         /// <summary>
-        /// »ç¿ëÀÚ ÁöÁ¤ ÀÌº¥Æ® °´Ã¼ ÀÔ´Ï´Ù.
+        /// ì‚¬ìš©ì ì§€ì • ì´ë²¤íŠ¸ ê°ì²´ ì…ë‹ˆë‹¤.
         /// </summary>
         protected ManualResetEvent m_MRE = new ManualResetEvent(false);
 
         /// <summary>
-        /// Àü¼Û ½º·¡µå¸¦ ½ÃÀÛ ÇÕ´Ï´Ù.
+        /// ì „ì†¡ ìŠ¤ë˜ë“œë¥¼ ì‹œì‘ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="vThreadMethod"></param>
         public void StartSendThread(ThreadStart vThreadMethod)

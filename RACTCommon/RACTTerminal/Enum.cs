@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -38,7 +38,7 @@ namespace RACTTerminal
         ENVIRON = 36,  // environment variables
     }
     /// <summary>
-    /// negotiate Action ¿­°ÅÇü ÀÔ´Ï´Ù.
+    /// negotiate Action ì—´ê±°í˜• ìž…ë‹ˆë‹¤.
     /// </summary>
     public enum E_NegotiateActions
     {

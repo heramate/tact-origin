@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using RACTCommonClass;
@@ -9,7 +9,7 @@ namespace RACTServer
     public class ScriptProcess
     {
         /// <summary>
-        /// ¿äÃ»À» Ã³¸® ÇÕ´Ï´Ù.
+        /// ìš”ì²­ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestProcess(RequestCommunicationData aClientRequest)
@@ -27,7 +27,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// ´ÜÃà ¸í·ÉÀ» ¼öÁ¤ ÇÕ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ì„ ìˆ˜ì • í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void ModifyScriptGroup(RequestCommunicationData aClientRequest)
@@ -81,7 +81,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ´ÜÃà ¸í·É ¸ñ·ÏÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ ëª©ë¡ì„ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void SearchScriptGroup(RequestCommunicationData aClientRequest)
@@ -220,7 +220,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 2013-01-11 - shinyn - Cfgº¹¿ø¸í·ÉÀ» °¡Á®¿Â´Ù.
+        /// 2013-01-11 - shinyn - Cfgë³µì›ëª…ë ¹ì„ ê°€ì ¸ì˜¨ë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestCfgRestoreCommand(RequestCommunicationData aClientRequest)
@@ -333,7 +333,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 2013-01-11 - shinyn - ¿©·¯´ëÀÇ Cfgº¹¿ø¸í·É¸®½ºÆ®¸¦ °¡Á®¿Â´Ù.
+        /// 2013-01-11 - shinyn - ì—¬ëŸ¬ëŒ€ì˜ Cfgë³µì›ëª…ë ¹ë¦¬ìŠ¤íŠ¸ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestDevicesCfgRestoreCommand(RequestCommunicationData aClientRequest)

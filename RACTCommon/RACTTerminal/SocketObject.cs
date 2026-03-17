@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net.Sockets;
@@ -6,23 +6,23 @@ using System.Net.Sockets;
 namespace RACTTerminal
 {
     /// <summary>
-    /// ¼ÒÄÏ °´Ã¼ ÀÔ´Ï´Ù.
+    /// ì†Œì¼“ ê°ì²´ ì…ë‹ˆë‹¤.
     /// </summary>
     public class SocketObject
     {
 
         /// <summary>
-        /// Socket ÀÔ´Ï´Ù.
+        /// Socket ì…ë‹ˆë‹¤.
         /// </summary>
         private Socket m_Socket;
 
         /// <summary>
-        /// Buffer ÀÔ´Ï´Ù.
+        /// Buffer ì…ë‹ˆë‹¤.
         /// </summary>
         private byte[] m_Buffer;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public SocketObject()
         {
@@ -30,7 +30,7 @@ namespace RACTTerminal
         }
 
         /// <summary>
-        /// Buffer °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Buffer ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public byte[] Buffer
         {
@@ -39,7 +39,7 @@ namespace RACTTerminal
         }
 
         /// <summary>
-        /// Socket °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Socket ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public Socket Socket
         {

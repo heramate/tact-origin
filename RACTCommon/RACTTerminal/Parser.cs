@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Collections;
@@ -155,7 +155,7 @@ namespace RACTTerminal
         }
 
         /// <summary>
-        /// State Change Event Å¬·¡½º ÀÔ´Ï´Ù.
+        /// State Change Event í´ë˜ìŠ¤ ì…ë‹ˆë‹¤.
         /// </summary>
         private class StateChangeEvents
         {

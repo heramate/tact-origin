@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using RACTCommonClass;
@@ -9,7 +9,7 @@ namespace RACTServer
     public class ShortenCommandProcess
     {
         /// <summary>
-        /// ¿äÃ»À» Ã³¸® ÇÕ´Ï´Ù.
+        /// ìš”ì²­ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestProcess(RequestCommunicationData aClientRequest)
@@ -27,7 +27,7 @@ namespace RACTServer
             }
         }
         /// <summary>
-        /// ´ÜÃà ¸í·ÉÀ» ¼öÁ¤ ÇÕ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ì„ ìˆ˜ì • í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void ModifyShortenCommand(RequestCommunicationData aClientRequest)
@@ -82,7 +82,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ´ÜÃà ¸í·É ¸ñ·ÏÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ ëª©ë¡ì„ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void SearchShortenCommand(RequestCommunicationData aClientRequest)
@@ -167,7 +167,7 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// ´ÜÃà ¸í·É ±×·ìÀ» Ã³¸® ÇÕ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ ê·¸ë£¹ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aClientRequest"></param>
         internal static void RequestGroupProcess(RequestCommunicationData aClientRequest)

@@ -1,4 +1,4 @@
-using System;
+О╩©using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,11 +7,11 @@ namespace RACTTerminal
     public class TabStops
     {
         /// <summary>
-        /// дц╥Ё ют╢о╢ы.
+        /// Л╩╛К÷╪ Л·┘К▀┬К▀╓.
         /// </summary>
         private bool[] m_Columns;
         /// <summary>
-        /// ╠Б╨╩ ╩Щ╪╨юз ют╢о╢ы.
+        /// Й╦╟КЁ╦ Л┐²Л└╠Л·░ Л·┘К▀┬К▀╓.
         /// </summary>
         public TabStops()
         {
@@ -36,7 +36,7 @@ namespace RACTTerminal
         }
 
         /// <summary>
-        /// дц╥Ёю╩ ╟║а╝ ©ю╟еЁ╙ ╪Ёа╓ гу╢о╢ы.
+        /// Л╩╛К÷╪Л²└ Й╟─Л═╦ Л≤╓Й╠╟К┌≤ Л└╓Л═∙ М∙╘К▀┬К▀╓.
         /// </summary>
         public bool[] Columns
         {
