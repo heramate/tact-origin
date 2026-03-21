@@ -1,4 +1,4 @@
-﻿using MKLibrary.MKData;
+using MKLibrary.MKData;
 using MKLibrary.MKNetwork;
 using RACTCommonClass;
 using System;
@@ -21,15 +21,16 @@ namespace RACTServer
         /// <summary>
         /// 클라이언트 요청을 저장할 큐 입니다.
         /// </summary>
-        private Queue<RequestCommunicationData> m_RequestQueue;
+        private System.Collections.Concurrent.BlockingCollection<RequestCommunicationData> m_RequestQueue;
         /// <summary>
         /// 클라이언트 요청에 결과를 반환하는 프로세스 입니다.
         /// </summary>
         private ClientResponseProcess m_ClientResponseProcess = null;
         /// <summary>
-        /// 요청 처리 스레드 입니다.
+        /// 요청 처리 스레드 배열 입니다.
         /// </summary>
-        private Thread m_RequestProcessThread = null;
+        private Thread[] m_RequestProcessThreads = null;
+        private SemaphoreSlim m_LoginSemaphore = null;
         /// <summary>
         /// 접속된 사용자, 데몬의 연결 상태를 확인 합니다.
         /// </summary>
@@ -44,13 +45,21 @@ namespace RACTServer
         /// </summary>
         public ClientCommunicationProcess()
         {
-            m_RequestQueue = new Queue<RequestCommunicationData>();
+            int semCount = Math.Max(2, GlobalClass.m_SystemInfo.DBConnectionCount / 3);
+            m_LoginSemaphore = new SemaphoreSlim(semCount, semCount);
+            m_RequestQueue = new System.Collections.Concurrent.BlockingCollection<RequestCommunicationData>();
 
             m_ClientResponseProcess = new ClientResponseProcess();
             m_ClientResponseProcess.Start();
 
-            m_RequestProcessThread = new Thread(new ThreadStart(ProcessClientRequest));
-            m_RequestProcessThread.Start();
+            // DBConnectionCount 기반으로 DB Pool Limit 내에서 다중 스레드 할당
+            int threadCount = Math.Max(2, GlobalClass.m_SystemInfo.DBConnectionCount / 3);
+            m_RequestProcessThreads = new Thread[threadCount];
+            for (int i = 0; i < threadCount; i++)
+            {
+                m_RequestProcessThreads[i] = new Thread(new ThreadStart(ProcessClientRequest));
+                m_RequestProcessThreads[i].Start();
+            }
 
             m_HelathCheckThread = new Thread(new ThreadStart(HealthCheckProcess));
             m_HelathCheckThread.Start();
@@ -71,7 +80,13 @@ namespace RACTServer
             }
 
             m_ClientResponseProcess.Stop();
-            GlobalClass.StopThread(m_RequestProcessThread);
+            if (m_RequestProcessThreads != null)
+            {
+                foreach (Thread t in m_RequestProcessThreads)
+                {
+                    GlobalClass.StopThread(t);
+                }
+            }
             GlobalClass.StopThread(m_HelathCheckThread);
         }
 
@@ -228,6 +243,8 @@ namespace RACTServer
             byte[] tResult = null;
             ArrayList tResults = null;
             int tResultCount = 0;
+            UserInfo tUserInfo = null;
+
             lock (m_UserInfoList)
             {
                 if (!m_UserInfoList.Contains(aClientID))
@@ -238,26 +255,31 @@ namespace RACTServer
                     }
                     return null;
                 }
+                tUserInfo = (UserInfo)m_UserInfoList[aClientID];
+            }
 
-                UserInfo tUserInfo = (UserInfo)m_UserInfoList[aClientID];
-                tUserInfo.LifeTime = DateTime.Now;
-                if (tUserInfo == null) return null;
+            if (tUserInfo == null) return null;
+            tUserInfo.LifeTime = DateTime.Now;
 
-                lock (tUserInfo.DataQueue.SyncRoot)
+            lock (tUserInfo.DataQueue.SyncRoot)
+            {
+                if (tUserInfo.DataQueue.Count > 0)
                 {
-                    if (tUserInfo.DataQueue.Count > 0)
+                    tResults = new ArrayList();
+                    while (tUserInfo.DataQueue.Count > 0)
                     {
-                        tResults = new ArrayList();
-                        while (tUserInfo.DataQueue.Count > 0)
-                        {
-                            if (tResultCount >= 200) break;
-                            tResults.Add(tUserInfo.DataQueue.Dequeue());
-                            tResultCount++;
-                        }
-                        tResult = (byte[])ObjectConverter.GetBytes(tResults);
+                        if (tResultCount >= 200) break;
+                        tResults.Add(tUserInfo.DataQueue.Dequeue());
+                        tResultCount++;
                     }
                 }
             }
+
+            if (tResults != null && tResults.Count > 0)
+            {
+                tResult = (byte[])ObjectConverter.GetBytes(tResults);
+            }
+
             return tResult;
         }
 
@@ -268,7 +290,7 @@ namespace RACTServer
         private void RequestReceiver(byte[] aData)
         {
             RequestCommunicationData tRequestData = (RequestCommunicationData)ObjectConverter.GetObject(aData);
-            lock (m_RequestQueue) m_RequestQueue.Enqueue(tRequestData);
+            if (!m_RequestQueue.IsAddingCompleted) m_RequestQueue.Add(tRequestData);
         }
 
         /// <summary>
@@ -281,11 +303,7 @@ namespace RACTServer
             {
                 try
                 {
-                    lock (m_RequestQueue)
-                    {
-                        if (m_RequestQueue.Count < 1) continue;
-                        tClientRequest = m_RequestQueue.Dequeue();
-                    }
+                    if (!m_RequestQueue.TryTake(out tClientRequest, 1000)) continue;
                     if (tClientRequest == null) continue;
 
                     switch (tClientRequest.CommType)
@@ -318,7 +336,7 @@ namespace RACTServer
                 }
                 finally
                 {
-                    Thread.Sleep(1);
+                    // Thread.Sleep(1); 제거됨 (BlockingCollection TryTake 사용)
                 }
             }
         }
@@ -360,6 +378,19 @@ namespace RACTServer
         /// <param name="aClientIP"></param>
         /// <returns></returns>
         private byte[] UserInfoReceiver(string aUserAccount, string aUserPassword, string aClientIP, E_TerminalMode aTerminalMode)
+        {
+            m_LoginSemaphore.Wait();
+            try 
+            {
+                return UserInfoReceiverInternal(aUserAccount, aUserPassword, aClientIP, aTerminalMode);
+            }
+            finally
+            {
+                m_LoginSemaphore.Release();
+            }
+        }
+
+        private byte[] UserInfoReceiverInternal(string aUserAccount, string aUserPassword, string aClientIP, E_TerminalMode aTerminalMode)
         {
             LoginResultInfo tLoginResult = null;
             E_UserType tUserType = E_UserType.Operator_Area;

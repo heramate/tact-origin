@@ -1,4 +1,4 @@
-﻿using MKLibrary.MKData;
+using MKLibrary.MKData;
 using RACTCommonClass;
 using System;
 using System.Collections.Generic;
@@ -14,18 +14,18 @@ namespace RACTServer
         /// <summary>
         /// 클라이언트 요청을 저장할 큐 입니다.
         /// </summary>
-        private Queue<RequestCommunicationData> m_RequestQueue = null;
+        private System.Collections.Concurrent.BlockingCollection<RequestCommunicationData> m_RequestQueue = null;
         /// <summary>
-        /// 요청 처리 스레드 입니다.
+        /// 요청 처리 스레드 배열 입니다.
         /// </summary>
-        private Thread m_RequestProcessThread = null;
+        private Thread[] m_RequestProcessThreads = null;
 
         /// <summary>
         /// 기본 생성자 입니다.
         /// </summary>
         public ClientResponseProcess()
         {
-            m_RequestQueue = new Queue<RequestCommunicationData>();
+            m_RequestQueue = new System.Collections.Concurrent.BlockingCollection<RequestCommunicationData>();
         }
 
         /// <summary>
@@ -44,8 +44,13 @@ namespace RACTServer
         {
             try
             {
-                m_RequestProcessThread = new Thread(new ThreadStart(ProcessClientRequest));
-                m_RequestProcessThread.Start();
+                int threadCount = Math.Max(2, GlobalClass.m_SystemInfo.DBConnectionCount / 3);
+                m_RequestProcessThreads = new Thread[threadCount];
+                for (int i = 0; i < threadCount; i++)
+                {
+                    m_RequestProcessThreads[i] = new Thread(new ThreadStart(ProcessClientRequest));
+                    m_RequestProcessThreads[i].Start();
+                }
 
                 return true;
             }
@@ -60,8 +65,14 @@ namespace RACTServer
         /// </summary>
         public void Stop()
         {
-            GlobalClass.StopThread(m_RequestProcessThread);
-            if (m_RequestQueue != null) m_RequestQueue.Clear();
+            if (m_RequestProcessThreads != null)
+            {
+                foreach (Thread t in m_RequestProcessThreads)
+                {
+                    GlobalClass.StopThread(t);
+                }
+            }
+            if (m_RequestQueue != null) { m_RequestQueue.CompleteAdding(); m_RequestQueue.Dispose(); }
         }
 
         /// <summary>
@@ -70,7 +81,7 @@ namespace RACTServer
         /// <param name="aRequest"></param>
         public void AddRequest(RequestCommunicationData aRequest)
         {
-            lock (m_RequestQueue) m_RequestQueue.Enqueue(aRequest);
+            if (!m_RequestQueue.IsAddingCompleted) m_RequestQueue.Add(aRequest);
         }
 
         /// <summary>
@@ -83,11 +94,7 @@ namespace RACTServer
             {
                 try
                 {
-                    lock (m_RequestQueue)
-                    {
-                        if (m_RequestQueue.Count < 1) continue;
-                        tClientRequest = m_RequestQueue.Dequeue();
-                    }
+                    if (!m_RequestQueue.TryTake(out tClientRequest, 1000)) continue;
                     if (tClientRequest == null) continue;
 
                     UserInfo tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(tClientRequest.ClientID);
@@ -209,7 +216,7 @@ namespace RACTServer
                 }
                 finally
                 {
-                    Thread.Sleep(1);
+                    // Thread.Sleep(1); 제거됨 (BlockingCollection TryTake 사용)
                 }
             }
         }
