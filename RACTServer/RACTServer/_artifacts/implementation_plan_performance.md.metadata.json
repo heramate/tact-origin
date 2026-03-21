@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "RACTServer 고성능 최적화(Performance Optimization)를 위한 상세 실행 계획입니다. O(N) 검색 병목을 제거하고 선착순 락 경합을 방지하기 위해 Concurrent 컬렉션을 도입하며, 레거시 DB 풀 잔재를 정리합니다.",
+  "updatedAt": "2026-03-21T13:21:17.247234500Z"
+}

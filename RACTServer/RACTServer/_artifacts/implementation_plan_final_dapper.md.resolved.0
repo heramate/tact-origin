@@ -1,0 +1,26 @@
+# RACTServer Dapper 최종 마이그레이션 계획
+
+RACTServer 내부에 남아있는 레거시 DB 접근 코드(`MKDBWorkItem`, `MKDataSet`)를 완전히 도려내고 Dapper로의 전환을 완료합니다.
+
+## 제안된 변경 사항
+
+### 1. 전역 리소스 정리 ([RACTServer.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/RACTServer.cs))
+*   [Stop()](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/RACTServer.cs#128-224) 메서드 내에서 더 이상 존재하지 않는 `GlobalClass.m_DBPool` 및 `GlobalClass.m_DBExecutePool`에 대한 정리 로직을 제거합니다.
+
+### 2. 기초 데이터 로드 현대화 ([BaseDataLoadProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/BaseDataLoadProcess.cs))
+*   `using Dapper;` 추가
+*   [LoadUnUsedLimit](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/BaseDataLoadProcess.cs#36-154), [LoadFACTGroupInfo](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/BaseDataLoadProcess.cs#155-278), [LoadModelInfo](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/BaseDataLoadProcess.cs#316-460), [LoadDefaultCmdInfo](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/BaseDataLoadProcess.cs#531-594) 등의 메서드에서 `MKDBWorkItem`과 `MKDataSet`을 제거하고 Dapper의 `conn.Query` 또는 `conn.Execute`로 교체합니다.
+*   `GlobalClass.GetSqlConnection()`을 하용하여 커넥션을 관리합니다.
+
+### 3. 잔여 레거시 변수 정리 (Process 클래스들)
+*   아래 파일들에서 이미 리팩토링되었거나 더 이상 사용되지 않는 `MKDBWorkItem tDBWI = null;` 선언부들을 제거합니다.
+    *   [ShortenCommandProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ShortenCommandProcess.cs)
+    *   [ScriptProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ScriptProcess.cs)
+    *   [GroupProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GroupProcess.cs)
+    *   [DeviceProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/DeviceProcess.cs)
+    *   [DefaultConnectionCommandProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/DefaultConnectionCommandProcess.cs)
+    *   [ClientResponseProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientResponseProcess.cs)
+
+## 검증 계획
+*   각 프로세스별로 Dapper 매핑이 올바르게 수행되는지 코드 레벨에서 검토합니다.
+*   빌드 오류가 없는지 확인합니다.

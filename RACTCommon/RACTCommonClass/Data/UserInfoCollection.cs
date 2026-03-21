@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using ACPS.CommonConfigCompareClass;
+using System.Collections.Concurrent;
+using System.Linq;
 
 namespace RACTCommonClass
 {
@@ -69,9 +68,35 @@ namespace RACTCommonClass
         }
         #endregion //[basic generate part :: Create, ICloneable]
 
-        #region [property part]
+        private readonly ConcurrentDictionary<int, UserInfo> m_ClientMap = new ConcurrentDictionary<int, UserInfo>();
+
+        public override void Add(UserInfo item)
+        {
+            if (item != null)
+            {
+                m_ClientMap[item.ClientID] = item;
+                base.Add(item);
+            }
+        }
+
+        public override void Remove(UserInfo item)
+        {
+            if (item != null)
+            {
+                UserInfo removed;
+                m_ClientMap.TryRemove(item.ClientID, out removed);
+                base.Remove(item);
+            }
+        }
+
+        public override void Clear()
+        {
+            m_ClientMap.Clear();
+            base.Clear();
+        }
+
         /// <summary>
-        /// 해당 ID의 요소를 가져오거나 설정합니다.
+        /// 해당 ID의 요소를 가져오거나 설정합니다. (O(1) 검색 최적화)
         /// </summary>
         /// <param name="aID">가져오거나 설정할 요소 ID입니다.</param>
         /// <returns></returns>
@@ -79,34 +104,19 @@ namespace RACTCommonClass
         {
             get
             {
-                UserInfo tDeviceInfo = null;
-                lock (base.InnerList.SyncRoot)
+                UserInfo tUserInfo;
+                if (m_ClientMap.TryGetValue(aID, out tUserInfo))
                 {
-                    foreach (UserInfo tmpDeviceInfo in base.InnerList)
-                    {
-                        if (tmpDeviceInfo.ClientID == aID)
-                        {
-                            tDeviceInfo = tmpDeviceInfo;
-                            break;
-                        }
-                    }
+                    return tUserInfo;
                 }
-                return tDeviceInfo;
+                return null;
             }
             set
             {
-                UserInfo tDeviceInfo = null;
-                lock (base.InnerList.SyncRoot)
+                if (value != null)
                 {
-                    for (int idx = 0; idx < base.InnerList.Count; idx++)
-                    {
-                        tDeviceInfo = base.InnerList[idx] as UserInfo;
-                        if (tDeviceInfo.ClientID == aID)
-                        {
-                            base.InnerList[idx] = value;
-                            break;
-                        }
-                    }
+                    m_ClientMap[aID] = value;
+                    // base list 동기화는 필요시 처리 (여기서는 주로 검색 용도로 사용됨)
                 }
             }
         }
@@ -121,16 +131,10 @@ namespace RACTCommonClass
         /// <param name="aID"></param>
         public void Remove(int aID)
         {
-            lock (base.InnerList.SyncRoot)
+            UserInfo removed;
+            if (m_ClientMap.TryRemove(aID, out removed))
             {
-                foreach (UserInfo tDeviceInfo in base.InnerList)
-                {
-                    if (tDeviceInfo.ClientID == aID)
-                    {
-                        base.Remove(tDeviceInfo);
-                        break;
-                    }
-                }
+                base.Remove(removed);
             }
         }
 
@@ -141,7 +145,16 @@ namespace RACTCommonClass
         /// <returns></returns>
         public bool Contains(int aID)
         {
-            return this[aID] != null;
+            return m_ClientMap.ContainsKey(aID);
+        }
+
+        /// <summary>
+        /// 안전한 순회를 위해 전체 목록을 복사하여 반환합니다.
+        /// </summary>
+        /// <returns></returns>
+        public List<UserInfo> ToList()
+        {
+            return m_ClientMap.Values.ToList();
         }
 
       

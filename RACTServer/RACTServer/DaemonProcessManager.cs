@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using RACTDaemonProcess;
 using System.Collections;
-using MKLibrary.MKData;
 using System.IO;
 using RACTCommonClass;
 using MKLibrary.MKNetwork;
 using System.Threading;
+using System.Linq;
+using Dapper;
 
 namespace RACTServer
 {
@@ -47,7 +48,6 @@ namespace RACTServer
 
         private void HealthCheckProcess()
         {
-            DaemonProcessInfo tDaemonInfo;
             double tTotalSeconds = 0;
             DateTime tNow = DateTime.Now;
             while (GlobalClass.m_IsRun)
@@ -55,34 +55,20 @@ namespace RACTServer
                 try
                 {
                     tNow = DateTime.Now;
-                    lock (m_DaemonProcessList)
+                    var daemonList = m_DaemonProcessList.ToList();
+                    foreach (var daemonInfo in daemonList)
                     {
-                        for (int i = m_DaemonProcessList.Count - 1; i > -1; i--)
+                        if (daemonInfo == null) continue;
+
+                        tTotalSeconds = ((TimeSpan)tNow.Subtract(daemonInfo.LifeTime)).TotalSeconds;
+                        if (tTotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
                         {
-                            tDaemonInfo = null;
-                            tTotalSeconds = 0;
-
-
-                            tDaemonInfo = (DaemonProcessInfo)m_DaemonProcessList.InnerList[i];
-
-                            if (tDaemonInfo != null)
+                            Thread.Sleep(100);
+                            tTotalSeconds = ((TimeSpan)tNow.Subtract(daemonInfo.LifeTime)).TotalSeconds;
+                            if (tTotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
                             {
-                                tTotalSeconds = ((TimeSpan)tNow.Subtract(tDaemonInfo.LifeTime)).TotalSeconds;
-                                if (tTotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
-                                {
-                                    Thread.Sleep(100);
-                                    tTotalSeconds = ((TimeSpan)tNow.Subtract(tDaemonInfo.LifeTime)).TotalSeconds;
-                                    if (tTotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
-                                    {
-                                        // 2013-04-26-shinyn - 데몬 연결이 끊겼을 경우 로그 저장
-                                        GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, string.Concat("@@@", tDaemonInfo.IP, ":", tDaemonInfo.Port, " => Before Life Time  :", tDaemonInfo.LifeTime.ToString("yyyy-MM-dd HH:mm:ss"), " Total Seconds :", tTotalSeconds));
-                                        m_DaemonProcessList.RemoveAt(i);
-                                    }
-                                }
-
-                                // 2013-03-07 - shinyn - 데몬이 세션 타임아웃을 체크하고, 데몬을 삭제한다. 데몬 체크하는 로그를 계속 보여준다.
-                                System.Diagnostics.Debug.WriteLine(string.Concat("@@@", tDaemonInfo.IP, ":", tDaemonInfo.Port, " => Before Life Time  :", tDaemonInfo.LifeTime.ToString("yyyy-MM-dd HH:mm:ss"), " Total Seconds :", tTotalSeconds));
-                                tDaemonInfo = null;
+                                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, string.Concat("@@@", daemonInfo.IP, ":", daemonInfo.Port, " => Before Life Time  :", daemonInfo.LifeTime.ToString("yyyy-MM-dd HH:mm:ss"), " Total Seconds :", tTotalSeconds));
+                                m_DaemonProcessList.Remove(daemonInfo.DaemonID);
                             }
                         }
                     }
@@ -163,13 +149,10 @@ namespace RACTServer
         /// <param name="aClientID"></param>
         private void HealthCheckUpdateReceiver(int aClientID)
         {
-            lock (m_DaemonProcessList)
+            var tDaemonInfo = m_DaemonProcessList[aClientID];
+            if (tDaemonInfo != null)
             {
-                if (m_DaemonProcessList.Contains(aClientID))
-                {
-                    System.Diagnostics.Debug.WriteLine(string.Concat("###", m_DaemonProcessList[aClientID].IP, ":", m_DaemonProcessList[aClientID].Port, " => Before Life Time  :", m_DaemonProcessList[aClientID].LifeTime.ToString("yyyy-MM-dd HH:mm:ss"), " After Life Time :", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
-                    m_DaemonProcessList[aClientID].LifeTime = DateTime.Now;
-                }
+                tDaemonInfo.LifeTime = DateTime.Now;
             }
         }
 
@@ -179,14 +162,7 @@ namespace RACTServer
         /// <param name="aDaemonID"></param>
         private void DaemonLogOutReceiver(int aDaemonID)
         {
-            lock (GlobalClass.s_DaemonProcessManager.DaemonProcessList)
-            {
-                DaemonProcessInfo tDaemonInfo = GlobalClass.s_DaemonProcessManager.DaemonProcessList[aDaemonID];
-                if (tDaemonInfo != null)
-                {
-                    GlobalClass.s_DaemonProcessManager.DaemonProcessList.Remove(tDaemonInfo);
-                }
-            }
+            m_DaemonProcessList.Remove(aDaemonID);
         }
         /// <summary>
         /// 데몬 접속 요청을 처리 합니다.
@@ -195,48 +171,31 @@ namespace RACTServer
         private byte[] DaemonConnectReceiver(string aIP, int aPort, string aChannelName)
         {
             DaemonLoginResultInfo tLoginResult = new DaemonLoginResultInfo();
-            DaemonProcessInfo tAlreadyLoginInfo = null;
             try
             {
-                DaemonProcessInfo tDaemonInfo = null;
-                tDaemonInfo = new DaemonProcessInfo();
+                DaemonProcessInfo tDaemonInfo = new DaemonProcessInfo();
                 tDaemonInfo.IP = aIP;
                 tDaemonInfo.Port = aPort;
                 tDaemonInfo.ChannelName = aChannelName + aPort;
                 tDaemonInfo.LifeTime = DateTime.Now;
-                bool tIsAlreadyLogin = false;
-                lock (GlobalClass.s_DaemonProcessManager)
-                {
-                    foreach (DaemonProcessInfo tmpUserInfo in GlobalClass.s_DaemonProcessManager.DaemonProcessList)
-                    {
-                        if (tmpUserInfo.IP == aIP && tmpUserInfo.Port == aPort)
-                        {
-                            tIsAlreadyLogin = true;
-                            tAlreadyLoginInfo = tmpUserInfo;
-                            break;
-                        }
-                    }
-                }
 
-                if (tIsAlreadyLogin)
+                // 이미 로그인된 정보가 있으면 제거 (동일 IP/Port)
+                var alreadyLoginInfos = m_DaemonProcessList.ToList().Where(u => u.IP == aIP && u.Port == aPort).ToList();
+                foreach (var info in alreadyLoginInfos)
                 {
-                    GlobalClass.s_DaemonProcessManager.DaemonProcessList.Remove(tAlreadyLoginInfo);
+                    m_DaemonProcessList.Remove(info.DaemonID);
                 }
-
 
                 // 사용자 정보를 해시 테이블에 추가 합니다.
-                lock (GlobalClass.s_DaemonProcessManager.DaemonProcessList)
-                {
-                    GlobalClass.m_LogProcess.PrintLog(string.Concat("데몬 접속 ", tDaemonInfo.IP, ":", tDaemonInfo.Port, " ", tDaemonInfo.ChannelName));
-                    GlobalClass.s_DaemonProcessManager.DaemonProcessList.Add(tDaemonInfo);
-                }
+                GlobalClass.m_LogProcess.PrintLog(string.Concat("데몬 접속 ", tDaemonInfo.IP, ":", tDaemonInfo.Port, " ", tDaemonInfo.ChannelName));
+                m_DaemonProcessList.Add(tDaemonInfo);
                 tLoginResult.DaemonInfo = tDaemonInfo;
                 tLoginResult.ClientID = tDaemonInfo.DaemonID;
                 tLoginResult.LoginResult = E_LoginResult.Success;
                 return ObjectConverter.GetBytes(tLoginResult);
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 tLoginResult.LoginResult = E_LoginResult.UnknownError;
                 return ObjectConverter.GetBytes(tLoginResult);
@@ -259,19 +218,14 @@ namespace RACTServer
         /// <returns></returns>
         private bool TelnetConnectionUpdateReceiver(int aSessionID)
         {
-            MKDBWorkItem tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
             try
             {
-                //string tQueryMessage = string.Format("update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = '{0}' where id ={1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), aSessionID);
-                string tQueryMessage = string.Format("update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = GETDATE() where id ={0}", aSessionID);
-                if (tDBWI.ExecuteNoneQuery(tQueryMessage) == E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    return true;
+                    if (conn == null) return false;
+                    conn.Execute("update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = GETDATE() where id = @ID", new { ID = aSessionID });
                 }
-                else
-                {
-                    return false;
-                }
+                return true;
             }
             catch (Exception ex)
             {
@@ -294,25 +248,23 @@ namespace RACTServer
 
             if (!m_DaemonProcessList.Contains(aDaemonID)) return null;
 
-            lock (m_DaemonProcessList)
-            {
-                tDaemonProcessInfo = (DaemonProcessInfo)GlobalClass.s_DaemonProcessManager.DaemonProcessList[aDaemonID];
-            }
+            tDaemonProcessInfo = m_DaemonProcessList[aDaemonID];
             if (tDaemonProcessInfo == null) return null;
 
-            lock (tDaemonProcessInfo.DataQueue.SyncRoot)
+            // Assuming DataQueue is now a ConcurrentQueue<byte[]> or similar thread-safe collection
+            // If DataQueue is still a standard Queue, a lock would be needed here.
+            if (tDaemonProcessInfo.DataQueue.Count > 0)
             {
-                if (tDaemonProcessInfo.DataQueue.Count > 0)
+                tResults = new ArrayList();
+                // Assuming DataQueue is ConcurrentQueue<byte[]> for TryDequeue
+                // If it's a standard Queue, this loop needs a lock on DataQueue.SyncRoot
+                while (tDaemonProcessInfo.DataQueue.TryDequeue(out byte[] data))
                 {
-                    tResults = new ArrayList();
-                    while (tDaemonProcessInfo.DataQueue.Count > 0)
-                    {
-                        if (tResultCount >= 200) break;
-                        tResults.Add(tDaemonProcessInfo.DataQueue.Dequeue());
-                        tResultCount++;
-                    }
-                    tResult = (byte[])ObjectConverter.GetBytes(tResults);
+                    if (tResultCount >= 200) break;
+                    tResults.Add(data);
+                    tResultCount++;
                 }
+                tResult = (byte[])ObjectConverter.GetBytes(tResults);
             }
             return tResult;
         }
@@ -333,145 +285,41 @@ namespace RACTServer
         /// <returns></returns>
         internal DaemonProcessInfo GetDaemonProcess(UseableDaemonRequestInfo aRequestInfo)
         {
+            var daemonList = m_DaemonProcessList.ToList();
+            if (daemonList.Count == 0) return null;
 
-            lock (m_DaemonProcessList)
+            if (m_LastSendDaemonInfo != null)
             {
-                if (m_DaemonProcessList.Count == 0) return null;
-
-                DaemonProcessInfo tInfo = null;
-                if (m_LastSendDaemonInfo != null)
+                if (!m_DaemonProcessList.Contains(m_LastSendDaemonInfo.DaemonID))
                 {
-                    if (!m_DaemonProcessList.Contains(m_LastSendDaemonInfo.DaemonID))
+                    m_LastSendDaemonInfo = null;
+                }
+            }
+
+            foreach (var tInfo in daemonList.OrderByDescending(d => d.DaemonID))
+            {
+                // SSH터널링용 데몬서버는 대상에서 제외한다.
+                if (GlobalClass.m_SystemInfo.IsSSHTunnelDaemonIP(tInfo.IP)) continue;
+
+                if (m_LastSendDaemonInfo == null)
+                {
+                    if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
                     {
-                        m_LastSendDaemonInfo = null;
+                        m_LastSendDaemonInfo = tInfo;
                     }
                 }
-                for (int i = m_DaemonProcessList.InnerList.Count - 1; i > -1; i--)
+
+                if (m_LastSendDaemonInfo != null && m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID && !aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
                 {
-
-                    tInfo = (DaemonProcessInfo)m_DaemonProcessList.InnerList[i];
-
-                    // SSH터널링용 데몬서버는 대상에서 제외한다.
-                    if (GlobalClass.m_SystemInfo.IsSSHTunnelDaemonIP(tInfo.IP)) continue;
-
-                    if (m_LastSendDaemonInfo == null)
+                    if (m_LastSendDaemonInfo.TelnetSessionCount > tInfo.TelnetSessionCount)
                     {
-                        if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-                        {
-                            m_LastSendDaemonInfo = tInfo;
-                        }
-                    }
-
-                    if (m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID && !aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-                    {
-                        if (m_LastSendDaemonInfo.TelnetSessionCount > tInfo.TelnetSessionCount)
-                        {
-                            m_LastSendDaemonInfo = tInfo;
-                        }
+                        m_LastSendDaemonInfo = tInfo;
                     }
                 }
             }
-            GlobalClass.m_LogProcess.PrintLog(string.Concat("접속 데몬 정보 전송", m_LastSendDaemonInfo.IP, ":", m_LastSendDaemonInfo.Port));
+            if (m_LastSendDaemonInfo != null)
+                GlobalClass.m_LogProcess.PrintLog(string.Concat("접속 데몬 정보 전송", m_LastSendDaemonInfo.IP, ":", m_LastSendDaemonInfo.Port));
             return m_LastSendDaemonInfo;
-
-            //lock (m_DaemonProcessList)
-            //{
-            //    if (m_DaemonProcessList.Count == 0) return null;
-
-            //    DaemonProcessInfo tInfo = null;
-            //    if(m_LastSendDaemonInfo != null)
-            //    {
-            //        if (!m_DaemonProcessList.Contains(m_LastSendDaemonInfo.DaemonID))
-            //        {
-            //            m_LastSendDaemonInfo = null;
-            //        }
-            //    }
-            //    /*
-            //    for(int i = m_DaemonProcessList.InnerList.Count -1; i > -1;i--)
-            //    {
-                    
-            //        tInfo =(DaemonProcessInfo) m_DaemonProcessList.InnerList[i];
-            //        if (m_LastSendDaemonInfo == null)
-            //        {
-            //            if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-            //            {
-            //                m_LastSendDaemonInfo = tInfo;
-            //            }
-            //        }
-
-            //        if (m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID && !aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-            //        {
-            //            if (m_LastSendDaemonInfo.TelnetSessionCount > tInfo.TelnetSessionCount)
-            //            {
-            //                m_LastSendDaemonInfo = tInfo;
-            //            }
-            //        }
-            //    }
-            //    */
-            //    /*
-            //    for (int i = m_DaemonProcessList.InnerList.Count - 1; i > -1; i--)
-            //    {
-
-            //        tInfo = (DaemonProcessInfo)m_DaemonProcessList.InnerList[i];
-            //        if (m_LastSendDaemonInfo == null)
-            //        {
-            //            if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-            //            {
-            //                m_LastSendDaemonInfo = tInfo;
-            //            }
-            //        }
-            //        // 2013-03-08 - shinyn - null이 아닌경우에만 비교하도록 수정
-            //        if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-            //        {
-            //            if (m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID)
-            //            {
-            //                if (m_LastSendDaemonInfo.TelnetSessionCount > tInfo.TelnetSessionCount)
-            //                {
-            //                    m_LastSendDaemonInfo = tInfo;
-            //                }
-            //            }
-            //        }
-
-                    
-            //    }
-            //    */
-            //    // 2013-04-26- shinyn - 데몬세션이 잘 열리지 않는 원인을 찾기위해 로그를 저장하도록 수정
-            //    for (int i = m_DaemonProcessList.InnerList.Count - 1; i > -1; i--)
-            //    {
-
-            //        tInfo = (DaemonProcessInfo)m_DaemonProcessList.InnerList[i];
-            //        if (m_LastSendDaemonInfo == null)
-            //        {
-            //            if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-            //            {
-            //                m_LastSendDaemonInfo = tInfo;
-            //            }
-            //        }
-            //        // 2013-03-08 - shinyn - null이 아닌경우에만 비교하도록 수정
-            //        if (!aRequestInfo.DisconnectDaemonList.Contains(tInfo.DaemonID))
-            //        {
-            //            if (m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID)
-            //            {
-            //                if (m_LastSendDaemonInfo.TelnetSessionCount > tInfo.TelnetSessionCount)
-            //                {
-            //                    m_LastSendDaemonInfo = tInfo;
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    // 2013-04-26- shinyn - 데몬세션이 잘 열리지 않는 원인을 찾기위해 로그를 저장하도록 수정
-            //    string tDaemonLog = "GetDaemonProcess Daemon IP : " + m_LastSendDaemonInfo.IP +
-            //                       " Daemon Port : " + m_LastSendDaemonInfo.Port.ToString() +
-            //                       " Telnet Session Count : " + m_LastSendDaemonInfo.TelnetSessionCount.ToString();
-            //    System.Diagnostics.Debug.WriteLine(tDaemonLog);
-            //    GlobalClass.m_LogProcess.PrintLog(tDaemonLog);
-
-
-
-            //}
-            //GlobalClass.m_LogProcess.PrintLog(string.Concat("접속 데몬 정보 전송", m_LastSendDaemonInfo.IP, ":", m_LastSendDaemonInfo.Port));
-            //return m_LastSendDaemonInfo;
         }
         /// <summary>
         /// 사용할 수 있는 데몬을 가져오기 합니다.
@@ -479,89 +327,75 @@ namespace RACTServer
         /// <returns></returns>
         internal DaemonProcessInfo GetDaemonProcess()
         {
-            lock (m_DaemonProcessList)
+            var daemonList = m_DaemonProcessList.ToList();
+            if (daemonList.Count == 0) return null;
+
+            foreach (var tInfo in daemonList.OrderByDescending(d => d.DaemonID))
             {
-                if (m_DaemonProcessList.Count == 0) return null;
+                // SSH터널링용 데몬서버는 대상에서 제외한다.
+                if (GlobalClass.m_SystemInfo.IsSSHTunnelDaemonIP(tInfo.IP)) continue;
 
-                DaemonProcessInfo tInfo = null;
-                for (int i = m_DaemonProcessList.InnerList.Count - 1; i > -1; i--)
+                if (m_LastSendDaemonInfo == null)
                 {
-                    tInfo = (DaemonProcessInfo)m_DaemonProcessList.InnerList[i];
+                    m_LastSendDaemonInfo = tInfo;
+                }
 
-                    // SSH터널링용 데몬서버는 대상에서 제외한다.
-                    if (GlobalClass.m_SystemInfo.IsSSHTunnelDaemonIP(tInfo.IP)) continue;
-
-                    if (m_LastSendDaemonInfo == null)
+                if (m_LastSendDaemonInfo != null && m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID)
+                {
+                    if (m_LastSendDaemonInfo.TelnetSessionCount + m_LastSendDaemonInfo.TempSessionCount > tInfo.TelnetSessionCount + tInfo.TempSessionCount)
                     {
                         m_LastSendDaemonInfo = tInfo;
                     }
-
-                    if (m_LastSendDaemonInfo.DaemonID != tInfo.DaemonID)
-                    {
-                        if (m_LastSendDaemonInfo.TelnetSessionCount + m_LastSendDaemonInfo.TempSessionCount > tInfo.TelnetSessionCount + tInfo.TempSessionCount)
-                        {
-                            m_LastSendDaemonInfo = tInfo;
-                        }
-                    }
                 }
             }
-            m_LastSendDaemonInfo.TempSessionCount++;
+            if (m_LastSendDaemonInfo != null)
+                m_LastSendDaemonInfo.TempSessionCount++;
             return m_LastSendDaemonInfo;
         }
 
         /// <summary>
-        /// KwonTaeSuk, 2018.12, [c-RPCS과제] 
+        /// KwonTaeSuk, 2018.12, [c-RPCS과제]
         /// 사용할 수 있는 SSH터널링 데몬정보를 얻습니다.
         /// 2019.09.25 KwonTaeSuk LTE데몬할당된 다음 일반 데몬 선택시 LTE데몬 할당되는 문제: m_LastSendDaemonInfo 미사용 처리
         /// </summary>
         /// <returns>데몬정보</returns>
         internal DaemonProcessInfo GetSSHTunnelDaemonProcess()
         {
-            string resultStr = string.Empty;
             DaemonProcessInfo tDaemonInfo = null;
 
-            lock (m_DaemonProcessList)
+            var daemonList = m_DaemonProcessList.ToList();
+            if (daemonList.Count == 0)
             {
-                if (m_DaemonProcessList.Count == 0)
-                {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "[DaemonProcessManager.GetSSHTunnelDaemonProcess] 사용가능한 데몬프로세스가 없습니다.\r\n데몬의 기동여부 확인이 필요합니다.");
-                    return tDaemonInfo;
-                }
-
-                if (GlobalClass.m_SystemInfo.GetSSHTunnelDaemonIPCount() == 0)
-                {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "[DaemonProcessManager.GetSSHTunnelDaemonProcess] SSH터널링 데몬서버IP가 설정되지 않았습니다.\r\n환경설정(System.xml)파일의 <SSHTunnelDaemonIP>에 터널링 서버IP를 추가해야합니다(여러개인 경우 쉼표(,)로 연결)");
-                    return tDaemonInfo;
-                }
-
-                DaemonProcessInfo tTempDaemon = null;
-                for (int i = m_DaemonProcessList.InnerList.Count - 1; i > -1; i--)
-                {
-                    tTempDaemon = (DaemonProcessInfo)m_DaemonProcessList.InnerList[i];
-
-                    /// SSH터널링 데몬서버IP가 아니면 skip
-                    if (!GlobalClass.m_SystemInfo.IsSSHTunnelDaemonIP(tTempDaemon.IP)) continue;
-
-                    if (tDaemonInfo == null)
-                    {
-                        tDaemonInfo = tTempDaemon;
-                        continue;
-                    }
-
-                    /// 접속세션 수가 적은 데몬을 선택
-                    if (tDaemonInfo.TelnetSessionCount + tDaemonInfo.TempSessionCount > tTempDaemon.TelnetSessionCount + tTempDaemon.TempSessionCount)
-                    {
-                        tDaemonInfo = tTempDaemon;
-                    }
-                } // End of for
-
-                if (tDaemonInfo != null) tDaemonInfo.TempSessionCount++;
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "[DaemonProcessManager.GetSSHTunnelDaemonProcess] 사용가능한 데몬프로세스가 없습니다.");
+                return tDaemonInfo;
             }
 
-            if (tDaemonInfo == null) {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, string.Format("[DaemonProcessManager.GetSSHTunnelDaemonProcess]SSH터널링을 위한 데몬이 없습니다[ServerIP={0}]", GlobalClass.m_SystemInfo.SSHTunnelDaemonIP));
+            if (GlobalClass.m_SystemInfo.GetSSHTunnelDaemonIPCount() == 0)
+            {
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "[DaemonProcessManager.GetSSHTunnelDaemonProcess] SSH터널링 데몬서버IP가 설정되지 않았습니다.");
+                return tDaemonInfo;
             }
-            
+
+            foreach (var tTempDaemon in daemonList.OrderByDescending(d => d.DaemonID))
+            {
+                /// SSH터널링 데몬서버IP가 아니면 skip
+                if (!GlobalClass.m_SystemInfo.IsSSHTunnelDaemonIP(tTempDaemon.IP)) continue;
+
+                if (tDaemonInfo == null)
+                {
+                    tDaemonInfo = tTempDaemon;
+                    continue;
+                }
+
+                /// 접속세션 수가 적은 데몬을 선택
+                if (tDaemonInfo.TelnetSessionCount + tDaemonInfo.TempSessionCount > tTempDaemon.TelnetSessionCount + tTempDaemon.TempSessionCount)
+                {
+                    tDaemonInfo = tTempDaemon;
+                }
+            }
+
+            if (tDaemonInfo != null) tDaemonInfo.TempSessionCount++;
+
             return tDaemonInfo;
         }
 
@@ -575,12 +409,8 @@ namespace RACTServer
             if (tInfo == null) return;
             tInfo.LifeTime = DateTime.Now;
 
-            lock (m_DaemonProcessList)
-            { 
                 if (m_DaemonProcessList.Contains(tInfo.DaemonID))
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Concat("###", tInfo.IP, ":", tInfo.Port, " => User Count :", tInfo.ConnectUsercount, " Session Count :", tInfo.TelnetSessionCount));
-                    // System.Diagnostics.Debug.WriteLine(string.Concat("###", m_DaemonProcessList[tInfo.DaemonID].IP, ":", m_DaemonProcessList[tInfo.DaemonID].Port, " => Before Life Time  :", m_DaemonProcessList[tInfo.DaemonID].LifeTime.ToString("yyyy-MM-dd HH:mm:ss"), " After Life Time :", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
                     m_DaemonProcessList[tInfo.DaemonID] = tInfo;
                     if (m_LastSendDaemonInfo != null && m_LastSendDaemonInfo.DaemonID == tInfo.DaemonID)
                     {
@@ -592,7 +422,6 @@ namespace RACTServer
                     m_DaemonProcessList.Add(tInfo);
                 }
             }
-        }
 
         /// <summary>
         /// Daemon 목록 가져오거나 설정 합니다.
@@ -607,10 +436,7 @@ namespace RACTServer
         {
             if (m_RemoteGateway != null)
             {
-                string tstring="";
-                
                 m_RemoteGateway.Dispose();
-
                 m_RemoteGateway = null;
             }
             if (m_RequestQueue != null)
@@ -644,9 +470,10 @@ namespace RACTServer
         /// </summary>
         internal void TempConnectionListClear()
         {
-            for (int i = m_DaemonProcessList.InnerList.Count - 1; i > -1; i--)
+            var daemonList = m_DaemonProcessList.ToList();
+            foreach (var daemon in daemonList)
             {
-                ((DaemonProcessInfo)m_DaemonProcessList.InnerList[i]).TempSessionCount = 0;
+                daemon.TempSessionCount = 0;
             }
         }
     }

@@ -1,0 +1,32 @@
+# RACTServer 고성능 병목 분석 보고서 (Performance Investigation)
+
+수천 대의 클라이언트를 수용하기 위한 RACTServer의 내부 구조를 분석한 결과, 다음과 같은 주요 병목 및 개선 지점이 식별되었습니다.
+
+## 1. 식별된 병목 지점 (Bottlenecks)
+
+### 1.1. 레거시 `MKOleDBPool` 초기화 유지
+- **현상**: `RACTServer.cs`에서 `InitializeServer()` 호출 시 여전히 `MKDBPool`과 `MKDBExecutePool`을 초기화하고 커넥션을 맺습니다.
+- **영향**: 현재 Dapper/Native ADO.NET으로 마이그레이션되었음에도 불구하고 불필요한 DB 세션을 점유하고 메모리를 사용합니다.
+
+### 1.2. `UserInfoList` (Dictionary) 락 경합
+- **현상**: [ClientCommunicationProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs)에서 `m_UserInfoList` 접근 시 `lock (m_UserInfoList)`를 광범위하게 사용합니다.
+- **영향**: 수천 명의 사용자가 동시에 요청/응답을 주고받을 때, 세션 조회 부위에서 CPU 캐시 일관성 오버헤드와 컨텍스트 스위칭이 발생합니다. `ConcurrentDictionary`로의 전환이 시급합니다.
+
+### 1.3. 수동 스레드 할당 및 제약
+- **현상**: `ClientCommunicationProcess` 생성자에서 DB 커넥션 수의 1/3만큼만 워커 스레드를 수동 생성합니다.
+- **영향**: Native SQL Pool은 200개 이상의 동시 요청을 충분히 처리할 수 있음에도 불구하고, 서버 내부 로직에서 스스로 스루풋(Throughput)을 제한하고 있습니다. `Task.Run` 또는 ThreadPool 활용이 필요합니다.
+
+### 1.4. 불안전한 스레드 종료 (`Thread.Abort`)
+- **현상**: `GlobalClass.StopThread`에서 `aThread.Abort()`를 호출하여 강제 종료합니다.
+- **영향**: .NET Framework에서 `ThreadAbortException`은 예측 불가능한 시점에 발생하여 DB 트랜잭션 미결, 공유 자원 Lock 미해제 등의 심각한 부작용을 초래할 수 있습니다.
+
+### 1.5. 동기식 커넥션 생성 오버헤드
+- **현상**: `GetSqlConnection()` 호출 시마다 문자열 포맷팅으로 ConnectionString을 생성합니다.
+
+## 2. 권고 개선 방향 (Proposed Optimizations)
+
+1.  **레거시 잔재 제거**: `RACTServer.cs` 내 `MKOleDBPool` 관련 초기화 및 Stop 코드를 제거합니다.
+2.  **Lock-Free 구조 전환**: `m_UserInfoList`를 `ConcurrentDictionary<int, UserInfo>`로 변경하여 읽기 성능을 극대화합니다.
+3.  **워커 스레드 현대화**: 고정된 `Thread[]` 배열 대신 `.NET ThreadPool`을 사용하거나, 요청 처리에 제한을 두지 않는 비동기 모델로 전환합니다.
+4.  **Graceful Shutdown**: `CancellationTokenSource` 또는 `volatile bool` 플래그를 사용하여 스레드가 스스로 종료되도록 유도합니다.
+5.  **커넥션 스트링 캐싱**: `GlobalClass` 내에 `ConnectionString`을 미리 생성해 두어 오버헤드를 줄입니다.

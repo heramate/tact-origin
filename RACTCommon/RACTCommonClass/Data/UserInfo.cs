@@ -1,6 +1,7 @@
-﻿using ACPS.CommonConfigCompareClass;
+using ACPS.CommonConfigCompareClass;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 
 namespace RACTCommonClass
 {
@@ -211,11 +212,11 @@ namespace RACTCommonClass
         /// <summary>
         /// 데이터 큐(데이터 형식=  byte[])  입니다.
         /// </summary>
-        private Queue m_DataQueue = new Queue();
+        private ConcurrentQueue<byte[]> m_DataQueue = new ConcurrentQueue<byte[]>();
         /// <summary>
         /// 데이터 큐 속성을 가져오거나 설정합니다.
         /// </summary>
-        public Queue DataQueue
+        public ConcurrentQueue<byte[]> DataQueue
         {
             get { return m_DataQueue; }
             set { m_DataQueue = value; }

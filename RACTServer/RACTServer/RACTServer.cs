@@ -1,4 +1,3 @@
-﻿using MKLibrary.MKData;
 using RACTCommonClass;
 using RACTServerCommon;
 using System;
@@ -174,34 +173,7 @@ namespace RACTServer
                 m_StartServerThread = null;
             }
 
-            if (GlobalClass.m_DBPool != null)
-            {
-                lock (GlobalClass.m_DBPool)
-                {
-                    try
-                    {
-                        GlobalClass.m_DBPool.StopDBPool();
-                    }
-                    catch (Exception) { }
-                    GlobalClass.m_DBPool.Dispose();
-                    GlobalClass.m_DBPool = null;
-                }
-            }
 
-            if (GlobalClass.m_DBExecutePool != null)
-            {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "데이터베이스 DBPool 접속을 종료 합니다.");
-                lock (GlobalClass.m_DBExecutePool)
-                {
-                    try
-                    {
-                        GlobalClass.m_DBExecutePool.StopDBPool();
-                    }
-                    catch (Exception) { }
-                    GlobalClass.m_DBExecutePool.Dispose();
-                    GlobalClass.m_DBExecutePool = null;
-                }
-            }
             if (GlobalClass.m_DBLogProcess != null)
             {
                 GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "DB로그 프로세서를 종료 합니다.");
@@ -307,10 +279,6 @@ namespace RACTServer
         }
 
 
-        /// <summary>
-        /// 서버를 초기화합니다.
-        /// </summary>
-        /// <returns></returns>
         private bool InitializeServer()
         {
             try
@@ -318,38 +286,7 @@ namespace RACTServer
                 GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "서버를 초기화 합니다.");
                 if (!LoadSystemInfo()) return false;
 
-                GlobalClass.m_DBPool = new MKOleDBPool(E_DatabaseServerType.MSSqlServer, 10);
-                GlobalClass.m_DBPool.StartDBPool();
-
-                E_DBProcessError tError = E_DBProcessError.Success;
-                tError = GlobalClass.m_DBPool.OpenDatabase(GlobalClass.m_SystemInfo.DBConnectionCount, GlobalClass.m_SystemInfo.DBServerIP, GlobalClass.m_SystemInfo.DBName, GlobalClass.m_SystemInfo.UserID, GlobalClass.m_SystemInfo.Password);
-                if (tError != E_DBProcessError.Success)
-                {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "데이터베이스 열기를 실패하였습니다." + " " + tError.ToString());
-                    return false;
-                }
-                else
-                {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "데이터베이스 DBPool에 접속하였습니다.");
-                }
-
-                GlobalClass.m_DBExecutePool = new MKOleDBPool(E_DatabaseServerType.MSSqlServer, 10);
-                GlobalClass.m_DBExecutePool.StartDBPool();
-
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, GlobalClass.m_SystemInfo.DBConnectionCount + " " + GlobalClass.m_SystemInfo.DBServerIP + " " + GlobalClass.m_SystemInfo.DBName + " " + GlobalClass.m_SystemInfo.UserID + " " + GlobalClass.m_SystemInfo.Password);
-                tError = GlobalClass.m_DBExecutePool.OpenDatabase(GlobalClass.m_SystemInfo.DBConnectionCount, GlobalClass.m_SystemInfo.DBServerIP, GlobalClass.m_SystemInfo.DBName, GlobalClass.m_SystemInfo.UserID, GlobalClass.m_SystemInfo.Password);
-                if (tError != E_DBProcessError.Success)
-                {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "데이터베이스 열기를 실패하였습니다." + " " + tError.ToString());
-                    return false;
-                }
-                else
-                {
-                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "데이터베이스 DBPool에 접속하였습니다.");
-                }
-
-                GlobalClass.m_DBLogProcess = new DBLogProcess(GlobalClass.m_DBPool, GlobalClass.m_StartupPath);
-
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "Dapper 기반 Native SQL Pool(Max 200)을 사용합니다.");
                 return true;
             }
             catch (Exception ex)

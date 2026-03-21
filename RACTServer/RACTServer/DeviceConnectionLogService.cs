@@ -1,6 +1,6 @@
-﻿using MKLibrary.MKData;
 using RACTCommonClass;
 using System;
+using Dapper;
 
 namespace RACTServer
 {
@@ -9,8 +9,6 @@ namespace RACTServer
         public DeviceConnectionLogOpenResultInfo OpenLog(UserInfo aUserInfo, DeviceConnectionLogOpenRequestInfo aRequest)
         {
             DeviceConnectionLogOpenResultInfo tResult = new DeviceConnectionLogOpenResultInfo();
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
 
             try
             {
@@ -21,17 +19,23 @@ namespace RACTServer
                     return tResult;
                 }
 
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                string tQuery = MakeOpenLogQuery(aUserInfo, aRequest);
-
-                if (tDBWI.ExecuteQuery(tQuery, out tDataSet) != E_DBProcessError.Success || tDataSet == null)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    tResult.Success = false;
-                    tResult.ErrorMessage = tDBWI.ErrorString;
-                    return tResult;
+                    if (conn == null) throw new Exception("DBConnection Failed");
+                    
+                    var sql = "EXEC [dbo].[SP_RACT_DeviceConnectLog] @UserID, @DeviceID, @ConnectType, @Description, @ConnectionKind";
+                    var param = new
+                    {
+                        UserID = aUserInfo.UserID,
+                        DeviceID = aRequest.DeviceID,
+                        ConnectType = (int)E_DeviceConnectType.Connection,
+                        Description = aRequest.Description,
+                        ConnectionKind = aRequest.ConnectionKind
+                    };
+
+                    tResult.ConnectionLogID = conn.QueryFirstOrDefault<int>(sql, param);
                 }
 
-                tResult.ConnectionLogID = tDataSet.GetInt32("ID");
                 tResult.Success = tResult.ConnectionLogID > 0;
                 if (!tResult.Success)
                 {
@@ -43,10 +47,6 @@ namespace RACTServer
                 tResult.Success = false;
                 tResult.ErrorMessage = ex.ToString();
             }
-            finally
-            {
-                MKOleDBClass.CloseDataSet(tDataSet);
-            }
 
             return tResult;
         }
@@ -54,18 +54,13 @@ namespace RACTServer
         public DeviceConnectionLogCloseResultInfo CloseLog(UserInfo aUserInfo, DeviceConnectionLogCloseRequestInfo aRequest)
         {
             DeviceConnectionLogCloseResultInfo tResult = new DeviceConnectionLogCloseResultInfo();
-            MKDBWorkItem tDBWI = null;
 
             try
             {
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                string tQuery = MakeCloseLogQuery(aRequest);
-
-                if (tDBWI.ExecuteNoneQuery(tQuery) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    tResult.Success = false;
-                    tResult.ErrorMessage = tDBWI.ErrorString;
-                    return tResult;
+                    if (conn == null) throw new Exception("DBConnection Failed");
+                    conn.Execute("update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = GETDATE() where id = @ID", new { ID = aRequest.ConnectionLogID });
                 }
 
                 tResult.Success = true;
@@ -77,24 +72,6 @@ namespace RACTServer
             }
 
             return tResult;
-        }
-
-        private string MakeOpenLogQuery(UserInfo aUserInfo, DeviceConnectionLogOpenRequestInfo aRequest)
-        {
-            return string.Format(
-                "EXEC [dbo].[SP_RACT_DeviceConnectLog] {0}, {1}, {2}, '{3}', {4}",
-                aUserInfo.UserID,
-                aRequest.DeviceID,
-                (int)E_DeviceConnectType.Connection,
-                aRequest.Description.Replace("'", "''"),
-                aRequest.ConnectionKind);
-        }
-
-        private string MakeCloseLogQuery(DeviceConnectionLogCloseRequestInfo aRequest)
-        {
-            return string.Format(
-                "update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = GETDATE() where id = {0}",
-                aRequest.ConnectionLogID);
         }
     }
 }

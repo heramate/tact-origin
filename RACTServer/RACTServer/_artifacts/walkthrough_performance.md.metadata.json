@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "RACTServer 성능 최적화 결과 보고서. Concurrent 컬렉션 도입, O(1) 검색 최적화, 레거시 DB 풀 제거 및 Throughput 확장 내역을 포함합니다.",
+  "updatedAt": "2026-03-21T13:26:44.519314800Z"
+}

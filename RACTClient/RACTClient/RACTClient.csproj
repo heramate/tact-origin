@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -107,27 +107,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
     </Reference>
-    <Reference Include="Rebex.Common, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.Common.7.0.9448\lib\net46\Rebex.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Rebex.Networking, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.Networking.7.0.9448\lib\net46\Rebex.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="Rebex.SshShell, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.SshShell.7.0.9448\lib\net46\Rebex.SshShell.dll</HintPath>
-    </Reference>
-    <Reference Include="Rebex.Telnet, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.Telnet.7.0.9448\lib\net46\Rebex.Telnet.dll</HintPath>
-    </Reference>
-    <Reference Include="Rebex.Terminal, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.Terminal.7.0.9448\lib\net46\Rebex.Terminal.dll</HintPath>
-    </Reference>
-    <Reference Include="Rebex.Terminal.Control, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.Terminal.Control.7.0.9448\lib\net46\Rebex.Terminal.Control.dll</HintPath>
-    </Reference>
-    <Reference Include="Rebex.Terminal.SerialPort, Version=7.0.9448.0, Culture=neutral, PublicKeyToken=1c4638788972655d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebex.Terminal.SerialPort.7.0.9448\lib\net46\Rebex.Terminal.SerialPort.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -145,9 +124,13 @@
     <Compile Include="Adapters\SshConnectionAdapter.cs" />
     <Compile Include="Adapters\SshTunnelManager.cs" />
     <Compile Include="Adapters\TelnetConnectionAdapter.cs" />
-    <PackageReference Include="Rebex.Telnet" Version="7.0.9209" />
-    <PackageReference Include="Rebex.SshShell" Version="7.0.9209" />
-    <PackageReference Include="Rebex.Terminal" Version="7.0.9209" />
+    <PackageReference Include="Rebex.Common" Version="7.0.9448" />
+    <PackageReference Include="Rebex.Networking" Version="7.0.9448" />
+    <PackageReference Include="Rebex.SshShell" Version="7.0.9448" />
+    <PackageReference Include="Rebex.Telnet" Version="7.0.9448" />
+    <PackageReference Include="Rebex.Terminal" Version="7.0.9448" />
+    <PackageReference Include="Rebex.Terminal.Control" Version="7.0.9448" />
+    <PackageReference Include="Rebex.Terminal.SerialPort" Version="7.0.9448" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

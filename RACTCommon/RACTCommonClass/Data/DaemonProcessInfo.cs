@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Linq;
 using ACPS.CommonConfigCompareClass;
 
 namespace RACTCommonClass
@@ -20,13 +22,9 @@ namespace RACTCommonClass
         private int m_TelnetSessionCount;
 
         /// <summary>
-        /// Daemon ID 입니다.
-        /// </summary>
-        private int m_DaemonID;
-        /// <summary>
         /// 데이터 큐(데이터 형식=  byte[])  입니다.
         /// </summary>
-        private Queue m_DataQueue = new Queue();
+        private ConcurrentQueue<byte[]> m_DataQueue = new ConcurrentQueue<byte[]>();
         /// <summary>
         /// IP 입니다.
         /// </summary>
@@ -160,7 +158,7 @@ namespace RACTCommonClass
         /// <summary>
         /// 데이터 큐 속성을 가져오거나 설정합니다.
         /// </summary>
-        public Queue DataQueue
+        public ConcurrentQueue<byte[]> DataQueue
         {
             get { return m_DataQueue; }
             set { m_DataQueue = value; }
@@ -259,8 +257,35 @@ namespace RACTCommonClass
             }
         }
 
+        private readonly ConcurrentDictionary<int, DaemonProcessInfo> m_ClientMap = new ConcurrentDictionary<int, DaemonProcessInfo>();
+
+        public override void Add(DaemonProcessInfo item)
+        {
+            if (item != null)
+            {
+                m_ClientMap[item.DaemonID] = item;
+                base.Add(item);
+            }
+        }
+
+        public override void Remove(DaemonProcessInfo item)
+        {
+            if (item != null)
+            {
+                DaemonProcessInfo removed;
+                m_ClientMap.TryRemove(item.DaemonID, out removed);
+                base.Remove(item);
+            }
+        }
+
+        public override void Clear()
+        {
+            m_ClientMap.Clear();
+            base.Clear();
+        }
+
         /// <summary>
-        /// 해당 ID의 요소를 가져오거나 설정합니다.
+        /// 해당 ID의 요소를 가져오거나 설정합니다. (O(1) 검색 최적화)
         /// </summary>
         /// <param name="aID">가져오거나 설정할 요소 ID입니다.</param>
         /// <returns></returns>
@@ -268,56 +293,42 @@ namespace RACTCommonClass
         {
             get
             {
-                DaemonProcessInfo tDeviceInfo = null;
-                lock (base.InnerList.SyncRoot)
+                DaemonProcessInfo tInfo;
+                if (m_ClientMap.TryGetValue(aID, out tInfo))
                 {
-                    foreach (DaemonProcessInfo tmpDeviceInfo in base.InnerList)
-                    {
-                        if (tmpDeviceInfo.DaemonID == aID)
-                        {
-                            tDeviceInfo = tmpDeviceInfo;
-                            break;
-                        }
-                    }
+                    return tInfo;
                 }
-                return tDeviceInfo;
+                return null;
             }
             set
             {
-                DaemonProcessInfo tDeviceInfo = null;
-                lock (base.InnerList.SyncRoot)
+                if (value != null)
                 {
-                    for (int idx = 0; idx < base.InnerList.Count; idx++)
-                    {
-                        tDeviceInfo = base.InnerList[idx] as DaemonProcessInfo;
-                        if (tDeviceInfo.DaemonID == aID)
-                        {
-                            base.InnerList[idx] = value;
-                            break;
-                        }
-                    }
+                    m_ClientMap[aID] = value;
                 }
             }
         }
 
-      
         /// <summary>
         /// 해당 ID의 요소를 제거합니다.
         /// </summary>
         /// <param name="aID"></param>
         public void Remove(int aID)
         {
-            lock (base.InnerList.SyncRoot)
+            DaemonProcessInfo removed;
+            if (m_ClientMap.TryRemove(aID, out removed))
             {
-                foreach (DaemonProcessInfo tDeviceInfo in base.InnerList)
-                {
-                    if (tDeviceInfo.DaemonID == aID)
-                    {
-                        base.Remove(tDeviceInfo);
-                        break;
-                    }
-                }
+                base.Remove(removed);
             }
+        }
+
+        /// <summary>
+        /// 안전한 순회를 위해 전체 목록을 복사하여 반환합니다.
+        /// </summary>
+        /// <returns></returns>
+        public List<DaemonProcessInfo> ToList()
+        {
+            return m_ClientMap.Values.ToList();
         }
 
         /// <summary>
@@ -327,7 +338,7 @@ namespace RACTCommonClass
         /// <returns></returns>
         public bool Contains(int aID)
         {
-            return this[aID] != null;
+            return m_ClientMap.ContainsKey(aID);
         }
       
     }

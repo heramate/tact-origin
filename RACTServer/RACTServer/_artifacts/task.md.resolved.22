@@ -1,0 +1,16 @@
+# RACTServer 성능 병목 분석 및 최적화
+
+## 1단계: GStack Planning (/plan-eng-review)
+- [x] 프로젝트 내 `GetDBWorkItem()` 사용처 추적 및 스코프 확정
+- [x] Dapper NuGet 패키지 적용 가능성 검토 (순수 ADO.NET 및 Dapper 패키지 설치 플랜 수립)
+- [x] 공통 DB 커넥션 팩토리 유틸리티 설계 ([GlobalClass](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GlobalClass.cs#12-179) 내에 [GetSqlConnection](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GlobalClass.cs#166-178) 플랜 수립)
+
+## 2단계: GStack Execution (/review & /qa)
+- [x] [UserInfoReceiver](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#373-392) (ClientCommunicationProcess.cs) 종속성 없는 순수 ADO.NET Native 구조로 전환 완료
+- [ ] [DeviceProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/DeviceProcess.cs) 주요 쿼리 Dapper 전환
+- [ ] [GroupProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GroupProcess.cs) 및 기타 Process의 DB 연동부 전환
+- [ ] 기존 워커 스레드 균등 배분 제거 & 비동기 최적화 점검
+
+## 3단계: GStack /ship & /document-release
+- [ ] 빌드 및 동작(문법) 검증
+- [ ] 최종 마이그레이션 보고서 작성 (walkthrough_dapper.md)

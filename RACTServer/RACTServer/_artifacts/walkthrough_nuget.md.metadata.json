@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Dapper 도입 및 PackageReference 전환 작업의 결과물입니다. RACTServer에 Dapper를 적용하고 RACTClient의 패키지 방식을 현대화했습니다.",
+  "updatedAt": "2026-03-21T13:01:52.906037800Z"
+}

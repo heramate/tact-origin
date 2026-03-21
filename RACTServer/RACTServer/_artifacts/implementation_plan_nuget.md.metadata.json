@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Dapper 도입 및 PackageReference 전환을 위한 상세 실행 계획입니다. RACTServer에 Dapper를 추가하고, RACTClient의 packages.config를 제거하여 PackageReference로 현대화합니다.",
+  "updatedAt": "2026-03-21T13:00:00.634789900Z"
+}

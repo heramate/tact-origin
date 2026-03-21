@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "RACTServer의 데이터 레이어 현대화(Dapper 전환)를 마무리하기 위한 최종 이행 계획입니다. `BaseDataLoadProcess.cs`의 레거시 DB 접근 코드를 Dapper로 전환하고, `RACTServer.cs`의 불필요한 풀 정리 로직을 제거하며, 전체 프로세스 클래스에서 사용되지 않는 `MKDBWorkItem` 변수들을 정리합니다.",
+  "updatedAt": "2026-03-21T13:42:12.768134500Z"
+}

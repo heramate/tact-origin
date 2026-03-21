@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "RACTServer 고성능 병목 분석 결과 보고서입니다. 스레딩, 락 경합, 레거시 DB 풀, 네트워크 계층 등 주요 병목 지점을 진단하고 개선 방향을 제시합니다.",
+  "updatedAt": "2026-03-21T13:20:46.622475900Z"
+}

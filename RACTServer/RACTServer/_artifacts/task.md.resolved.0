@@ -1,0 +1,11 @@
+# RACTServer 성능 병목 분석 및 최적화
+
+## 목표
+수천 대의 클라이언트 동시 접속 시 발생하는 RACTServer의 성능 병목을 분석하고, 이를 최적화하기 위한 방안을 검토한다. 안드레 카르파시의 코딩 가이드라인에 따라 복잡성을 최소화하고(Simplicity First), 수술적인 변경(Surgical Changes)을 지향한다.
+
+## 작업 항목
+- [ ] RACTServer 접속 처리부 소스코드 탐색 (Socket/TcpListener, Accept 비동기 여부 확인)
+- [ ] 클라이언트 세션/스레드 관리 방식 분석 (Thread per connection vs Async/Await vs I/O Completion Port)
+- [ ] 데이터 수신/송신 시의 버퍼 할당 및 처리 방식 분석
+- [ ] 병목 예상 지점 도출 및 최적화 방안 수립 (비동기 I/O 전환, 스레드 풀 최적화 등)
+- [ ] 분석 결과 보고 (implementation_plan.md)

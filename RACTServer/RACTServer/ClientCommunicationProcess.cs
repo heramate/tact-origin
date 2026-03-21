@@ -1,10 +1,13 @@
-using MKLibrary.MKData;
 using MKLibrary.MKNetwork;
 using RACTCommonClass;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Data;
+using System.Data.SqlClient;
+using Dapper;
+using System.Linq;
 
 namespace RACTServer
 {
@@ -52,8 +55,8 @@ namespace RACTServer
             m_ClientResponseProcess = new ClientResponseProcess();
             m_ClientResponseProcess.Start();
 
-            // DBConnectionCount 기반으로 DB Pool Limit 내에서 다중 스레드 할당
-            int threadCount = Math.Max(2, GlobalClass.m_SystemInfo.DBConnectionCount / 3);
+            // DBConnectionCount 제약 없이 넉넉한 스레드 할당 (Native SQL Pool 200 활용)
+            int threadCount = Math.Max(Environment.ProcessorCount * 2, 16);
             m_RequestProcessThreads = new Thread[threadCount];
             for (int i = 0; i < threadCount; i++)
             {
@@ -101,12 +104,12 @@ namespace RACTServer
                 try
                 {
 
-                    for (int i = m_UserInfoList.Count - 1; i > -1; i--)
+                    var userList = m_UserInfoList.ToList();
+                    foreach (var userInfo in userList)
                     {
-                        tUserInfo = (UserInfo)m_UserInfoList.InnerList[i];
-                        if (((TimeSpan)DateTime.Now.Subtract(tUserInfo.LifeTime)).TotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
+                        if (((TimeSpan)DateTime.Now.Subtract(userInfo.LifeTime)).TotalSeconds >= GlobalClass.s_HealthCheckTimeOut)
                         {
-                            m_UserInfoList.RemoveAt(i);
+                            m_UserInfoList.Remove(userInfo.ClientID);
                         }
                     }
                 }
@@ -245,33 +248,26 @@ namespace RACTServer
             int tResultCount = 0;
             UserInfo tUserInfo = null;
 
-            lock (m_UserInfoList)
+            tUserInfo = m_UserInfoList[aClientID];
+            if (tUserInfo == null)
             {
-                if (!m_UserInfoList.Contains(aClientID))
+                if (aClientID != 0)
                 {
-                    if (aClientID != 0)
-                    {
-                        return MakeSessionExpiredResult(aClientID);
-                    }
-                    return null;
+                    return MakeSessionExpiredResult(aClientID);
                 }
-                tUserInfo = (UserInfo)m_UserInfoList[aClientID];
+                return null;
             }
 
-            if (tUserInfo == null) return null;
             tUserInfo.LifeTime = DateTime.Now;
 
-            lock (tUserInfo.DataQueue.SyncRoot)
+            if (tUserInfo.DataQueue.Count > 0)
             {
-                if (tUserInfo.DataQueue.Count > 0)
+                tResults = new ArrayList();
+                while (tUserInfo.DataQueue.TryDequeue(out byte[] data))
                 {
-                    tResults = new ArrayList();
-                    while (tUserInfo.DataQueue.Count > 0)
-                    {
-                        if (tResultCount >= 200) break;
-                        tResults.Add(tUserInfo.DataQueue.Dequeue());
-                        tResultCount++;
-                    }
+                    if (tResultCount >= 200) break;
+                    tResults.Add(data);
+                    tResultCount++;
                 }
             }
 
@@ -355,18 +351,15 @@ namespace RACTServer
         /// <param name="tClientRequest"></param>
         private void UserLogoutReceiver(int aClientID)
         {
-            lock (m_UserInfoList)
+            UserInfo tUserInfo = m_UserInfoList[aClientID];
+            if (tUserInfo != null)
             {
-                if (m_UserInfoList.Contains(aClientID))
-                {
-                    UserInfo tUserInfo = m_UserInfoList[aClientID];
-                    UpdateUserLastLoginTime(tUserInfo);
-                    GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID, E_UserLogType.LogOut, tUserInfo.Account + " 사용자가 로그아웃 했습니다."));
+                UpdateUserLastLoginTime(tUserInfo);
+                GlobalClass.m_DBLogProcess.AddLog(new DBUserLogInfo(tUserInfo.UserID, E_UserLogType.LogOut, tUserInfo.Account + " 사용자가 로그아웃 했습니다."));
 
-                    // 2013-04-26 - shinyn - 사용자 로그아웃시 ClientID 로그로 저장
-                    GlobalClass.m_LogProcess.PrintLog("Account : " + tUserInfo.Account + " ClientID : " + aClientID.ToString() + " 사용자가 로그아웃 했습니다");
-                    m_UserInfoList.Remove(aClientID);
-                }
+                // 2013-04-26 - shinyn - 사용자 로그아웃시 ClientID 로그로 저장
+                GlobalClass.m_LogProcess.PrintLog("Account : " + tUserInfo.Account + " ClientID : " + aClientID.ToString() + " 사용자가 로그아웃 했습니다");
+                m_UserInfoList.Remove(aClientID);
             }
         }
 
@@ -395,9 +388,6 @@ namespace RACTServer
             LoginResultInfo tLoginResult = null;
             E_UserType tUserType = E_UserType.Operator_Area;
 
-            MKDBWorkItem tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-            MKDataSet tDataSet = null;
-
             string[] tClientIPAddressList = aClientIP.Split('/');
             string tClientIPAddress = tClientIPAddressList[0];
 
@@ -413,115 +403,78 @@ namespace RACTServer
                 tQueryMessage = "EXEC SP_RACT_Get_UserInfo '{0}', '{1}'";
                 tQueryMessage = string.Format(tQueryMessage, aUserAccount, aUserPassword);
 
-                tDBWI.ExecuteQuery(tQueryMessage, out tDataSet);
-
-
-
-                if (tDataSet == null)
-                {
-                    return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnknownError, "데이터베이스에 연결할 수 없습니다."));
-                }
-
                 UserInfo tUserInfo = null;
 
-                if (tDataSet.RecordCount > 0)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    tUserInfo = new UserInfo();
-                    tUserInfo.UserID = tDataSet.GetInt32("UsrID");
-                    tUserInfo.Account = aUserAccount;
-                    tUserInfo.IPAddress = tClientIPAddress;
-                    tUserInfo.LifeTime = DateTime.Now;
-                    tUserInfo.LastLoginTime = tDataSet.GetDateTime("RactLastLoginTime");
-
-                    //tUserType = (E_UserType)tDataSet.GetInt32("UsrType");
-                    if (tDataSet.GetInt32("UsrType") <= 0)
+                    if (conn == null) return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnknownError, "데이터베이스에 연결할 수 없습니다."));
+                    
+                    using (var multi = conn.QueryMultiple("SP_RACT_Get_UserInfo", new { UserAccount = aUserAccount, UserPassword = aUserPassword }, commandType: CommandType.StoredProcedure))
                     {
-                        tUserType = E_UserType.Admin_All;
-                    }
-                    else if (tDataSet.GetInt32("UsrType") == 1)
-                    {
-                        tUserType = E_UserType.Admin_Area;
-                    }
-                    else if (tDataSet.GetInt32("UsrType") == 2)
-                    {
-                        tUserType = E_UserType.Operator_Area;
-                    }
-                    else
-                    {
-                        tUserType = E_UserType.Bp_Area;
-                    }
+                        var userRow = multi.Read().Cast<IDictionary<string, object>>().FirstOrDefault();
+                        if (userRow != null)
+                        {
+                            tUserInfo = new UserInfo();
+                            tUserInfo.UserID = userRow.ContainsKey("UsrID") && userRow["UsrID"] != DBNull.Value ? Convert.ToInt32(userRow["UsrID"]) : 0;
+                            tUserInfo.Account = aUserAccount;
+                            tUserInfo.IPAddress = tClientIPAddress;
+                            tUserInfo.LifeTime = DateTime.Now;
+                            tUserInfo.LastLoginTime = userRow.ContainsKey("RactLastLoginTime") && userRow["RactLastLoginTime"] != DBNull.Value ? Convert.ToDateTime(userRow["RactLastLoginTime"]) : DateTime.MinValue;
 
-                    if (tDataSet.GetBool("IsBp") == true)
-                    {
-                        tUserType = E_UserType.Bp_Area;
-                    }
+                            int usrType = userRow.ContainsKey("UsrType") && userRow["UsrType"] != DBNull.Value ? Convert.ToInt32(userRow["UsrType"]) : 0;
+                            if (usrType <= 0) tUserType = E_UserType.Admin_All;
+                            else if (usrType == 1) tUserType = E_UserType.Admin_Area;
+                            else if (usrType == 2) tUserType = E_UserType.Operator_Area;
+                            else tUserType = E_UserType.Bp_Area;
 
-                    if (tDataSet.GetBool("IsSupervisor") == true)
-                    {
-                        tUserType = E_UserType.Supervisor;
-                    }
+                            if (userRow.ContainsKey("IsBp") && userRow["IsBp"] != DBNull.Value && Convert.ToBoolean(userRow["IsBp"])) tUserType = E_UserType.Bp_Area;
+                            if (userRow.ContainsKey("IsSupervisor") && userRow["IsSupervisor"] != DBNull.Value && Convert.ToBoolean(userRow["IsSupervisor"])) tUserType = E_UserType.Supervisor;
 
-                    tUserInfo.UserType = tUserType;
+                            tUserInfo.UserType = tUserType;
+                            tUserInfo.IsViewAllBranch = userRow.ContainsKey("isviewallBranch") && userRow["isviewallBranch"] != DBNull.Value ? Convert.ToBoolean(userRow["isviewallBranch"]) : false;
 
-                    tUserInfo.IsViewAllBranch = tDataSet.GetBool("isviewallBranch");
+                            if (userRow.ContainsKey("IsUseRACT") && userRow["IsUseRACT"] != DBNull.Value && !Convert.ToBoolean(userRow["IsUseRACT"]))
+                            {
+                                return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.NotAuthentication, ""));
+                            }
 
-                    if (!tDataSet.GetBool("IsUseRACT"))
-                    {
-                        return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.NotAuthentication, ""));
-                    }
+                            if (tUserInfo.LastLoginTime.AddDays(GlobalClass.s_UnUsedLimit) < DateTime.Now)
+                            {
+                                conn.Execute("update usr_user set IsUseRACT = 0 where account = @UserAccount", new { UserAccount = aUserAccount });
+                                return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnUsedLimit, ""));
+                            }
 
-                    if (tUserInfo.LastLoginTime.AddDays(GlobalClass.s_UnUsedLimit) < DateTime.Now)
-                    {
-                        tDBWI.ExecuteNoneQuery(string.Format("update usr_user set IsUseRACT = 0 where account ='{0}'", aUserAccount));
-                        return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.UnUsedLimit, ""));
-                    }
+                            if (!userRow.ContainsKey("CoCode") || userRow["CoCode"] == DBNull.Value || Convert.ToInt32(userRow["CoCode"]) == 0)
+                            {
+                                return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.NothingCoCode, ""));
+                            }
+                        }
+                        else
+                        {
+                            return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.IncorrectID, ""));
+                        }
 
-                    // 20260305 ShinMyungsu USER접근강화
-                    if (tDataSet["CoCode"] == DBNull.Value || tDataSet.GetInt32("CoCode") == 0)
-                    {
-                        return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.NothingCoCode, ""));
-                    }
-                    //====================================================================================================
-                }
-                else
-                {
-                    // m_FileLog.PrintLogEnter("ID가 존재하지 않습니다.");
-                    return ObjectConverter.GetBytes(new LoginResultInfo(E_LoginResult.IncorrectID, ""));
-                }
+                        if (!multi.IsConsumed)
+                        {
+                            var centers = multi.Read<string>().ToList();
+                            foreach (var center in centers) tUserInfo.Centers.Add(center);
+                        }
 
-                tDataSet.CurrentTableIndex++;
-
-                if (tDataSet.RecordCount > 0)
-                {
-                    for (int i = 0; i < tDataSet.RecordCount; i++)
-                    {
-                        tUserInfo.Centers.Add(tDataSet.GetString("centerCode"));
-                        tDataSet.MoveNext();
+                        if (!multi.IsConsumed)
+                        {
+                            var mangTypes = multi.Read<string>().FirstOrDefault();
+                            if (!string.IsNullOrEmpty(mangTypes))
+                            {
+                                string[] tMangTypeCds = mangTypes.Split('|');
+                                foreach (var cd in tMangTypeCds)
+                                {
+                                    if (cd.Length > 1) tUserInfo.MangTypes.Add(cd);
+                                }
+                            }
+                        }
                     }
                 }
 
-                // 20260209 ShinMyungsu User별 장비접근권한 강화  User가 Bp사면 MangTypeCd를 가져온다.
-                tDataSet.CurrentTableIndex++;
-                string tMangTypeCd = "";
-                if (tDataSet.RecordCount > 0)
-                {
-                    for (int i = 0; i < tDataSet.RecordCount; i++)
-                    {
-                        tMangTypeCd = tDataSet.GetString("MangTypeCd");
-                        tDataSet.MoveNext();
-                    }
-
-                    string[] tMangTypeCds = tMangTypeCd.Split('|');
-
-                    for (int i = 0; i < tMangTypeCds.Length; i++)
-                    {
-                        if (tMangTypeCds[i].ToString().Length > 1) tUserInfo.MangTypes.Add(tMangTypeCds[i].ToString());
-                    }
-                }
-                //2019-03-25 KangBongHan 제한명령어 명령어별 권한 변경건 수정
-                //2015-10-30 제한명령어 권한 적용.
-                //LimitedCmdUser의 기본값은 false 임. (총괄사용자 등은 제한 없음.)
-                //Supervisor는 제한 없이 사용 가능 그외 
                 if (tUserType == E_UserType.Supervisor)
                 {
                     tUserInfo.LimitedCmdUser = false;
@@ -531,51 +484,8 @@ namespace RACTServer
                     tUserInfo.LimitedCmdUser = true;
                 }
 
-
-                //웹에서 설정하는 3개의 권한에 대해서만 체크함.
-                /*
-                tDataSet = null;
-                //tQueryMessage = "SELECT * FROM dbo.RACT_USR_AUTH_DEF WHERE MenuTypeID=1";
-                tQueryMessage = "SELECT MAX(CAST(GlobalAdmin AS INT)) AS GlobalAdmin, "+
-                                "MAX(CAST(LocalAdmin AS INT)) AS LocalAdmin, " +
-                                "MAX(CAST(CenterAdmin AS INT)) AS CenterAdmin, " +
-                                "MAX(CAST(BpAdmin AS INT)) AS BpAdmin " +
-                                "FROM dbo.RACT_NE_EMBAGO_CMD ";
-                if (tDBWI.ExecuteQuery(tQueryMessage, out tDataSet) == E_DBProcessError.Success)
-                {
-                    if (tUserType <= E_UserType.Admin_All)
-                    {
-                        if (tDataSet.GetBool("GlobalAdmin") == true)
-                        {
-                            tUserInfo.LimitedCmdUser = true;
-                        }
-                    }
-                    else if (tUserType == E_UserType.Admin_Area)
-                    {
-                        if (tDataSet.GetBool("LocalAdmin") == true)
-                        {
-                            tUserInfo.LimitedCmdUser = true;
-                        }
-                    }
-                    else if (tUserType == E_UserType.Operator_Area)
-                    {
-                        if (tDataSet.GetBool("CenterAdmin") == true)
-                        {
-                            tUserInfo.LimitedCmdUser = true;
-                        }
-                    }
-                      else if (tUserType == E_UserType.Bp_Area)
-                    {
-                        if (tDataSet.GetBool("BpAdmin") == true)
-                        {
-                            tUserInfo.LimitedCmdUser = true;
-                        }
-                    }
-                }
-                */
-                MKOleDBClass.CloseDataSet(tDataSet);
-
-                bool tIsAlreadyLogin = false;
+                tIsAlreadyLogin = m_UserInfoList.ToList().Any(u => u.UserID == tUserInfo.UserID);
+/*
                 lock (m_UserInfoList)
                 {
                     foreach (UserInfo tmpUserInfo in m_UserInfoList)
@@ -587,8 +497,7 @@ namespace RACTServer
                         }
                     }
                 }
-
-
+*/
                 if (tIsAlreadyLogin && aTerminalMode == E_TerminalMode.RACTClient)
                 {
                     tLoginResult = new LoginResultInfo(E_LoginResult.AlreadyLogin, "같은 계정으로 로그인 되어있습니다.");
@@ -601,10 +510,7 @@ namespace RACTServer
                 GlobalClass.m_LogProcess.PrintLog("Account : " + aUserAccount + " ClientID : " + tUserInfo.ClientID.ToString() + " 사용자가 로그인 했습니다");
 
                 // 사용자 정보를 해시 테이블에 추가 합니다.
-                lock (m_UserInfoList)
-                {
-                    m_UserInfoList.Add(tUserInfo);
-                }
+                m_UserInfoList.Add(tUserInfo);
                 tLoginResult = new LoginResultInfo();
                 tLoginResult.UserID = tUserInfo.UserID;
                 tLoginResult.ClientID = tUserInfo.ClientID;
@@ -623,7 +529,6 @@ namespace RACTServer
             }
             catch (Exception ex)
             {
-                MKOleDBClass.CloseDataSet(tDataSet);
                 tLoginResult = new LoginResultInfo(E_LoginResult.UnknownError, ex.ToString());
                 return ObjectConverter.GetBytes(tLoginResult);
             }
@@ -634,12 +539,14 @@ namespace RACTServer
         /// <param name="aUserInfo"></param>
         private void UpdateUserLastLoginTime(UserInfo aUserInfo)
         {
-            MKDBWorkItem tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-            MKDataSet tDataSet = null;
-
             try
             {
-                tDBWI.ExecuteNoneQuery(string.Format("update usr_user set Ractlastlogintime = '{0}' where account ='{1}'", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), aUserInfo.Account));
+                using (var conn = GlobalClass.GetSqlConnection())
+                {
+                    if (conn == null) return;
+                    conn.Execute("update usr_user set Ractlastlogintime = @LastLoginTime where account = @UserAccount", 
+                        new { LastLoginTime = DateTime.Now, UserAccount = aUserInfo.Account });
+                }
             }
             catch (Exception ex)
             {

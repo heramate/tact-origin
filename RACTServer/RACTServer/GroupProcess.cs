@@ -1,78 +1,49 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using RACTCommonClass;
-using MKLibrary.MKData;
+using System.Linq;
 using System.IO.Ports;
+using RACTCommonClass;
+using Dapper;
 
 namespace RACTServer
 {
     public class GroupProcess
     {
-
         private static void ModifyGroupInfo(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-            GroupRequestInfo tGroupRequestInfo;
-            GroupInfo tGroupInfo;
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tGroupRequestInfo = (GroupRequestInfo)aClientRequest.RequestData;
-                tGroupInfo = tGroupRequestInfo.GroupInfo;
+                var tGroupRequestInfo = (GroupRequestInfo)aClientRequest.RequestData;
+                var tGroupInfo = tGroupRequestInfo.GroupInfo;
 
-                // 2013-08-13 - shinyn-  상위, 최상위 그룹 아이디 등록
-                tQueryString = "EXEC SP_RACT_Modify_GroupInfo {0}, {1}, {2}, '{3}', '{4}','{5}','{6}'";
-
-                // 2013-01-18 - shinyn - 그룹등록시에는 아이디를 null로 보냅니다.
-                string tGroupID = tGroupInfo.ID;
-
-                if (tGroupRequestInfo.WorkType == E_WorkType.Add)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    tGroupID = "null";
-                }
-
-                tQueryString = string.Format(tQueryString,
-                    (int)tGroupRequestInfo.WorkType,
-                    tGroupRequestInfo.UserID,
-                    tGroupID,
-                    tGroupInfo.Name,
-                    tGroupInfo.Description,
-                    tGroupInfo.TOP_ID,
-                    tGroupInfo.UP_ID);
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
-                {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-                    if (tDataSet != null)
+                    string tQuery = "EXEC SP_RACT_Modify_GroupInfo @WorkType, @UserID, @ID, @Name, @Description, @TOP_ID, @UP_ID";
+                    var result = conn.QueryFirstOrDefault(tQuery, new
                     {
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
-                        {
-                            tGroupInfo.ID = tDataSet.GetString("ID");
-                        }
+                        WorkType = (int)tGroupRequestInfo.WorkType,
+                        UserID = tGroupRequestInfo.UserID,
+                        ID = tGroupRequestInfo.WorkType == E_WorkType.Add ? null : tGroupInfo.ID,
+                        Name = tGroupInfo.Name,
+                        Description = tGroupInfo.Description,
+                        TOP_ID = tGroupInfo.TOP_ID,
+                        UP_ID = tGroupInfo.UP_ID
+                    });
+
+                    if (result != null)
+                    {
+                        tGroupInfo.ID = ((IDictionary<string, object>)result)["ID"]?.ToString();
                     }
                     tResultData.ResultData = tGroupInfo;
                 }
-
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
-            }
-            finally
-            {
-                MKOleDBClass.CloseDataSet(tDataSet);
             }
         }
 
@@ -82,179 +53,114 @@ namespace RACTServer
         /// <param name="aClientRequest"></param>
         private static void GroupInfoReceiver(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-            GroupInfoCollection tGroupInfoCollection = new GroupInfoCollection();
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-            GroupRequestInfo tGroupRequestInfo;
-            DeviceInfo tDeviceInfo;
-            GroupInfo tGroupInfo = null;
-
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tGroupRequestInfo = (GroupRequestInfo)aClientRequest.RequestData;
+                var tGroupRequestInfo = (GroupRequestInfo)aClientRequest.RequestData;
 
-                tQueryString = "EXEC SP_RACT_Get_GROUPINFO {0}";
-
-                tQueryString = string.Format(tQueryString, tGroupRequestInfo.UserID);
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-
-                    if (tDataSet != null)
+                    conn.Open();
+                    using (var multi = conn.QueryMultiple("EXEC SP_RACT_Get_GROUPINFO @UserID", new { UserID = tGroupRequestInfo.UserID }))
                     {
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        var groups = multi.Read<dynamic>().ToList();
+                        var devices = multi.Read<dynamic>().ToList();
+
+                        var groupInfoCollection = new GroupInfoCollection();
+                        foreach (var g in groups)
                         {
-                            tGroupInfo = new GroupInfo();
-                            // shinyn - 2012-12-13 - NE Group ID int -> string 수정 'B' PON(Biz) -> FOMs연동 값에 따른 수정
-                            tGroupInfo.ID = tDataSet.GetString("ID");
-                            tGroupInfo.Name = tDataSet.GetString("Name");
-                            tGroupInfo.Description = tDataSet.GetString("Description");
-
-
-                            // 2013-08-13 - shinyn - 상위그룹아이디, 최상위그룹아이디, 그룹 순서아이디, 레벨아이디
-                            // 입력하여, 나중에 조회시 단계별로 표시하도록 한다.
-                            tGroupInfo.TOP_ID = tDataSet.GetString("TOP_ID");
-                            tGroupInfo.UP_ID = tDataSet.GetString("UP_ID");
-                            tGroupInfo.LEVEL = tDataSet.GetInt32("LEVEL_1");
-                            tGroupInfo.SEQ_ID = tDataSet.GetInt32("SEQ_ID");
-                            tGroupInfo.DEVICE_COUNT = tDataSet.GetInt32("DEVICE_COUNT");
-                            tGroupInfo.UserID = tDataSet.GetInt32("UserID");
-
-
-                            // shinyn - 2012-12-13 - NE Group ID int -> string 수정 'B' PON(Biz) -> FOMs연동 값에 따른 수정
-                            tGroupInfoCollection.Add(tGroupInfo.ID, tGroupInfo);
-
-                            tDataSet.MoveNext();
+                            IDictionary<string, object> dict = (IDictionary<string, object>)g;
+                            var group = new GroupInfo
+                            {
+                                ID = dict["ID"]?.ToString(),
+                                Name = dict["Name"]?.ToString(),
+                                Description = dict["Description"]?.ToString(),
+                                TOP_ID = dict["TOP_ID"]?.ToString(),
+                                UP_ID = dict["UP_ID"]?.ToString(),
+                                LEVEL = dict["LEVEL_1"] != DBNull.Value ? Convert.ToInt32(dict["LEVEL_1"]) : 0,
+                                SEQ_ID = dict["SEQ_ID"] != DBNull.Value ? Convert.ToInt32(dict["SEQ_ID"]) : 0,
+                                DEVICE_COUNT = dict["DEVICE_COUNT"] != DBNull.Value ? Convert.ToInt32(dict["DEVICE_COUNT"]) : 0,
+                                UserID = dict["UserID"] != DBNull.Value ? Convert.ToInt32(dict["UserID"]) : 0
+                            };
+                            if (!groupInfoCollection.ContainsKey(group.ID))
+                                groupInfoCollection.Add(group.ID, group);
                         }
 
-                        tDataSet.CurrentTableIndex++;
-
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        foreach (var d in devices)
                         {
-                            // shinyn - 2012-12-13 - NE Group ID int -> string 수정 'B' PON(Biz) -> FOMs연동 값에 따른 수정
-                            if (tGroupInfoCollection.ContainsKey(tDataSet["RACTGroupID"].ToString()))
+                            IDictionary<string, object> dict = (IDictionary<string, object>)d;
+                            string rGroupID = dict["RACTGroupID"]?.ToString();
+                            
+                            GroupInfo targetGroup;
+                            if (groupInfoCollection.ContainsKey(rGroupID))
                             {
-                                // shinyn - 2012-12-13 - NE Group ID int -> string 수정 'B' PON(Biz) -> FOMs연동 값에 따른 수정
-                                tGroupInfo = (GroupInfo)tGroupInfoCollection[tDataSet["RACTGroupID"].ToString()];
+                                targetGroup = groupInfoCollection[rGroupID];
                             }
                             else
                             {
-
-                                tGroupInfo = new GroupInfo();
-                                // shinyn - 2012-12-13 - NE Group ID int -> string 수정 'B' PON(Biz) -> FOMs연동 값에 따른 수정
-                                tGroupInfo.ID = tDataSet.GetString("RACTGroupID");
-                                tGroupInfo.Name = tDataSet.GetString("RACTName");
-                                tGroupInfo.Description = tDataSet.GetString("RACTDescription");
-
-                                // 2013-08-13 - shinyn - 상위그룹아이디, 최상위그룹아이디, 그룹 순서아이디, 레벨아이디
-                                // 입력하여, 나중에 조회시 단계별로 표시하도록 한다.
-
-                                tGroupInfo.TOP_ID = tDataSet.GetString("RACTGroupID");
-                                tGroupInfo.UP_ID = "";
-                                tGroupInfo.LEVEL = 0;
-                                tGroupInfo.SEQ_ID = 0;
-                                tGroupInfo.DEVICE_COUNT = 0;
-
-
-                                tGroupInfoCollection.Add(tGroupInfo.ID, tGroupInfo);
+                                targetGroup = new GroupInfo
+                                {
+                                    ID = rGroupID,
+                                    Name = dict["RACTName"]?.ToString(),
+                                    Description = dict["RACTDescription"]?.ToString(),
+                                    TOP_ID = rGroupID
+                                };
+                                groupInfoCollection.Add(rGroupID, targetGroup);
                             }
 
-                            tDeviceInfo = new DeviceInfo();
-                            tDeviceInfo.DeviceID = tDataSet.GetInt32("NeID");
-                            tDeviceInfo.ModelID = tDataSet.GetInt32("ModelID");
-
-                            // 2013-01-01 - shinyn - ModelName값 입력
-                            tDeviceInfo.ModelName = tDataSet.GetString("ModelName");
-                            tDeviceInfo.DevicePartCode = tDataSet.GetInt32("ModelTypeCode");
-
-                            // shinyn - 2012-12-13 - NE Group ID int -> string 수정 'B' PON(Biz) -> FOMs연동 값에 따른 수정
-                            tDeviceInfo.GroupID = tGroupInfo.ID;
-                            tDeviceInfo.Name = tDataSet.GetString("NeName");
-                            tDeviceInfo.TerminalConnectInfo.TelnetPort = tDataSet.GetInt32("TelnetPort");
-                            tDeviceInfo.TerminalConnectInfo.ConnectionProtocol = (E_ConnectionProtocol)tDataSet.GetInt32("Protocol");
-                            tDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate = tDataSet.GetInt32("BaudRate");
-                            tDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits = tDataSet.GetInt32("DataBits");
-                            tDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake = (Handshake)tDataSet.GetInt32("HandShake");
-                            tDeviceInfo.TerminalConnectInfo.SerialConfig.Parity = (Parity)tDataSet.GetInt32("Parity");
-                            tDeviceInfo.TerminalConnectInfo.SerialConfig.PortName = tDataSet.GetString("PortName");
-                            tDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits = (StopBits)tDataSet.GetInt32("StopBits");
-
-                            tDeviceInfo.IPAddress = tDataSet.GetString("MasterIP");
-                            tDeviceInfo.TelnetID1 = tDataSet.GetString("TelnetID_1").Trim();
-                            tDeviceInfo.TelnetPwd1 = tDataSet.GetString("Passwd_1").Trim();
-
-                            tDeviceInfo.ORG1Code = tDataSet.GetString("ORG1_ID");
-                            tDeviceInfo.ORG1Name = tDataSet.GetString("ORG1_Name");
-
-                            tDeviceInfo.ORG2Code = tDataSet.GetString("ORG2_ID");
-                            tDeviceInfo.ORG2Name = tDataSet.GetString("ORG2_Name");
-
-                            tDeviceInfo.CenterName = tDataSet.GetString("CenterName");
-                            tDeviceInfo.TpoName = tDataSet.GetString("TpoName");
-
-                            // 2013-01-18 - shinyn - 수동장비등록 구분 가져오기
-                            tDeviceInfo.DeviceType = (E_DeviceType)tDataSet.GetInt32("DeviceType");
-
-                            //2013-05-02 - shinyn - 기본접속 정보를 가져온다.
-                            tDeviceInfo.WAIT = tDataSet.GetString("WAIT1");
-                            tDeviceInfo.USERID = tDataSet.GetString("USERID1");
-                            tDeviceInfo.PWD = tDataSet.GetString("PWD1");
-                            tDeviceInfo.USERID2 = tDataSet.GetString("USERID2");
-                            tDeviceInfo.PWD2 = tDataSet.GetString("PWD2");
-
-                            // 2013-08-09 - shinyn - MoreString,MoreMark를 가져온다.
-                            tDeviceInfo.MoreString = tDataSet.GetString("MoreString");
-                            tDeviceInfo.MoreMark = tDataSet.GetString("MoreMark");
-
-                            //2013-08-14 -shinyn - 사용자 그룹인 경우 사용자 이름,아이디,계정을 가져온다.
-                            tDeviceInfo.UsrName = tDataSet.GetString("UsrName");
-                            tDeviceInfo.UsrID = tDataSet.GetInt32("UsrID");
-                            tDeviceInfo.Account = tDataSet.GetString("Account");
-
-#if Debug
-                            // 2013-01-11 - shinyn - 테스트 장비 아이피로 실행됨
-                            /*
-                            tDeviceInfo.IPAddress = "10.30.1.58";
-                            tDeviceInfo.TelnetID1 = "root";
-                            tDeviceInfo.TelnetPwd1 = "vertex25";
-                            */
-#endif
-
+                            var tDeviceInfo = new DeviceInfo
+                            {
+                                DeviceID = Convert.ToInt32(dict["NeID"]),
+                                ModelID = Convert.ToInt32(dict["ModelID"]),
+                                ModelName = dict["ModelName"]?.ToString(),
+                                DevicePartCode = Convert.ToInt32(dict["ModelTypeCode"]),
+                                GroupID = targetGroup.ID,
+                                Name = dict["NeName"]?.ToString(),
+                                IPAddress = dict["MasterIP"]?.ToString(),
+                                TelnetID1 = dict["TelnetID_1"]?.ToString().Trim(),
+                                TelnetPwd1 = dict["Passwd_1"]?.ToString().Trim(),
+                                TelnetID2 = dict["TelnetID_2"]?.ToString().Trim(),
+                                TelnetPwd2 = dict["Passwd_2"]?.ToString().Trim(),
+                                ORG1Code = dict["ORG1_ID"]?.ToString(),
+                                ORG1Name = dict["ORG1_Name"]?.ToString(),
+                                ORG2Code = dict["ORG2_ID"]?.ToString(),
+                                ORG2Name = dict["ORG2_Name"]?.ToString(),
+                                CenterName = dict["CenterName"]?.ToString(),
+                                TpoName = dict["TpoName"]?.ToString(),
+                                DeviceType = dict["DeviceType"] != DBNull.Value ? (E_DeviceType)Convert.ToInt32(dict["DeviceType"]) : E_DeviceType.NeGroup,
+                                WAIT = dict["WAIT1"]?.ToString(),
+                                USERID = dict["USERID1"]?.ToString(),
+                                PWD = dict["PWD1"]?.ToString(),
+                                USERID2 = dict["USERID2"]?.ToString(),
+                                PWD2 = dict["PWD2"]?.ToString(),
+                                MoreString = dict["MoreString"]?.ToString(),
+                                MoreMark = dict["MoreMark"]?.ToString(),
+                                UsrName = dict["UsrName"]?.ToString(),
+                                UsrID = dict["UsrID"] != DBNull.Value ? Convert.ToInt32(dict["UsrID"]) : 0,
+                                Account = dict["Account"]?.ToString()
+                            };
                             tDeviceInfo.TerminalConnectInfo.IPAddress = tDeviceInfo.IPAddress;
-                            tDeviceInfo.TelnetID2 = tDataSet.GetString("TelnetID_2").Trim();
+                            tDeviceInfo.TerminalConnectInfo.TelnetPort = dict["TelnetPort"] != DBNull.Value ? Convert.ToInt32(dict["TelnetPort"]) : 0;
+                            tDeviceInfo.TerminalConnectInfo.ConnectionProtocol = dict["Protocol"] != DBNull.Value ? (E_ConnectionProtocol)Convert.ToInt32(dict["Protocol"]) : E_ConnectionProtocol.Telnet;
+                            tDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate = dict["BaudRate"] != DBNull.Value ? Convert.ToInt32(dict["BaudRate"]) : 9600;
+                            tDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits = dict["DataBits"] != DBNull.Value ? Convert.ToInt32(dict["DataBits"]) : 8;
+                            tDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake = dict["HandShake"] != DBNull.Value ? (Handshake)Convert.ToInt32(dict["HandShake"]) : Handshake.None;
+                            tDeviceInfo.TerminalConnectInfo.SerialConfig.Parity = dict["Parity"] != DBNull.Value ? (Parity)Convert.ToInt32(dict["Parity"]) : Parity.None;
+                            tDeviceInfo.TerminalConnectInfo.SerialConfig.PortName = dict["PortName"]?.ToString();
+                            tDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits = dict["StopBits"] != DBNull.Value ? (StopBits)Convert.ToInt32(dict["StopBits"]) : StopBits.One;
 
-                            tDeviceInfo.TelnetPwd2 = tDataSet.GetString("Passwd_2").Trim();
-
-                            tGroupInfo.DeviceList.Add(tDeviceInfo);
-
-                            tDataSet.MoveNext();
+                            targetGroup.DeviceList.Add(tDeviceInfo);
                         }
+                        tResultData.ResultData = groupInfoCollection;
                     }
-                    tResultData.ResultData = tGroupInfoCollection;
                 }
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
-            }
-            finally
-            {
-				if (tDataSet != null)
-                	MKOleDBClass.CloseDataSet(tDataSet);
-                tGroupInfoCollection.InnerList.Clear();
-                tGroupInfo.DeviceList.Clear();
             }
         }
 
@@ -277,80 +183,26 @@ namespace RACTServer
             }
         }
 
-
-        /// <summary>
-        /// 2013-09-09-shinyn- 사용자 리스트 요청을 처리합니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         internal static void RequestRactUserListProcess(RequestCommunicationData aClientRequest)
         {
-            string[] tRequestInfo = aClientRequest.RequestData as string[];
-
             RactUserListReceiver(aClientRequest);
         }
 
-
-
-        /// <summary>
-        /// 2013-09-09 - shinyn - RACT 사용자리스트를 전송할 메서드입니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         private static void RactUserListReceiver(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-
-            UserInfoCollection tUserInfos = new UserInfoCollection();
-
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-
-            string[] tRequestInfo;
-
-            DeviceInfo tDeviceInfo = null;
-            GroupInfo tGroupInfo = null;
-            UserInfo tUserInfo = null;
-
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tRequestInfo = (string[])aClientRequest.RequestData;
+                var tRequestInfo = (string[])aClientRequest.RequestData;
 
-                /*
-                @SearchType as varchar(10), -- 1:이름 2:계정
-                @SearchValue as varchar(20),
-                @DeleteUserID as int
-                */
-                tQueryString = "EXEC SP_RACT_GET_USER_LIST '{0}','{1}',{2};";
-
-                tQueryString = string.Format(tQueryString, tRequestInfo[0], tRequestInfo[1], tRequestInfo[2]);
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-
-                    if (tDataSet != null)
-                    {
-                        // 사용자 목록을 추가합니다.
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
-                        {
-                            tUserInfo = new UserInfo();
-                            tUserInfo.Name = tDataSet.GetString("UsrName");
-                            tUserInfo.Account = tDataSet.GetString("Account");
-                            tUserInfo.UserID = tDataSet.GetInt32("UsrID");
-
-                            tUserInfos.Add(tUserInfo);
-                            tDataSet.MoveNext();
-                        }
-                    }
-
-
+                    var results = conn.Query<UserInfo>("EXEC SP_RACT_GET_USER_LIST @SearchType,@SearchValue,@DeleteUserID", 
+                        new { SearchType = tRequestInfo[0], SearchValue = tRequestInfo[1], DeleteUserID = Convert.ToInt32(tRequestInfo[2]) }).ToList();
+                    
+                    var tUserInfos = new UserInfoCollection();
+                    foreach (var u in results) tUserInfos.Add(u);
+                    
                     tResultData.ResultData = tUserInfos;
                 }
                 GlobalClass.SendResultClient(tResultData);
@@ -358,314 +210,182 @@ namespace RACTServer
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
-            }
-            finally
-            {
-				if (tDataSet != null)
-                	MKOleDBClass.CloseDataSet(tDataSet);
             }
         }
 
-        /// <summary>
-        /// 2013-09-09 -shinyn-사용자 공유 장비 목록 저장하는 요청을 처리합니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         internal static void RequestAddShareDeviceProcess(RequestCommunicationData aClientRequest)
         {
             AddShareDeviceInfoReceiver(aClientRequest);
         }
 
-        /// <summary>
-        /// 2013-09-09 - shinyn - 사용자 공유 장비 목록을 저장, 전송할 메서드입니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         private static void AddShareDeviceInfoReceiver(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-
-            GroupInfo tRequestInfo;
-
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tRequestInfo = (GroupInfo)aClientRequest.RequestData;
+                var tRequestInfo = (GroupInfo)aClientRequest.RequestData;
 
-                // 2013-09-09 - shinyn - 사용자그룹 추가하고 그룹 아이디를 반환한다.
-
-                tQueryString = "EXEC SP_RACT_Modify_GroupInfo {0}, {1}, {2}, '{3}', '{4}','{5}','{6}';";
-
-                // 2013-01-18 - shinyn - 그룹등록시에는 아이디를 null로 보냅니다.
-                string tGroupID = "null";
-
-
-                tQueryString = string.Format(tQueryString,
-                    (int)E_WorkType.Add,
-                    tRequestInfo.UserID,
-                    tGroupID,
-                    tRequestInfo.Name,
-                    tRequestInfo.Description,
-                    "",
-                    "");
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-                    if (tDataSet != null)
+                    conn.Open();
+                    var result = conn.QueryFirstOrDefault("EXEC SP_RACT_Modify_GroupInfo @WorkType, @UserID, @ID, @Name, @Description, '', ''", 
+                        new { WorkType = (int)E_WorkType.Add, UserID = tRequestInfo.UserID, ID = (string)null, Name = tRequestInfo.Name, Description = tRequestInfo.Description });
+
+                    if (result != null)
                     {
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        tRequestInfo.ID = ((IDictionary<string, object>)result)["ID"]?.ToString();
+                    }
+
+                    foreach (DeviceInfo aDeviceInfo in tRequestInfo.DeviceList)
+                    {
+                        try
                         {
-                            tRequestInfo.ID = tDataSet.GetString("ID");
+                            if (aDeviceInfo.DeviceType == E_DeviceType.NeGroup)
+                            {
+                                conn.Execute("EXEC SP_RACT_MODIFY_DEVICEINFO @WorkType,@GroupID,@UserID,@DeviceID,@Protocol,@DeviceType,@TelnetPort,@PortName,@BaudRate,@DataBits,@Parity,@StopBits,@Handshake,'','','','','','','','','','','','','',@MoreString,@MoreMark", 
+                                    new { WorkType = (int)E_WorkType.Add, GroupID = tRequestInfo.ID, UserID = tRequestInfo.UserID, DeviceID = aDeviceInfo.DeviceID, 
+                                          Protocol = (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol, DeviceType = (int)aDeviceInfo.DeviceType, 
+                                          TelnetPort = aDeviceInfo.TerminalConnectInfo.TelnetPort, PortName = aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName, 
+                                          BaudRate = aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate, DataBits = aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits, 
+                                          Parity = (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity, StopBits = (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits, 
+                                          Handshake = (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake, MoreString = aDeviceInfo.MoreString, MoreMark = aDeviceInfo.MoreMark });
+                            }
+                            else
+                            {
+                                conn.Execute("EXEC SP_RACT_MODIFY_DEVICEINFO @WorkType,@GroupID,@UserID,@DeviceID,@Protocol,@DeviceType,@TelnetPort,@PortName,@BaudRate,@DataBits,@Parity,@StopBits,@Handshake,@ModelName,@IPAddress,@TelnetID1,@TelnetPwd1,@TelnetID2,@TelnetPwd2,@Name,@TpoName,@WAIT,@USERID,@PWD,@USERID2,@PWD2,@MoreString,@MoreMark", 
+                                    new { WorkType = (int)E_WorkType.Add, GroupID = tRequestInfo.ID, UserID = tRequestInfo.UserID, DeviceID = aDeviceInfo.DeviceID, 
+                                          Protocol = (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol, DeviceType = (int)aDeviceInfo.DeviceType, 
+                                          TelnetPort = aDeviceInfo.TerminalConnectInfo.TelnetPort, PortName = aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName, 
+                                          BaudRate = aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate, DataBits = aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits, 
+                                          Parity = (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity, StopBits = (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits, 
+                                          Handshake = (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake, ModelName = aDeviceInfo.ModelName, 
+                                          IPAddress = aDeviceInfo.IPAddress, TelnetID1 = aDeviceInfo.TelnetID1, TelnetPwd1 = aDeviceInfo.TelnetPwd1, 
+                                          TelnetID2 = aDeviceInfo.TelnetID2, TelnetPwd2 = aDeviceInfo.TelnetPwd2, Name = aDeviceInfo.Name, 
+                                          TpoName = aDeviceInfo.TpoName, WAIT = aDeviceInfo.WAIT, USERID = aDeviceInfo.USERID, 
+                                          PWD = aDeviceInfo.PWD, USERID2 = aDeviceInfo.USERID2, PWD2 = aDeviceInfo.PWD2, 
+                                          MoreString = aDeviceInfo.MoreString, MoreMark = aDeviceInfo.MoreMark });
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.Write(ex.ToString());
                         }
                     }
+                    tResultData.ResultData = tRequestInfo;
                 }
-
-                foreach (DeviceInfo aDeviceInfo in tRequestInfo.DeviceList)
-                {
-                    // 2013-01-18 - shinyn - 수동장비등록을 위한 프로시저 수정 적용
-                    // 2013-05-02 - shinyn - 수동장비등록에 프롬프트 저장 추가
-                    // 2013-08-09 - shinyn - MoreString, MoreMark 저장
-                    tQueryString = "EXEC SP_RACT_MODIFY_DEVICEINFO {0},{1},{2},{3},{4},{5},{6},'{7}',{8},{9},{10},{11},{12}," +
-                                   "'{13}','{14}','{15}','{16}','{17}','{18}','{19}','{20}','{21}','{22}','{23}','{24}','{25}','{26}','{27}'";
-
-                    try
-                    {
-                        switch (aDeviceInfo.DeviceType)
-                        {
-                            case E_DeviceType.NeGroup:
-                                tQueryString = string.Format(tQueryString, (int)E_WorkType.Add,
-                                                tRequestInfo.ID,
-                                                tRequestInfo.UserID,
-                                                aDeviceInfo.DeviceID,
-                                                (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol,
-                                                (int)aDeviceInfo.DeviceType,
-                                                aDeviceInfo.TerminalConnectInfo.TelnetPort,
-                                                aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName,
-                                                aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate,
-                                                aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits,
-                                                (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity,
-                                                (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits,
-                                                (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake,
-                                                "", "", "", "", "", "", "", "", "", "", "", "", "",
-                                                aDeviceInfo.MoreString,
-                                                aDeviceInfo.MoreMark);
-                                break;
-                            case E_DeviceType.UserNeGroup:
-                                tQueryString = string.Format(tQueryString, (int)E_WorkType.Add,
-                                                tRequestInfo.ID,
-                                                tRequestInfo.UserID,
-                                                aDeviceInfo.DeviceID,
-                                                (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol,
-                                                (int)aDeviceInfo.DeviceType,
-                                                aDeviceInfo.TerminalConnectInfo.TelnetPort,
-                                                aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName,
-                                                aDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate,
-                                                aDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits,
-                                                (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Parity,
-                                                (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.StopBits,
-                                                (int)aDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake,
-                                                aDeviceInfo.ModelName,
-                                                aDeviceInfo.IPAddress,
-                                                aDeviceInfo.TelnetID1,
-                                                aDeviceInfo.TelnetPwd1,
-                                                aDeviceInfo.TelnetID2,
-                                                aDeviceInfo.TelnetPwd2,
-                                                aDeviceInfo.Name,
-                                                aDeviceInfo.TpoName,
-                                                aDeviceInfo.WAIT,
-                                                aDeviceInfo.USERID,
-                                                aDeviceInfo.PWD,
-                                                aDeviceInfo.USERID2,
-                                                aDeviceInfo.PWD2,
-                                                aDeviceInfo.MoreString,
-                                                aDeviceInfo.MoreMark);
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.Write(ex.ToString());
-                    }
-
-                    tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                    if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
-                    {
-                        Console.WriteLine(tDBWI.ExecuteQuery(tQueryString, out tDataSet));
-                    }
-
-                }
-
-                tResultData.ResultData = tRequestInfo;
-
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
-            }
-            finally
-            {
-				if (tDataSet != null)
-                	MKOleDBClass.CloseDataSet(tDataSet);
             }
         }
 
-        /// <summary>
-        /// 사용자 권환에 해당하는 그룹을 가져오기 합니다.
-        /// </summary>
-        /// <param name="tUserInfo"></param>
-        /// <returns></returns>
         internal static FACTGroupInfo GetFactGroup(UserInfo aUserInfo)
         {
-            FACTGroupInfo tCenterGroupInfo = null;
-            FACTGroupInfo tBranchGroupInfo = null;
-            FACTGroupInfo tORG1GroupInfo = null;
-            FACTGroupInfo tGroupInfo = null;
-
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-
-            string tOldCenterCode = "";
-            string tOldBranchCode = "";
-            string tOldORG1Code = "";
-            FACTGroupInfo tUserFACTGroupInfo = null;
+            FACTGroupInfo tUserFACTGroupInfo = new FACTGroupInfo();
             try
             {
-                //그룹 정보를 로드 합니다 ---------------------------------------------------------
-                tUserFACTGroupInfo = new FACTGroupInfo();
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                tDBWI.ExecuteQuery(string.Format(SQLQuery.SelectFACTGroupInfo(), aUserInfo.GetCenterCode), out tDataSet);
-
+                string query = string.Format(SQLQuery.SelectFACTGroupInfo(), aUserInfo.GetCenterCode);
                 GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "사용자별 FACT 그룹정보를 로드 합니다.");
 
-                if (tDataSet != null)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    if (tDataSet.RecordCount > 0)
+                    conn.Open();
+                    var results = conn.Query(query);
+                    
+                    string tOldCenterCode = "", tOldBranchCode = "", tOldORG1Code = "";
+                    FACTGroupInfo tCenterGroupInfo = null, tBranchGroupInfo = null, tORG1GroupInfo = null;
+
+                    foreach (var row in results)
                     {
-                        GlobalClass.m_FACTGroupInfo.ORG1Code = "0";
-                        GlobalClass.m_FACTGroupInfo.ORG1Name = "Root";
+                        IDictionary<string, object> dict = (IDictionary<string, object>)row;
+                        string branchCode = dict["org2_id"]?.ToString().Trim();
+                        string centerCode = dict["CenterCode"]?.ToString().Trim();
+                        string org1Code = dict["org1_id"]?.ToString();
 
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        if (tOldORG1Code != org1Code)
                         {
-                            tGroupInfo = new FACTGroupInfo();
-                            tGroupInfo.BranchCode = tDataSet.GetString("org2_id").Trim();
-                            tGroupInfo.BranchName = tDataSet.GetString("org2_name");
-                            tGroupInfo.CenterCode = tDataSet.GetString("CenterCode").Trim();
-                            tGroupInfo.CenterName = tDataSet.GetString("CenterName");
-                            tGroupInfo.ORG1Code = tDataSet.GetString("org1_id");
-                            tGroupInfo.ORG1Name = tDataSet.GetString("org1_name");
+                            tOldORG1Code = org1Code;
+                            tORG1GroupInfo = new FACTGroupInfo { ORG1Code = org1Code, ORG1Name = dict["org1_name"]?.ToString() };
+                            if (tUserFACTGroupInfo.SubGroups == null) tUserFACTGroupInfo.SubGroups = new FACTGroupInfoCollection();
+                            tUserFACTGroupInfo.SubGroups.Add(tORG1GroupInfo);
+                        }
 
-                            if (tOldORG1Code != tGroupInfo.ORG1Code)
-                            {
-                                tOldORG1Code = tGroupInfo.ORG1Code;
-                                tORG1GroupInfo = new FACTGroupInfo();
-                                tORG1GroupInfo.ORG1Code = tDataSet.GetString("org1_id");
-                                tORG1GroupInfo.ORG1Name = tDataSet.GetString("org1_name");
+                        if (tOldBranchCode != branchCode)
+                        {
+                            tOldBranchCode = branchCode;
+                            tBranchGroupInfo = new FACTGroupInfo { BranchCode = branchCode, BranchName = dict["org2_name"]?.ToString(), ORG1Code = org1Code, ORG1Name = dict["org1_name"]?.ToString() };
+                            if (tORG1GroupInfo.SubGroups == null) tORG1GroupInfo.SubGroups = new FACTGroupInfoCollection();
+                            tORG1GroupInfo.SubGroups.Add(tBranchGroupInfo);
+                        }
 
-                                if (tUserFACTGroupInfo.SubGroups == null)
-                                {
-                                    tUserFACTGroupInfo.SubGroups = new FACTGroupInfoCollection();
-                                }
-                                tUserFACTGroupInfo.SubGroups.Add(tORG1GroupInfo);
-
-                            }
-
-
-                            if (tOldBranchCode != tGroupInfo.BranchCode)
-                            {
-                                tOldBranchCode = tGroupInfo.BranchCode;
-                                tBranchGroupInfo = new FACTGroupInfo();
-                                tBranchGroupInfo.BranchCode = tDataSet.GetString("org2_id").Trim();
-                                tBranchGroupInfo.BranchName = tDataSet.GetString("org2_name");
-                                tBranchGroupInfo.ORG1Code = tDataSet.GetString("org1_id");
-                                tBranchGroupInfo.ORG1Name = tDataSet.GetString("org1_name");
-
-                                if (tORG1GroupInfo.SubGroups == null)
-                                {
-                                    tORG1GroupInfo.SubGroups = new FACTGroupInfoCollection();
-                                }
-                                tORG1GroupInfo.SubGroups.Add(tBranchGroupInfo);
-                            }
-
-                            if (tOldCenterCode != tGroupInfo.CenterCode)
-                            {
-                                tOldCenterCode = tGroupInfo.CenterCode;
-
-                                tCenterGroupInfo = new FACTGroupInfo();
-                                tCenterGroupInfo.ORG1Code = tDataSet.GetString("org1_id");
-                                tCenterGroupInfo.ORG1Name = tDataSet.GetString("org1_name");
-                                tCenterGroupInfo.BranchCode = tDataSet.GetString("org2_id").Trim();
-                                tCenterGroupInfo.BranchName = tDataSet.GetString("org2_name");
-                                tCenterGroupInfo.CenterCode = tDataSet.GetString("CenterCode").Trim();
-                                tCenterGroupInfo.CenterName = tDataSet.GetString("CenterName");
-
-
-
-                                if (tBranchGroupInfo.SubGroups == null)
-                                {
-                                    tBranchGroupInfo.SubGroups = new FACTGroupInfoCollection();
-                                }
-                                tBranchGroupInfo.SubGroups.Add(tCenterGroupInfo);
-                            }
-
-                            tDataSet.MoveNext();
+                        if (tOldCenterCode != centerCode)
+                        {
+                            tOldCenterCode = centerCode;
+                            tCenterGroupInfo = new FACTGroupInfo { ORG1Code = org1Code, ORG1Name = dict["org1_name"]?.ToString(), BranchCode = branchCode, BranchName = dict["org2_name"]?.ToString(), CenterCode = centerCode, CenterName = dict["CenterName"]?.ToString() };
+                            if (tBranchGroupInfo.SubGroups == null) tBranchGroupInfo.SubGroups = new FACTGroupInfoCollection();
+                            tBranchGroupInfo.SubGroups.Add(tCenterGroupInfo);
                         }
                     }
-                    MKOleDBClass.CloseDataSet(tDataSet);
                 }
             }
-            catch (Exception ex)
-            {
-                MKOleDBClass.CloseDataSet(tDataSet);
-            }
+            catch (Exception) { }
             FactCountDevice(tUserFACTGroupInfo, aUserInfo);
             return tUserFACTGroupInfo;
         }
 
         private static void FactCountDevice(FACTGroupInfo aGroupInfo, UserInfo aUserInfo)
         {
-
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
             try
             {
-                if (aGroupInfo.SubGroups != null && aGroupInfo.SubGroups.Count > 0)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    foreach (FACTGroupInfo tGroupInfo in aGroupInfo.SubGroups)
-                    {
-                        FactCountDevice(tGroupInfo, aUserInfo);
+                    conn.Open();
+                    FactCountDeviceRecursive(aGroupInfo, aUserInfo, conn);
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private static void FactCountDeviceRecursive(FACTGroupInfo aGroupInfo, UserInfo aUserInfo, System.Data.SqlClient.SqlConnection conn)
+        {
+            if (aGroupInfo.SubGroups != null && aGroupInfo.SubGroups.Count > 0)
+            {
+                foreach (FACTGroupInfo tGroupInfo in aGroupInfo.SubGroups)
+                {
+                    FactCountDeviceRecursive(tGroupInfo, aUserInfo, conn);
+                }
+            }
+
+            if (string.IsNullOrEmpty(aGroupInfo.CenterCode)) return;
+
+            try
+            {
+                var result = conn.QueryFirstOrDefault("EXEC SP_ORG_DEVICE_Count @CenterCode", new { CenterCode = aGroupInfo.CenterCode });
+                if (result != null)
+                {
+                    aGroupInfo.DeviceCount = Convert.ToInt32(((IDictionary<string, object>)result)["devicecount"]);
+                }
+            }
+            catch (Exception) { }
+        }
+    }
+}
+r.HasRows)
+                        {
+                            reader.Read();
+                            aGroupInfo.DeviceCount = reader["devicecount"] != DBNull.Value ? Convert.ToInt32(reader["devicecount"]) : 0;
+                        }
                     }
                 }
-
-                if (aGroupInfo.CenterCode == string.Empty) return;
-
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-
-                if (tDBWI.ExecuteQuery(string.Format("exec SP_ORG_DEVICE_Count '{0}'", aGroupInfo.CenterCode), out tDataSet) == E_DBProcessError.Success)
-                {
-                    if (tDataSet.RecordCount > 0)
-                    {
-                        aGroupInfo.DeviceCount = tDataSet.GetInt32("devicecount");
-                    }
-                }
-                MKOleDBClass.CloseDataSet(tDataSet);
             }
             catch (Exception ex)
             {
-                MKOleDBClass.CloseDataSet(tDataSet);
             }
         }
     }

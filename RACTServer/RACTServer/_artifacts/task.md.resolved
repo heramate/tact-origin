@@ -1,0 +1,25 @@
+# RACTServer 성능 병목 분석 및 최적화
+
+## 1단계: GStack Planning (/plan-eng-review)
+- [x] 프로젝트 내 `GetDBWorkItem()` 사용처 추적 및 스코프 확정
+- [x] Dapper NuGet 패키지 적용 가능성 검토 (순수 ADO.NET 및 Dapper 패키지 설치 플랜 수립)
+- [x] 공통 DB 커넥션 팩토리 유틸리티 설계 ([GlobalClass](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GlobalClass.cs#10-160) 내에 [GetSqlConnection](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GlobalClass.cs#142-159) 플랜 수립)
+
+## 2단계: GStack Execution (/review & /qa)
+- [x] [UserInfoReceiver](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#366-385) (ClientCommunicationProcess.cs) Dapper 기반 구조로 전환 완료
+- [x] [DeviceProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/DeviceProcess.cs) 주요 쿼리 (Native ADO.NET 전환)
+- [x] [GroupProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GroupProcess.cs) 및 기타 Process의 DB 연동부 (Native ADO.NET 전환)
+- [x] packages.config 제거 및 PackageReference (NuGet) 전환 완료
+- [x] [UserInfoCollection](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTCommon/RACTCommonClass/Data/UserInfoCollection.cs#7-166) O(1) 검색 및 `ConcurrentDictionary` 도입 완료
+- [x] `UserInfo.DataQueue`를 `ConcurrentQueue`로 전환하여 락 경합 제거 완료
+- [x] 레거시 `MKOleDBPool` 초기화 코드 완전 제거 완료
+- [x] 워커 스레드 확장 및 Throughput 제한 해제 완료
+
+## 4단계: Dapper 최종 마이그레이션 (Total Migration)
+- [x] [BaseDataLoadProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/BaseDataLoadProcess.cs) Dapper 전환 및 레거시 제거
+- [x] [RACTServer.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/RACTServer.cs) 내 폐기된 DB Pool 관련 cleanup 로직 제거
+- [x] 전역 Process 클래스 내 `MKDBWorkItem` 미사용 변수 정리
+- [x] [DaemonProcessManager.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/DaemonProcessManager.cs), [ClientResponseProcess.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientResponseProcess.cs) 등 누락된 모든 클래스 Dapper 전환
+- [x] [GlobalClass.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/GlobalClass.cs), [JobIDGenerator.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/JobIDGenerator.cs), [DeviceConnectionLogService.cs](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/DeviceConnectionLogService.cs) 등 유틸리티 클래스 Dapper 전환
+- [x] `MKLibrary.MKData` 참조 및 레거시 using 문 완전 제거
+- [x] 최종 빌드 확인 및 코드 정적 분석 완료

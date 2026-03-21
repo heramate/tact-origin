@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using RACTCommonClass;
-using MKLibrary.MKData;
+using Dapper;
 
 namespace RACTServer
 {
@@ -26,59 +26,48 @@ namespace RACTServer
                     break;
             }
         }
+
         /// <summary>
         /// 단축 명령을 수정 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
         private static void ModifyShortenCommand(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-            ShortenCommandRequestInfo tRequestCommandInfo;
-            ShortenCommandInfo tInfo;
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tRequestCommandInfo = (ShortenCommandRequestInfo)aClientRequest.RequestData;
-                tInfo = tRequestCommandInfo.ShortenCommandInfo;
+                var tRequestCommandInfo = (ShortenCommandRequestInfo)aClientRequest.RequestData;
+                var tInfo = tRequestCommandInfo.ShortenCommandInfo;
 
-                tQueryString = "EXEC SP_RACT_Modify_ShortenCommand {0}, {1}, {2}, '{3}', '{4}', '{5}','{6}'";
-
-                tQueryString = string.Format(tQueryString, (int)tRequestCommandInfo.WorkType, tInfo.ID,tInfo.GroupID, tRequestCommandInfo.UserID, tInfo.Name, tInfo.Command, tInfo.Description);
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-                    if (tDataSet != null)
+                    string tQuery = "EXEC SP_RACT_Modify_ShortenCommand @WorkType, @ID, @GroupID, @UserID, @Name, @Command, @Description";
+                    var result = conn.QueryFirstOrDefault(tQuery, new
                     {
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
-                        {
-                            tInfo.ID = tDataSet.GetInt32("ID");
-                        }
+                        WorkType = (int)tRequestCommandInfo.WorkType,
+                        ID = tInfo.ID,
+                        GroupID = tInfo.GroupID,
+                        UserID = tRequestCommandInfo.UserID,
+                        Name = tInfo.Name,
+                        Command = tInfo.Command,
+                        Description = tInfo.Description
+                    });
+
+                    if (result != null)
+                    {
+                        tInfo.ID = Convert.ToInt32(((IDictionary<string, object>)result)["ID"]);
                     }
-                    tResultData.ResultData = tInfo;
                 }
+
+                tResultData.ResultData = tInfo;
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
             }
-            finally
-            {
-                if(tDataSet != null)
-                    MKOleDBClass.CloseDataSet(tDataSet);
-            }
-
         }
 
         /// <summary>
@@ -87,82 +76,40 @@ namespace RACTServer
         /// <param name="aClientRequest"></param>
         private static void SearchShortenCommand(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-            ShortenCommandRequestInfo tRequestCommandInfo;
-            ShortenCommandInfo tCommand;
-            ShortenCommandInfoCollection tCommandList = new ShortenCommandInfoCollection();
-            ShortenCommandGroupInfo tCommandGroupInfo = null;
-            ShortenCommandGroupInfoCollection tGroupList = new ShortenCommandGroupInfoCollection();
-
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tRequestCommandInfo = (ShortenCommandRequestInfo)aClientRequest.RequestData;
+                var tRequestCommandInfo = (ShortenCommandRequestInfo)aClientRequest.RequestData;
 
-                tQueryString = "EXEC SP_RACT_Get_ShortenCommand {0}";
-
-                tQueryString = string.Format(tQueryString, tRequestCommandInfo.UserID);
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-                    if (tDataSet != null)
+                    conn.Open();
+                    using (var multi = conn.QueryMultiple("EXEC SP_RACT_Get_ShortenCommand @UserID", new { UserID = tRequestCommandInfo.UserID }))
                     {
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
+                        var groups = multi.Read<ShortenCommandGroupInfo>().ToList();
+                        var commands = multi.Read<ShortenCommandInfo>().ToList();
+
+                        var groupList = new ShortenCommandGroupInfoCollection();
+                        foreach (var g in groups) groupList.Add(g);
+
+                        foreach (var c in commands)
                         {
-                            tCommandGroupInfo = new ShortenCommandGroupInfo();
-                            tCommandGroupInfo.ID = tDataSet.GetInt32("ID");
-                            tCommandGroupInfo.Name = tDataSet.GetString("Name");
-                            tCommandGroupInfo.Description = tDataSet.GetString("Description");
-
-                            tGroupList.Add(tCommandGroupInfo);
-
-                            tDataSet.MoveNext();
+                            if (c.GroupID >= 0 && c.GroupID < groupList.Count)
+                            {
+                                groupList[c.GroupID].ShortenCommandList.Add(c);
+                            }
                         }
+
+                        tResultData.ResultData = groupList;
                     }
-
-                    tDataSet.CurrentTableIndex++;
-
-                    for (int i = 0; i < tDataSet.RecordCount; i++)
-                    {
-
-                        tCommand = new ShortenCommandInfo();
-                        tCommand.ID = tDataSet.GetInt32("Id");
-                        tCommand.Name = tDataSet.GetString("Name");
-                        tCommand.GroupID = tDataSet.GetInt32("GroupID");
-                        tCommand.Command = tDataSet.GetString("Command");
-                        tCommand.Description = tDataSet.GetString("Description");
-
-                        tGroupList[tCommand.GroupID].ShortenCommandList.Add(tCommand);
-
-                        tDataSet.MoveNext();
-                    }
-
-                    tResultData.ResultData = tGroupList;
                 }
-
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
-            }
-            finally
-            {
-                if(tDataSet != null)
-                    MKOleDBClass.CloseDataSet(tDataSet);
-                tGroupList.InnerList.Clear();
-                tGroupList.Clear();
             }
         }
 
@@ -172,51 +119,38 @@ namespace RACTServer
         /// <param name="aClientRequest"></param>
         internal static void RequestGroupProcess(RequestCommunicationData aClientRequest)
         {
-            ResultCommunicationData tResultData = null;
-            MKDBWorkItem tDBWI = null;
-            MKDataSet tDataSet = null;
-            string tQueryString = "";
-            ShortenCommandGroupRequestInfo tRequestCommandInfo;
-            ShortenCommandGroupInfo tInfo;
+            ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                tResultData = new ResultCommunicationData(aClientRequest);
-                tRequestCommandInfo = (ShortenCommandGroupRequestInfo)aClientRequest.RequestData;
-                tInfo = tRequestCommandInfo.ShortenCommandGroupInfo;
+                var tRequestCommandInfo = (ShortenCommandGroupRequestInfo)aClientRequest.RequestData;
+                var tInfo = tRequestCommandInfo.ShortenCommandGroupInfo;
 
-                tQueryString = "EXEC SP_RACT_Modify_ShortenCommandGroup {0}, {1}, {2}, '{3}', '{4}'";
-
-                tQueryString = string.Format(tQueryString, (int)tRequestCommandInfo.WorkType, tInfo.ID, tRequestCommandInfo.UserID, tInfo.Name, tInfo.Description);
-
-                tDBWI = GlobalClass.m_DBPool.GetDBWorkItem();
-                if (tDBWI.ExecuteQuery(tQueryString, out tDataSet) != E_DBProcessError.Success)
+                using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    System.Diagnostics.Debug.WriteLine(tDBWI.ErrorString);
-                    tResultData.Error.Error = E_ErrorType.UnKnownError;
-                    tResultData.Error.ErrorString = tDBWI.ErrorString;
-                }
-                else
-                {
-                    if (tDataSet != null)
+                    string tQuery = "EXEC SP_RACT_Modify_ShortenCommandGroup @WorkType, @ID, @UserID, @Name, @Description";
+                    var result = conn.QueryFirstOrDefault(tQuery, new
                     {
-                        for (int i = 0; i < tDataSet.RecordCount; i++)
-                        {
-                            tInfo.ID = tDataSet.GetInt32("ID");
-                        }
+                        WorkType = (int)tRequestCommandInfo.WorkType,
+                        ID = tInfo.ID,
+                        UserID = tRequestCommandInfo.UserID,
+                        Name = tInfo.Name,
+                        Description = tInfo.Description
+                    });
+
+                    if (result != null)
+                    {
+                        tInfo.ID = Convert.ToInt32(((IDictionary<string, object>)result)["ID"]);
                     }
-                    tResultData.ResultData = tInfo;
                 }
+
+                tResultData.ResultData = tInfo;
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
                 tResultData.Error.Error = E_ErrorType.UnKnownError;
+                tResultData.Error.ErrorString = ex.Message;
                 GlobalClass.SendResultClient(tResultData);
-            }
-            finally
-            {
-                if (tDataSet != null)
-                    MKOleDBClass.CloseDataSet(tDataSet);
             }
         }
     }

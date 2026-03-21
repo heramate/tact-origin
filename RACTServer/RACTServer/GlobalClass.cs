@@ -1,4 +1,3 @@
-﻿using MKLibrary.MKData;
 using RACTCommonClass;
 using RACTServerCommon;
 using System;
@@ -6,41 +5,16 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 
-
 namespace RACTServer
 {
     public static class GlobalClass
     {
         public static bool m_IsRequestToStop = false;
-        /// <summary>
-        /// 서버의 버전 정보 입니다.
-        /// </summary>
-        //public const string c_Version = "1.0.0.1";
-        public const string c_Version = "1.1.0.0"; // 2020-10-08 KwonTaeSUk [20고도화(.NET업그레이드)] .NET Framework 2.0 -> 4.8 (minor+1)
-        /// <summary>
-        /// 서버 시작 위치입니다.
-        /// </summary>
+        public const string c_Version = "1.1.0.0"; 
         public static string m_StartupPath = string.Empty;
-        /// <summary>
-        /// 서버 환경 설정이 저장된 XML 파일명입니다.
-        /// </summary>
         public const string c_SystemConfigFileName = @"\SystemInfo.xml";
-        /// <summary>
-        /// 서버 환경 설정 정보입니다.
-        /// </summary>
         public static SystemConfig m_SystemInfo = null;
-        /// <summary>
-        /// DB 연결 정보 입니다.
-        /// </summary>
         public static DBConnectionInfo m_DBConnectionInfo = null;
-        /// <summary>
-        /// 데이터베이스 풀 개체입니다.
-        /// </summary>
-        public static MKOleDBPool m_DBPool = null;
-        /// <summary>
-        /// 데이터베이스 풀 개체입니다.
-        /// </summary>
-        public static MKOleDBPool m_DBExecutePool = null;
         /// <summary>
         /// JOB ID 생성 클래스 입니다.
         /// </summary>
@@ -161,6 +135,26 @@ namespace RACTServer
             tGZipStream.Close();
             CompressData tCompressData = new CompressData(tBytes.Length, tMemoryStream);
             return tCompressData;
+        }
+
+        private static string s_CachedConnectionString = null;
+
+        /// <summary>
+        /// Native ADO.NET Connection 객체를 생성하여 반환합니다.
+        /// 커넥션 풀링(Max Pool Size=200)이 자동으로 적용됩니다.
+        /// </summary>
+        /// <returns>SqlConnection</returns>
+        public static System.Data.SqlClient.SqlConnection GetSqlConnection()
+        {
+            if (m_SystemInfo == null) return null;
+
+            if (s_CachedConnectionString == null)
+            {
+                s_CachedConnectionString = string.Format("Data Source={0};Initial Catalog={1};User ID={2};Password={3};Max Pool Size=200;Min Pool Size=10;Connect Timeout=30;",
+                    m_SystemInfo.DBServerIP, m_SystemInfo.DBName, m_SystemInfo.UserID, m_SystemInfo.Password);
+            }
+
+            return new System.Data.SqlClient.SqlConnection(s_CachedConnectionString);
         }
     }
 }

@@ -1,0 +1,43 @@
+# RACTServer 성능 병목 분석 및 최적화 계획
+
+서버 과부하 시 발생하는 병목 현상을 분석한 결과, 다음의 근본적인 문제점들을 확인했습니다. "Simplicity First", "Surgical Changes" 철학에 기반하여, 코드 전체를 뒤엎지 않으면서 병목을 해소할 수 있는 정밀 타격 형태의 최적화 방안을 제안합니다.
+
+## 병목 원인 분석 (Root Causes)
+
+1. **단일 스레드 구조 (Single-Threaded Bottleneck)**
+   - [ClientCommunicationProcess](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#11-787)와 [ClientResponseProcess](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientResponseProcess.cs#12-606) 모두 클라이언트의 요청이 담긴 큐(`m_RequestQueue`)를 단 1개의 스레드(`m_RequestProcessThread`)만 사용하여 순차적으로 처리하고 있습니다.
+2. **동기식 데이터베이스 I/O (Synchronous DB I/O)**
+   - 이벤트 루프에서 실행되는 핸들러들(`DeviceProcess.DeviceInfoReceiver`, `GroupProcess.FactCountDevice` 등)이 내부적으로 `MKDBWorkItem.ExecuteQuery`를 사용하여 동기식으로 DB를 접근하고 있습니다.
+   - 단일 스레드가 DB응답을 대기하는 동안 큐에 쌓인 다른 모든 클라이언트들의 응답 처리가 중단(Blocking)됩니다.
+3. **사용자 로그인 스레드 블로킹**
+   - 클라이언트 접속에 따른 로그인 승인([UserInfoReceiver](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#355-600)) 과정 또한 동기적으로 DB를 조회하기 때문에, 수천 대의 클라이언트가 동시에 접속하면 ThreadPool 및 DB 커넥션 풀이 빠르게 고갈됩니다.
+
+## 검토 필요 항목 (User Review Required)
+
+> [!WARNING]
+> 현재 시스템 전체에 걸쳐 `.NET Remoting`과 `MKOleDB` 래퍼가 동기식 설계로 강결합되어 있습니다. 이를 완전한 `async/await` 구조로 변경하는 것은 오버엔지니어링(Over-engineering)이며 막대한 사이드 이펙트를 낳을 수 있습니다.
+> 따라서 안드레 카르파시 가이드라인(Surgical Changes)에 입각하여 코어 로직은 건드리지 않고, 병목 지점의 큐 처리 방식만을 `ThreadPool` 패턴으로 전환하고자 합니다.
+
+## 제안하는 최적화 방안 (Proposed Changes)
+
+### 1. 큐 처리의 병렬화 (ClientCommunicationProcess, ClientResponseProcess)
+단일 스레드([ProcessClientRequest](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#274-325))에서 Pop하여 바로 실행하던 구조를 변경하여, 작업을 꺼낸 즉시 `ThreadPool`에 위임하여 동시 처리가 가능케 만듭니다.
+
+#### [MODIFY] ClientCommunicationProcess.cs
+#### [MODIFY] ClientResponseProcess.cs
+- [ProcessClientRequest()](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#274-325) 코드 수정을 통해 `m_RequestQueue`에서 꺼낸 `tClientRequest` 처리를 `ThreadPool.QueueUserWorkItem(...)` 또는 `Task.Run()`을 이용해 병렬 병합.
+- 예외 처리와 로깅 또한 안전하게 스레드 분리 처리.
+
+### 2. 세션/데이터 큐 동기화 안정성 확보
+- 기존처럼 `lock (tUserInfo.DataQueue.SyncRoot)`를 통해 동기화 되고 있지만, 병렬 처리로 인해 동시 접근 해저드가 발생하는지 점검 및 보강.
+
+### 3. DB 접속 풀(DBPool) 최적화
+- `ThreadPool`로 인해 동시 발생되는 DB 쿼리가 `m_DBPool`의 커넥션 제한(현재 10으로 하드코딩 되어있는 것으로 보임)에 막히지 않도록 `GlobalClass.m_SystemInfo.DBConnectionCount`를 서버 동시 접속량에 맞춰 유연하게 상향 조성할 수 있게 점검.
+
+---
+
+## 검증 계획 (Verification Plan)
+
+### 수동 검증 (Manual Verification)
+1. **정상 동작 확인**: RACTClient를 사용하여 RACTServer에 로깅과 장비 조회가 기존과 동일하게 문제없이 처리되는지 확인합니다.
+2. **부하 대응 확인**: 클라이언트를 다중으로 열어 동시에 장비 리스트 조회를 요청할 때 서버의 로그상에서 요청이 Blocking되지 않고 비동기적(병렬적)으로 섞여 처리되는지 [ProcessClientRequest](file:///d:/dev/skbb/tact-origin-refac/tact-origin/RACTServer/RACTServer/ClientCommunicationProcess.cs#274-325) 로그를 확인합니다.

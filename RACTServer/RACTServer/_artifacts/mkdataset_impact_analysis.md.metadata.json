@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "RACTServer의 MKDataSet 교체 또는 제거가 RACTClient에 미치는 실질적인 영향을 분석한 보고서입니다. 분석 결과, 공유 데이터 구조 및 통신 프로토콜 수준에서 MKDataSet에 대한 의존성이 없어 교체가 안전하다는 결론을 도출하였습니다.",
+  "updatedAt": "2026-03-21T13:38:02.263296Z"
+}
