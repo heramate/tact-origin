@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,19 +13,19 @@ namespace RACTClient
     public partial class ModifyShortenCommand : BaseForm
     {
         /// <summary>
-        /// ÀÛ¾÷ Å¸ÀÔ ÀÔ´Ï´Ù.
+        /// ì‘ì—… íƒ€ì… ì…ë‹ˆë‹¤.
         /// </summary>
         private E_WorkType m_WorkType;
         /// <summary>
-        /// ´ÜÃà ¸í·É ÀÔ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ ì…ë‹ˆë‹¤.
         /// </summary>
         private ShortenCommandInfo m_CommandInfo;
         /// <summary>
-        /// ¿øº» µ¥ÀÌÅÍ ÀÔ´Ï´Ù.
+        /// ì›ë³¸ ë°ì´í„° ì…ë‹ˆë‹¤.
         /// </summary>
         private ShortenCommandInfo m_OldCommandInfo;
         /// <summary>
-        /// 2020-10-05 TACT±â´É°³¼± ´ÜÃà¸í·É±â´É ¿À·ù ¼öÁ¤
+        /// 2020-10-05 TACTê¸°ëŠ¥ê°œì„  ë‹¨ì¶•ëª…ë ¹ê¸°ëŠ¥ ì˜¤ë¥˜ ìˆ˜ì •
         /// </summary>
         public event ReturnHandlerArgument1<bool>OnDulplicate;
 
@@ -48,7 +48,7 @@ namespace RACTClient
             //set { m_WorkType = value; }
         }
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ModifyShortenCommand(ShortenCommandGroupInfo aGroupInfo)
             : this(E_WorkType.Add, new ShortenCommandInfo())
@@ -57,7 +57,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ModifyShortenCommand(E_WorkType aWorkType, ShortenCommandInfo aCommandInfo)
         {
@@ -67,18 +67,18 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         public void InitializeControl()
         {
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "È®ÀÎ");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "í™•ì¸");
 
             AppGlobal.InitializeButtonStyle(btnReservedString);
             DisplayBaseData();
         }
         /// <summary>
-        /// ±×·ìÀ» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// ê·¸ë£¹ì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         private void DisplayCommandGroup()
         {
@@ -136,7 +136,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ¸í·É Á¤º¸¸¦ Ç¥½Ã ÇÕ´Ï´Ù.
+        /// ëª…ë ¹ ì •ë³´ë¥¼ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         private void DisplayBaseData()
         {
@@ -167,26 +167,26 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// ¸í·É¾î ÀúÀå Ã³¸®ÇÕ´Ï´Ù.
+        /// ëª…ë ¹ì–´ ì €ì¥ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         private void SaveShortenCommand()
         {
 
             if (txtName.Text.Trim().Length == 0)
             {
-                AppGlobal.ShowMessageBox(this, "´ÜÃà ¸í·É ÀÌ¸§À» ÀÔ·Â ÇÏ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(this, "ë‹¨ì¶• ëª…ë ¹ ì´ë¦„ì„ ì…ë ¥ í•˜ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-			//2020-10-05 TACT±â´É°³¼± ´ÜÃà¸í·É±â´É ¿À·ù ¼öÁ¤
+			//2020-10-05 TACTê¸°ëŠ¥ê°œì„  ë‹¨ì¶•ëª…ë ¹ê¸°ëŠ¥ ì˜¤ë¥˜ ìˆ˜ì •
             if (OnDulplicate(this))
             {
-                AppGlobal.ShowMessageBox(this, "´ÜÃà ¸í·É ÀÌ¸§ÀÌ Áßº¹ µË´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(this, "ë‹¨ì¶• ëª…ë ¹ ì´ë¦„ì´ ì¤‘ë³µ ë©ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (txtCommand.Text.Length == 0)
             {
-                AppGlobal.ShowMessageBox(this, "´ÜÃà ¸í·ÉÀ» ÀÔ·Â ÇÏ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(this, "ë‹¨ì¶• ëª…ë ¹ì„ ì…ë ¥ í•˜ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -217,14 +217,14 @@ namespace RACTClient
             CheckedResult();
         }
         /// <summary>
-        /// ¿äÃ» °á°ú¸¦ È®ÀÎÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
+        /// ìš”ì²­ ê²°ê³¼ë¥¼ í™•ì¸í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
         /// </summary>
         private void CheckedResult()
         {
 
             if (m_Result == null)
             {
-                AppGlobal.ShowMessageBox(this, "¾Ë ¼ö ¾ø´Â ¿¡·¯°¡ ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, "ì•Œ ìˆ˜ ì—†ëŠ” ì—ëŸ¬ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (m_Result.Error.Error != E_ErrorType.NoError)
@@ -235,7 +235,7 @@ namespace RACTClient
 
             if (m_WorkType == E_WorkType.Modify)
             {
-                //2020-10-05 TACT±â´É°³¼± ´ÜÃà¸í·É±â´É ¿À·ù ¼öÁ¤
+                //2020-10-05 TACTê¸°ëŠ¥ê°œì„  ë‹¨ì¶•ëª…ë ¹ê¸°ëŠ¥ ì˜¤ë¥˜ ìˆ˜ì •
 				EventProcessor.Run((ShortenCommandInfo)m_Result.ResultData, E_WorkType.Modify);
                 /*
                 EventProcessor.Run(m_OldCommandInfo, E_WorkType.Delete);
@@ -251,11 +251,11 @@ namespace RACTClient
             {
 
                 case E_WorkType.Add:
-                    AppGlobal.ShowMessageBox(this, "´ÜÃà ¸í·ÉÀ» Ãß°¡ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(this, "ë‹¨ì¶• ëª…ë ¹ì„ ì¶”ê°€ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
 
                 case E_WorkType.Modify:
-                    AppGlobal.ShowMessageBox(this, "´ÜÃà ¸í·ÉÀ» ¼öÁ¤ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(this, "ë‹¨ì¶• ëª…ë ¹ì„ ìˆ˜ì • í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
 

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.ComponentModel;
@@ -12,11 +12,11 @@ namespace RACTClient
     public partial class OptionConfigurationForm : BaseForm
     {
         /// <summary>
-        /// Å¬¶óÀÌ¾ğ
+        /// í´ë¼ì´ì–¸
         /// </summary>
         public event DefaultHandler OnClientOptionChangeEvent = null;
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public OptionConfigurationForm()
         {
@@ -25,11 +25,11 @@ namespace RACTClient
 
         }
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         private void initializeControl()
         {
-            //°¢ ÆĞ³ÎÀ» ÃÊ±â È­ÇÕ´Ï´Ù.
+            //ê° íŒ¨ë„ì„ ì´ˆê¸° í™”í•©ë‹ˆë‹¤.
             foreach (Control tControl in pnlSubPanl.Controls)
             {
                 if (tControl is IOptionPanal)
@@ -39,20 +39,20 @@ namespace RACTClient
             }
             SetTreeView();
 
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "È®ÀÎ");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "í™•ì¸");
         }
 
         /// <summary>
-        /// ¹öÆ° Å¬¸¯ Ã³¸® ÀÔ´Ï´Ù.
+        /// ë²„íŠ¼ í´ë¦­ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aButtonType">´­·¯Áø ¹öÆ° Å¸ÀÔ ÀÔ´Ï´Ù.</param>
+        /// <param name="aButtonType">ëˆŒëŸ¬ì§„ ë²„íŠ¼ íƒ€ì… ì…ë‹ˆë‹¤.</param>
         protected override void ButtonProcess(E_ButtonType aButtonType)
         {
             switch (aButtonType)
             {
                 case E_ButtonType.OK:
-                    // È®ÀÎ Ã³¸®
+                    // í™•ì¸ ì²˜ë¦¬
                     bool tIsOK = true;
                     foreach (Control tControl in pnlSubPanl.Controls)
                     {
@@ -72,7 +72,7 @@ namespace RACTClient
                         {
                             OnClientOptionChangeEvent();
                         }
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm,"¿¬°á ¼Ó¼ºÀ» ¼³Á¤ÇÏ¿´½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.None);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm,"ì—°ê²° ì†ì„±ì„ ì„¤ì •í•˜ì˜€ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.None);
                         Close();
                     }
                     break;
@@ -83,17 +83,17 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Æ®¸® ¸ñ·ÏÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// íŠ¸ë¦¬ ëª©ë¡ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         private void SetTreeView()
         {
             TreeNode tTreeNode;
             TreeNode tSubNode;
-            tTreeNode = new TreeNode("ÀÏ¹İ",0,0);
+            tTreeNode = new TreeNode("ì¼ë°˜",0,0);
             tTreeNode.Tag = pnlGeneral;
             trvOptionConfiguration.Nodes.Add(tTreeNode);
 
-            tTreeNode = new TreeNode("¿¬°á", 0, 0);
+            tTreeNode = new TreeNode("ì—°ê²°", 0, 0);
             tTreeNode.Tag = pnlConnectOption;
             trvOptionConfiguration.Nodes.Add(tTreeNode);
             trvOptionConfiguration.SelectedNode = tTreeNode;
@@ -106,20 +106,20 @@ namespace RACTClient
             tSubNode.Tag = pnlSerialPort;
             tTreeNode.Nodes.Add(tSubNode);
 
-            tTreeNode = new TreeNode("ÅÍ¹Ì³Î", 0, 0);
+            tTreeNode = new TreeNode("í„°ë¯¸ë„", 0, 0);
             tTreeNode.Tag = pnlTerminalPopupType;
             trvOptionConfiguration.Nodes.Add(tTreeNode);
 
-			// 2019-11-10 °³¼±»çÇ× (Áß¿ä Àåºñ °­Á¶ Á¤Ã¥ ¿É¼Ç ±â´É)
-            tSubNode = new TreeNode("±âº» ±Û²Ã & »ö»ó", 1, 1);
+			// 2019-11-10 ê°œì„ ì‚¬í•­ (ì¤‘ìš” ì¥ë¹„ ê°•ì¡° ì •ì±… ì˜µì…˜ ê¸°ëŠ¥)
+            tSubNode = new TreeNode("ê¸°ë³¸ ê¸€ê¼´ & ìƒ‰ìƒ", 1, 1);
             tSubNode.Tag = pnlTerminalColor;
             tTreeNode.Nodes.Add(tSubNode);
-			// 2019-11-10 °³¼±»çÇ× (Áß¿ä Àåºñ °­Á¶ Á¤Ã¥ ¿É¼Ç ±â´É)
-            tSubNode = new TreeNode("°­Á¶ ±Û²Ã & »ö»ó ", 1, 1);
+			// 2019-11-10 ê°œì„ ì‚¬í•­ (ì¤‘ìš” ì¥ë¹„ ê°•ì¡° ì •ì±… ì˜µì…˜ ê¸°ëŠ¥)
+            tSubNode = new TreeNode("ê°•ì¡° ê¸€ê¼´ & ìƒ‰ìƒ ", 1, 1);
             tSubNode.Tag = pnlHighlightColor;
             tTreeNode.Nodes.Add(tSubNode);
 
-            tSubNode = new TreeNode("·¹ÀÌ¾Æ¿ô", 1, 1);
+            tSubNode = new TreeNode("ë ˆì´ì•„ì›ƒ", 1, 1);
             tSubNode.Tag = pnlTerminalLayout;
             tTreeNode.Nodes.Add(tSubNode);
 
@@ -128,7 +128,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Æ®¸® ³ëµå ¼±ÅÃÀ» º¯°æ ÇÕ´Ï´Ù.
+        /// íŠ¸ë¦¬ ë…¸ë“œ ì„ íƒì„ ë³€ê²½ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

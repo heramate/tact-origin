@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Text;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -12,7 +12,7 @@ namespace RACTClient
     public class TreeViewEx : TreeView
     {
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ
+        /// ê¸°ë³¸ ìƒì„±ì
         /// </summary>
         public TreeViewEx()
             : base()
@@ -22,7 +22,7 @@ namespace RACTClient
 
         private Boolean m_UseCustomImage;
         /// <summary>
-        /// UseCustomImage  ¼Ó¼ºÀ» °¡Á®¿À°Å³ª ¼³Á¤ÇÕ´Ï´Ù.
+        /// UseCustomImage  ì†ì„±ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì •í•©ë‹ˆë‹¤.
         /// </summary>
         [Category("CheckState"), DefaultValue(false)]
         public Boolean UseCustomImage
@@ -234,7 +234,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¸¶¿ì½º ´Ù¿î Ã³¸® ÀÔ´Ï´Ù.
+        /// ë§ˆìš°ìŠ¤ ë‹¤ìš´ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="e"></param>
         protected override void OnMouseDown(MouseEventArgs e)
@@ -250,7 +250,7 @@ namespace RACTClient
 
      
         /// <summary>
-        /// ¸¶¿ì½º¿¡ ÇØ´çÇÏ´Â ³ëµå¸¦ ¼±ÅÃÇÕ´Ï´Ù.
+        /// ë§ˆìš°ìŠ¤ì— í•´ë‹¹í•˜ëŠ” ë…¸ë“œë¥¼ ì„ íƒí•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aNode"></param>
         /// <param name="e"></param>

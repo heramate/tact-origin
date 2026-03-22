@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using MessagePack;
-using RACTTerminal;
 
 namespace RACTCommonClass
 {
@@ -13,7 +12,7 @@ namespace RACTCommonClass
         [Key(1)] public string Command { get; set; } = string.Empty;
         [Key(2)] public E_TelnetWorkType WorkTyp { get; set; } = E_TelnetWorkType.Connect;
         [Key(3)] public int UserID { get; set; } = 0;
-        [Key(4)] public KeyInfo KeyInfo { get; set; }
+        [Key(4)] public object KeyInfo { get; set; } // Stub: object로 대체하여 종속성 제거
         [Key(5)] public int SessionID { get; set; } = 0;
         [IgnoreMember] public ITelnetEmulator Sender { get; set; }
     }

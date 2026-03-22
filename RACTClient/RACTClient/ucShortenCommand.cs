@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -15,7 +15,7 @@ namespace RACTClient
     public partial class ucShortenCommand : UserControl,IMainPanel
     {
         /// <summary>
-        /// ´ÜÃà ¸í·É Àü¼Û ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ë‹¨ì¶• ëª…ë ¹ ì „ì†¡ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public static event HandlerArgument1<ShortenCommandInfo> OnSendShortenCommand;
 
@@ -24,7 +24,7 @@ namespace RACTClient
             InitializeComponent();
         }
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         public void InitializeControl()
         {

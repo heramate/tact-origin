@@ -103,6 +103,7 @@ namespace RACTServer
 
             GlobalClass.m_LogProcess?.PrintLog(E_FileLogType.Infomation, "서버 종료 절차를 시작합니다.");
 
+            /*
             if (GlobalClass.s_ServiceManagerCommunicationProcess != null)
             {
                 GlobalClass.s_ServiceManagerCommunicationProcess.Stop();
@@ -114,6 +115,7 @@ namespace RACTServer
                 GlobalClass.s_DaemonProcessManager.Stop();
                 GlobalClass.s_DaemonProcessManager = null;
             }
+            */
 
             if (GlobalClass.m_ClientProcess != null)
             {
@@ -226,11 +228,11 @@ namespace RACTServer
                 GlobalClass.m_ClientProcess = new ClientCommunicationProcess();
                 GlobalClass.m_ClientProcess.Start();
 
-                GlobalClass.s_DaemonProcessManager = new DaemonProcessManager();
-                GlobalClass.s_DaemonProcessManager.Start();
+                //GlobalClass.s_DaemonProcessManager = new DaemonProcessManager();
+                //GlobalClass.s_DaemonProcessManager.Start();
 
-                GlobalClass.s_ServiceManagerCommunicationProcess = new ServiceManagerCommunicationProcess();
-                GlobalClass.s_ServiceManagerCommunicationProcess.Start();
+                //GlobalClass.s_ServiceManagerCommunicationProcess = new ServiceManagerCommunicationProcess();
+                //GlobalClass.s_ServiceManagerCommunicationProcess.Start();
             }
             catch (Exception ex)
             {

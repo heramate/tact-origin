@@ -20,12 +20,12 @@ namespace RACTClient
         /// <summary>
         /// 부모 입니다.
         /// </summary>
-        private MCTerminalEmulator m_Parent;
+        private ITactTerminal m_Parent;
 
-        public BatchCmdForm(MCTerminalEmulator aMCTerminalControl)
+        public BatchCmdForm(ITactTerminal aTactTerminal)
         {
             InitializeComponent();
-            m_Parent = aMCTerminalControl;
+            m_Parent = aTactTerminal;
         }
 
         private void OnClick_Btn_Submit(object sender, EventArgs e)

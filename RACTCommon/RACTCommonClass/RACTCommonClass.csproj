@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -8,6 +8,9 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Platforms>AnyCPU</Platforms>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- 자동 포함을 끄고 명시적으로 지정한 파일만 빌드합니다 (중복 방지) -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -15,29 +18,15 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\_TACT_DLL\_Release\</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.5.187" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <ProjectReference Include="..\RACTCommon.Messaging\RACTCommon.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RACTTerminal\RACTTerminal.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- UI 관련 파일들을 빌드에서 제외하여 종속성 에러를 해결합니다. -->
-    <Compile Remove="Data\SenderForm.cs" />
-    <Compile Remove="Data\SenderForm.Designer.cs" />
-    <Compile Remove="Data\SenderControl.cs" />
-    <Compile Remove="Data\SenderControl.Designer.cs" />
+    <!-- 빌드에 포함할 핵심 UI 파일들만 지정 -->
+    <Compile Include="Data\SenderControl.cs" />
+    <Compile Include="Data\SenderForm.cs" />
+    <Compile Include="Data\IReservedString.cs" />
   </ItemGroup>
 
   <ItemGroup>

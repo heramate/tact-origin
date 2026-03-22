@@ -1,14 +1,17 @@
-using DevComponents.DotNetBar;
+﻿using DevComponents.DotNetBar;
+using RACTClient.Models;
 using RACTCommonClass;
-using RACTSerialProcess;
 using RACTTerminal;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RACTClient
 {
-    public interface ITactTerminal : ISerialEmulator
+    public interface ITactTerminal
     {
+        void AttachSession(SessionContext context);
+
         Control UIControl { get; } // 컨트롤 객체를 가져오는 속성
         bool IsConnected { get;  }
         DeviceInfo DeviceInfo { get; set; }
@@ -16,6 +19,7 @@ namespace RACTClient
         ConnectionTypes ConnectionType { get; set; }
         object ConnectDevice(object aDeviceInfo);
         void Disconnect();
+        Task DisconnectAsync();
         // void DisplayResult(SerialCommandResultInfo aResult); // Inherited from ISerialEmulator
         void DisplayResult(int aSessionID, string aResult);
         
@@ -49,5 +53,7 @@ namespace RACTClient
         void ScriptWork(E_ScriptWorkType aScriptWorkType);
         void ChangeClientMode();
         void ExecTerminalScreen(E_TerminalScreenTextEditType aEditType);
+        Task<bool> ConnectDeviceAsync(DeviceInfo info);
+        string IsLimitCmdByBatch(string lineCmd);
     }
 }

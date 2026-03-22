@@ -3,9 +3,9 @@ using MKLibrary.Controls;
 using MKLibrary.MKData;
 using MKLibrary.MKNetwork;
 using RACTCommonClass;
-using RACTSerialProcess;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -128,6 +128,10 @@ namespace RACTClient
         /// </summary>
         public static MKRemote s_RemoteGateway = null;
         /// <summary>
+        /// 고성능 데이터 전송을 위한 파이프라인 클라이언트입니다.
+        /// </summary>
+        public static PipelineClient s_PipelineClient = null;
+        /// <summary>
         /// 서버 IP 입니다.
         /// </summary>
         //public static string s_ServerIP = "118.217.79.48";
@@ -160,7 +164,7 @@ namespace RACTClient
         /// <summary>
         /// 요청 큐 입니다.
         /// </summary>
-        public static Queue<CommunicationData> s_RequestQueue = new Queue<CommunicationData>();
+        public static BlockingCollection<CommunicationData> s_RequestQueue = new BlockingCollection<CommunicationData>();
 
         /// <summary>
         /// 2013-05-03-shinyn - 선택된 접근권한 노드입니다.
@@ -257,14 +261,10 @@ namespace RACTClient
         /// 텔넷 데몬 목록 입니다.
         /// </summary>
         public static Dictionary<int, DaemonProcessRemoteObject> s_DaemonProcessList = new Dictionary<int, DaemonProcessRemoteObject>();
-        /// <summary>
-        /// Serial 처리 프로세서 입니다.
-        /// </summary>
-        public static SerialProcess s_SerialProcessor;
-        /// <summary>
-        /// 텔넷 처리 프로세서 입니다.
-        /// </summary>
-        public static TelnetProcessor.TelnetProcessor s_TelnetProcessor;
+        ///// <summary>
+        ///// 텔넷 통신 엔진입니다.
+        ///// </summary>
+        //public static TelnetProcessor.TelnetProcessor s_TelnetProcessor;
         /// <summary>
         /// 모드 변경으로 접속 할 경우인지 여부 입니다.
         /// </summary>
@@ -326,14 +326,7 @@ namespace RACTClient
 
         public static E_IpType m_ViewIPType = E_IpType.ALL;
 
-        /// <summary>
-        /// 헬스 체크를 처리합니다.
-        /// </summary>
-        /// <returns></returns>
-        public static bool AreYouThere()
-        {
-            return true;
-        }
+        public static DeviceConnectionLogClient s_DeviceConnectionLogClient = null;
 
         /// <summary>
         /// 로그인 및 서버 연결을 처리 합니다.
@@ -341,6 +334,42 @@ namespace RACTClient
         /// <param name="vID">사용자 아이디 입니다.</param>
         /// <param name="vPwd">사용자 패스워드 입니다.</param>
         /// <param name="vIPAddress">사용자 아이피 주소 입니다.</param>
+        /// <summary>
+        /// 사용자 개입 없이(팝업 제외) 백그라운드에서 재로그인을 시도합니다.
+        /// </summary>
+        /// <returns>로그인 성공 여부</returns>
+        public static bool TryAutoLogin()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(s_UserAccount) || string.IsNullOrEmpty(s_Password)) return false;
+
+                s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "[AutoLogin] 백그라운드 재로그인을 시도합니다.");
+
+                if (TryServerConnect() != E_ConnectError.NoError) return false;
+
+                RemoteClientMethod tSPO = (RemoteClientMethod)s_RemoteGateway.ServerObject;
+                string password = Hash.GetHashPW(s_Password);
+
+                var result = (LoginResultInfo)ObjectConverter.GetObject(tSPO.CallUserLoginMethod(s_UserAccount, password, s_ClientIP, s_Caller));
+
+                if (result != null && result.LoginResult == E_LoginResult.Success)
+                {
+                    s_LoginResult = result;
+                    s_IsServerConnected = true;
+                    s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "[AutoLogin] 재로그인 성공 (ClientID: " + s_LoginResult.ClientID + ")");
+                    return true;
+                }
+
+                s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "[AutoLogin] 재로그인 실패: " + (result?.LoginResult.ToString() ?? "Unknown"));
+            }
+            catch (Exception ex)
+            {
+                s_FileLogProcessor.PrintLog(E_FileLogType.Error, "[AutoLogin] 예외 발생: " + ex.Message);
+            }
+            return false;
+        }
+
         public static bool LoginConnect()
         {
             string tLogMessage = "";
@@ -409,6 +438,11 @@ namespace RACTClient
                         case E_LoginResult.UnUsedLimit:
                             AppGlobal.ShowMessage("TACT 접속 제한 날짜가 지났습니다.\n관리자에게 문의 하세요.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TACT 접속 제한 날짜가 지났습니다..");
+                            break;
+                        case E_LoginResult.NothingCoCode:   // 20260306 ShinMyungsu USER접근권한 회사코드가 없으면 분기
+                            AppGlobal.ShowMessage("회사정보가 없어 사용권한이 제한됩니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "TACT 사용 권한이 없습니다.");
+                            // Application.Exit();
                             break;
                         default:
                             AppGlobal.ShowMessage("중대한 오류가 발생 햇습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -555,6 +589,10 @@ namespace RACTClient
                             continue;
                         }
                         ObjectConverter.GetObject(tSPO.CallResultMethod(0));
+
+                        // 고성능 Pipeline 채널 접속 시도 (비동기)
+                        ConnectPipelineAsync();
+
                         break;
                     }
                     catch (Exception ex)
@@ -567,6 +605,50 @@ namespace RACTClient
                     }
                 }
                 return E_ConnectError.NoError;
+            }
+        }
+
+        private static async void ConnectPipelineAsync()
+        {
+            try
+            {
+                if (s_PipelineClient == null)
+                {
+                    s_PipelineClient = new PipelineClient(s_ServerIP, s_ServerPort + 12); // 서버의 고성능 포트 (54322)
+                    s_PipelineClient.PacketReceived += OnPipelinePacketReceived;
+                }
+                
+                bool connected = await s_PipelineClient.ConnectAsync();
+                if (connected)
+                {
+                    s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "고성능 Pipeline 채널 연결 성공.");
+                }
+            }
+            catch (Exception ex)
+            {
+                s_FileLogProcessor.PrintLog(E_FileLogType.Error, "Pipeline 연결 실패: " + ex.Message);
+            }
+        }
+
+        private static void OnPipelinePacketReceived(byte[] packet)
+        {
+            try
+            {
+                // MessagePack 역직렬화
+                var result = (ResultCommunicationData)ObjectConverter.GetObject(packet);
+                if (result == null) return;
+
+                lock (s_SenderList)
+                {
+                    if (s_SenderList.ContainsKey(result.OwnerKey))
+                    {
+                        s_SenderList[result.OwnerKey].ResultReceiver(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                s_FileLogProcessor.PrintLog(E_FileLogType.Error, "Pipeline 데이터 처리 오류: " + ex.Message);
             }
         }
 
@@ -680,12 +762,37 @@ namespace RACTClient
                 AddSender(vSender);
                 vCommunicationData.OwnerKey = vSender.GetHashCode();
             }
-            lock (s_RequestQueue)
+
+            s_RequestQueue.Add(vCommunicationData);
+        }
+
+        /// <summary>
+        /// .NET 10 고성능 서버에 비동기로 데이터를 요청하고 결과를 기다립니다.
+        /// </summary>
+        public static async Task<ResultCommunicationData> SendRequestAsync(CommunicationData requestData)
+        {
+            var tcs = new TaskCompletionSource<ResultCommunicationData>();
+            var sender = new AsyncSender(tcs);
+            
+            AddSender(sender);
+            requestData.OwnerKey = sender.GetHashCode();
+            
+            s_RequestQueue.Add(requestData);
+
+            // 타임아웃 처리 (5초)
+            using (var cts = new CancellationTokenSource(s_RequestTimeOut))
             {
-                s_RequestQueue.Enqueue(vCommunicationData);
+                cts.Token.Register(() => tcs.TrySetException(new TimeoutException("서버 응답 시간 초과")));
+                return await tcs.Task;
             }
-            //2013-05-02 - shinyn - 요청시작시 ManualSet한다.
-            //m_MRE.Set();
+        }
+
+        private class AsyncSender : ISenderObject
+        {
+            private readonly TaskCompletionSource<ResultCommunicationData> _tcs;
+            public AsyncSender(TaskCompletionSource<ResultCommunicationData> tcs) => _tcs = tcs;
+            public void ResultReceiver(ResultCommunicationData result) => _tcs.TrySetResult(result);
+            public void ResultReceiver(CommandResultItem result) { /* 필요 시 구현 */ }
         }
 
 

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using RACTClient.Utilities;
 using RACTCommonClass;
 using C1.Win.C1FlexGrid;
 using System.Threading;
@@ -82,14 +83,12 @@ namespace RACTClient
 
         public override void ResultReceiver(ResultCommunicationData vResult)
         {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new HandlerArgument1<ResultCommunicationData>(ResultReceiver), vResult);
-                return;
-            }
-
             base.ResultReceiver(vResult);
+            this.RunResultHandlerOnUi(HandleResultOnUi);
+        }
 
+        private void HandleResultOnUi()
+        {
             // 2013-05-02-shinyn - 결과값이 널인 경우 로그에 저장한다.
             if (m_Result == null || m_Result.ResultData == null)
             {

@@ -38,12 +38,15 @@
             // 
             this.lstTerminal.Border.Class = "ListViewBorder";
             this.lstTerminal.Border.CornerType = DevComponents.DotNetBar.eCornerType.Square;
+            this.lstTerminal.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lstTerminal.Font = new System.Drawing.Font("굴림", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.lstTerminal.Location = new System.Drawing.Point(12, 12);
             this.lstTerminal.MultiSelect = false;
             this.lstTerminal.Name = "lstTerminal";
             this.lstTerminal.ShowItemToolTips = true;
-            this.lstTerminal.Size = new System.Drawing.Size(419, 249);
+            this.lstTerminal.Size = new System.Drawing.Size(556, 279);
             this.lstTerminal.TabIndex = 1;
             this.lstTerminal.UseCompatibleStateImageBehavior = false;
             this.lstTerminal.View = System.Windows.Forms.View.List;
@@ -52,7 +55,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(443, 310);
+            this.ClientSize = new System.Drawing.Size(580, 340);
             this.Controls.Add(this.lstTerminal);
             this.DoubleBuffered = true;
             this.Name = "SelectTargetTerminal";

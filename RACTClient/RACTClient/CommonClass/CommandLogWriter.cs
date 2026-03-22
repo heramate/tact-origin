@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Windows.Forms;
 namespace RACTClient
 {
     /// <summary>
-    /// LogWrite¿¡ ´ëÇÑ ¿ä¾à ¼³¸íÀÔ´Ï´Ù.
+    /// LogWriteì— ëŒ€í•œ ìš”ì•½ ì„¤ëª…ì…ë‹ˆë‹¤.
     /// </summary>
     public class CommandWriter
     {
@@ -18,7 +18,7 @@ namespace RACTClient
         {
             try
             {
-				// 2019-11-10 °³¼±»çÇ× (·Î±× ÀúÀå °æ·Î °³¼±)
+				// 2019-11-10 ê°œì„ ì‚¬í•­ (ë¡œê·¸ ì €ì¥ ê²½ë¡œ ê°œì„ )
                 string tLogPath = AppGlobal.s_ClientOption.LogPath + "CommandLog\\";
 
                 DirectoryInfo di = new DirectoryInfo(tLogPath);
@@ -40,7 +40,7 @@ namespace RACTClient
                 }
                 else if (aCommandLog.DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±â Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ ê²½ìš° ë¶„ê¸° ì¶”ê°€
                     if (AppGlobal.s_ClientOption.TerminalDisplayNameType == E_TerminalDisplayNameType.IPAddress)
                     {
                         tLogFile = DateTime.Now.ToString("yyyy-MM-dd") + "_" + aCommandLog.DeviceInfo.IPAddress + "_" + aCommandLog.ConnectionLogID + ".log";

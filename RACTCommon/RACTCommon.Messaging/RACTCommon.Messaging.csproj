@@ -15,9 +15,7 @@
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\RACTTerminal\RACTTerminal.csproj" />
-  </ItemGroup>
+  <!-- SSHTerminalControl 등 터미널 관련 프로젝트 참조 완전 제거 -->
 
   <ItemGroup>
     <Reference Include="CommonConfigCompareClass">

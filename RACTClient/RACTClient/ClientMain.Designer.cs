@@ -95,6 +95,7 @@
             this.mnuConnectListView = new DevComponents.DotNetBar.ButtonItem();
             this.mnuNewNotePad = new DevComponents.DotNetBar.ButtonItem();
             this.mnuOpenNotePad = new DevComponents.DotNetBar.ButtonItem();
+            this.mnuLogSavePath = new DevComponents.DotNetBar.ButtonItem();
             this.mnuExit = new DevComponents.DotNetBar.ButtonItem();
             this.buttonItem10 = new DevComponents.DotNetBar.ButtonItem();
             this.mnuCopy = new DevComponents.DotNetBar.ButtonItem();
@@ -914,6 +915,7 @@
             this.mnuConnectListView,
             this.mnuNewNotePad,
             this.mnuOpenNotePad,
+            this.mnuLogSavePath,
             this.mnuExit});
             this.mnuFile.Text = "파일(&F)";
             // 
@@ -989,9 +991,15 @@
             this.mnuOpenNotePad.Text = "메모장 열기 (&O)";
             this.mnuOpenNotePad.Click += new System.EventHandler(this.mnuOpenNotePad_Click);
             // 
+            // mnuLogSavePath
+            // 
+            this.mnuLogSavePath.BeginGroup = true;
+            this.mnuLogSavePath.Name = "mnuLogSavePath";
+            this.mnuLogSavePath.Text = "로그 저장 위치(&P)...";
+            this.mnuLogSavePath.Click += new System.EventHandler(this.mnuLogSavePath_Click);
+            // 
             // mnuExit
             // 
-            this.mnuExit.BeginGroup = true;
             this.mnuExit.Image = global::RACTClient.Properties.Resources.종료;
             this.mnuExit.Name = "mnuExit";
             this.mnuExit.Text = "종료(&X)";
@@ -1510,6 +1518,7 @@
         private DevComponents.DotNetBar.ButtonItem tsbAddGroup;
         private DevComponents.DotNetBar.ButtonItem tsbAddDevice;
         private DevComponents.DotNetBar.ButtonItem mnuConnectListView;
+        private DevComponents.DotNetBar.ButtonItem mnuLogSavePath;
         private DevComponents.DotNetBar.ButtonItem mnuExit;
         private DevComponents.DotNetBar.ButtonItem mnuCopy;
         private DevComponents.DotNetBar.ButtonItem mnuPaste;

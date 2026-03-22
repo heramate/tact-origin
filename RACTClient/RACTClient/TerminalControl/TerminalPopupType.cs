@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,16 +17,16 @@ namespace RACTClient
 
         }
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         private void initializeControl()
         {
             pnlTerminal.ChangeMode(false);
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "È®ÀÎ");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "í™•ì¸");
         }
 
         /// <summary>
-        /// ¹öÆ° Ã³¸®¸¦ ÇÕ´Ï´Ù.
+        /// ë²„íŠ¼ ì²˜ë¦¬ë¥¼ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aButtonType"></param>
         protected override void ButtonProcess(E_ButtonType aButtonType)

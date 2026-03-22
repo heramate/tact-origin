@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Specialized;
 using System.Windows.Forms;
 using System.Text;
@@ -12,7 +12,6 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using DevComponents.DotNetBar;
 using MKLibrary.MKNetwork;
-using RACTSerialProcess;
 using RACTTerminal;
 using System.Threading;
 
@@ -21,6 +20,9 @@ using System.Management;
 using System.Timers;
 using RACTClient.SubForm;
 using System.Text.RegularExpressions;
+using RACTClient.Models;
+using System.Threading.Tasks;
+using RACTClient.Utilities;
 
 namespace RACTClient
 {
@@ -44,7 +46,7 @@ namespace RACTClient
     ///   m_LastVisibleLine = (m_Rows - m_ScrollbackBuffer.Count - 1) .. 0
     ///   m_LastVisibleLine = m_VertScrollBar.Value - m_VertScrollBar.Maximum
     /// </remarks>
-    public class MCTerminalEmulator : SenderControl, ISerialEmulator, ITelnetEmulator, ITactTerminal
+    public class MCTerminalEmulator : SenderControl, ITelnetEmulator, ITactTerminal
     {
         private System.ComponentModel.IContainer components;
         private DevComponents.DotNetBar.ContextMenuBar contextMenuBar1;
@@ -673,46 +675,35 @@ namespace RACTClient
         /// <param name="aInfo"></param>
         private void ApplyFindInformation(TelnetStringFind aInfo)
         {
-
-            if (this.InvokeRequired)
+            this.SafeInvoke(() =>
             {
-                this.Invoke(new HandlerArgument1<TelnetStringFind>(ApplyFindInformation), aInfo);
-                return;
-            }
-
-            for (int i = 0; i < this.m_Rows; i++)
-            {
-                Array.Clear(this.m_AttribGrid[i], 0, this.m_AttribGrid[i].Length);
-            }
-
-            if (aInfo.IsMatch)
-            {
-                //System.Diagnostics.Debug.WriteLine("찾은 라인 : " + (aInfo.FindList[0].Row + 1));
-
-
-                if (aInfo.FindList[0].Row >= NowDrawStart && aInfo.FindList[0].Row <= NowDrawEnd)
+                for (int i = 0; i < this.m_Rows; i++)
                 {
-                    //스크롤 안해도 되면 할 거 없나????????????
-                }
-                else
-                {
-                    m_VertScrollBar.IsChangeValue = true;
-                    DisplayScrollLast(aInfo.FindList[0].Row - 1);
+                    Array.Clear(this.m_AttribGrid[i], 0, this.m_AttribGrid[i].Length);
                 }
 
-                foreach (StringFindInfo tStringInfo in aInfo.FindList)
+                if (aInfo.IsMatch)
                 {
-                    if (NowDrawStart > 0)
+                    if (aInfo.FindList[0].Row < NowDrawStart || aInfo.FindList[0].Row > NowDrawEnd)
                     {
-                        m_AttribGrid[tStringInfo.Row - NowDrawStart - 1][tStringInfo.Col].IsInverse = true;
+                        m_VertScrollBar.IsChangeValue = true;
+                        DisplayScrollLast(aInfo.FindList[0].Row - 1);
                     }
-                    else
+
+                    foreach (StringFindInfo tStringInfo in aInfo.FindList)
                     {
-                        m_AttribGrid[tStringInfo.Row][tStringInfo.Col].IsInverse = true;
+                        if (NowDrawStart > 0)
+                        {
+                            m_AttribGrid[tStringInfo.Row - NowDrawStart - 1][tStringInfo.Col].IsInverse = true;
+                        }
+                        else
+                        {
+                            m_AttribGrid[tStringInfo.Row][tStringInfo.Col].IsInverse = true;
+                        }
                     }
                 }
-            }
-            this.Refresh();
+                this.Refresh();
+            });
         }
 
         /// <summary>
@@ -3283,7 +3274,7 @@ namespace RACTClient
                         if (!EnterPressFunction())
                             return;
                     }
-                    AppGlobal.s_SerialProcessor.SendRequest(this, aKeyInfo.Outstring);
+                    // AppGlobal.s_SerialProcessor.SendRequest(this, aKeyInfo.Outstring);
                 }
 
             }
@@ -3456,7 +3447,7 @@ namespace RACTClient
                 }
                 else
                 {
-                    AppGlobal.s_SerialProcessor.SendRequest(this, aText);
+                    // AppGlobal.s_SerialProcessor.SendRequest(this, aText);
                 }
             }
             catch (Exception ex)
@@ -5778,7 +5769,8 @@ namespace RACTClient
                 else
                 {
                     m_ConnectionType = ConnectionTypes.Serial;
-                    if (!AppGlobal.s_SerialProcessor.ConnectDevice(this, m_DeviceInfo.TerminalConnectInfo.SerialConfig))
+                    /*
+                    // if (!AppGlobal.s_SerialProcessor.ConnectDevice(this, m_DeviceInfo.TerminalConnectInfo.SerialConfig))
                     {
                         TerminalStatus = E_TerminalStatus.Disconnected;
                         // 2013-04-26- shinyn- 크로스 스레드 에러나는 부분 수정
@@ -5794,6 +5786,7 @@ namespace RACTClient
                             ProgreBarHandlerEvent("디바이스에 연결 되었습니다.", eProgressItemType.Standard, false);
                         m_IsConnected = true;
                     }
+                    */
                 }
             }
             catch (Exception ex)
@@ -6424,6 +6417,12 @@ namespace RACTClient
         /// <summary>
         /// 접속 종료 합니다.
         /// </summary>
+        public Task DisconnectAsync()
+        {
+            Disconnect();
+            return Task.CompletedTask;
+        }
+
         public void Disconnect()
         {
 
@@ -6492,7 +6491,7 @@ namespace RACTClient
                 }
                 else
                 {
-                    AppGlobal.s_SerialProcessor.DisconnectDevice(this);
+                    // AppGlobal.s_SerialProcessor.DisconnectDevice(this);
                     TerminalStatus = E_TerminalStatus.Disconnected;
                 }
 
@@ -7074,6 +7073,7 @@ namespace RACTClient
         /// 시리얼 결과를 처리 합니다.
         /// </summary>
         /// <param name="aResult"></param>
+        /*
         public void DisplayResult(SerialCommandResultInfo aResult)
         {
             if (this.InvokeRequired)
@@ -7092,6 +7092,7 @@ namespace RACTClient
             }
 
         }
+        */
 
         /// <summary>
         /// Serial Config 가져오거나 설정 합니다.
@@ -7698,7 +7699,7 @@ namespace RACTClient
                     }
                     else
                     {
-                        AppGlobal.s_SerialProcessor.SendRequest(this, CmdData);
+                        // AppGlobal.s_SerialProcessor.SendRequest(this, CmdData);
                     }
 					
                     CmdData = null;
@@ -7745,6 +7746,20 @@ namespace RACTClient
             }
         }
 
+        public void AttachSession(SessionContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ConnectDeviceAsync(DeviceInfo aDeviceInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ITactTerminal.ConnectDeviceAsync(DeviceInfo info)
+        {
+            throw new NotImplementedException();
+        }
     } // End of class (MCTerminalEmulator)
  
 }

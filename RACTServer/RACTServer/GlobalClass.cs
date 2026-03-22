@@ -30,8 +30,8 @@ namespace RACTServer
         public static DBLogProcess? m_DBLogProcess = null;
         public static bool m_IsRun = false;
         public static FACTGroupInfo? m_FACTGroupInfo;
-        public static DaemonProcessManager? s_DaemonProcessManager;
-        public static ServiceManagerCommunicationProcess? s_ServiceManagerCommunicationProcess = null;
+        //public static DaemonProcessManager? s_DaemonProcessManager;
+        //public static ServiceManagerCommunicationProcess? s_ServiceManagerCommunicationProcess = null;
         public static DeviceConnectionLogService? s_DeviceConnectionLogService = null;
         public static ClientResponseProcess? m_ClientResponseProcess = null;
 

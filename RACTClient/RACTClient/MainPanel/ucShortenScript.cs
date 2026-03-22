@@ -117,6 +117,7 @@ namespace RACTClient
                             tCommandButton.Name = aCommand.Name;
                             tCommandButton.Text = aCommand.Name;
                             tCommandButton.Tooltip = aCommand.Description;
+                            tCommandButton.Click -= new EventHandler(tCommandButton_Click);
                             tCommandButton.Click += new EventHandler(tCommandButton_Click);
                             tCommandButton.Tag = aCommand;
                         }

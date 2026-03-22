@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,31 +7,31 @@ namespace RACTClient
     public enum E_ScriptWorkType
     {
         /// <summary>
-        /// ±âº» »óÅÂ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒíƒœ ì…ë‹ˆë‹¤.
         /// </summary>
         None,
         /// <summary>
-        /// ½ÇÇà ÀÔ´Ï´Ù.
+        /// ì‹¤í–‰ ì…ë‹ˆë‹¤.
         /// </summary>
         Run,
         /// <summary>
-        /// ½ÇÇà Ãë¼Ò ÀÔ´Ï´Ù.
+        /// ì‹¤í–‰ ì·¨ì†Œ ì…ë‹ˆë‹¤.
         /// </summary>
         RunCancel,
         /// <summary>
-        /// ·¹ÄÚµù ÀÔ´Ï´Ù.
+        /// ë ˆì½”ë”© ì…ë‹ˆë‹¤.
         /// </summary>
         Rec,
         /// <summary>
-        /// ·¹ÄÚµù Ãë¼Ò ÀÔ´Ï´Ù.
+        /// ë ˆì½”ë”© ì·¨ì†Œ ì…ë‹ˆë‹¤.
         /// </summary>
         RecCancel,
         /// <summary>
-        /// ÀúÀå ÀÔ´Ï´Ù.
+        /// ì €ì¥ ì…ë‹ˆë‹¤.
         /// </summary>
         Save,
         /// <summary>
-        /// ·Î±× ÀúÀå ÀÔ´Ï´Ù.
+        /// ë¡œê·¸ ì €ì¥ ì…ë‹ˆë‹¤.
         /// </summary>
         RecLog
     }

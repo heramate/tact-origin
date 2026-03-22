@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+﻿using RACTCommonClass;
+using System;
 using System.Windows.Forms;
-using RACTCommonClass;
 
 namespace RACTClient
 {
@@ -90,7 +85,7 @@ namespace RACTClient
                 cboProtocol.Items[cboProtocol.Items.Count - 1].Tag = Enum.Parse(typeof(E_ConnectionProtocol), tType);
                 if (tType.Equals(AppGlobal.s_ClientOption.ConnectionInfo.ConnectionProtocol.ToString())) ;
                 {
-                    cboProtocol.SelectedIndex = cboProtocol.Items.Count -1;
+                    cboProtocol.SelectedIndex = cboProtocol.Items.Count - 1;
                 }
 
             }
@@ -136,15 +131,15 @@ namespace RACTClient
                 nudPort.Value = m_DeviceInfo.TerminalConnectInfo.TelnetPort;
 
 
-                
-                for(int i = 0; i < cboProtocol.Items.Count; i ++)
+
+                for (int i = 0; i < cboProtocol.Items.Count; i++)
                 {
 
                     E_ConnectionProtocol tConnectionProtocol = (E_ConnectionProtocol)cboProtocol.Items[i].Tag;
 
                     if (tConnectionProtocol == m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol)
                     {
-                        switch(tConnectionProtocol)
+                        switch (tConnectionProtocol)
                         {
                             case E_ConnectionProtocol.TELNET:
                                 nudPort.Value = m_DeviceInfo.TerminalConnectInfo.TelnetPort;
@@ -174,10 +169,10 @@ namespace RACTClient
                 {
                     string tGroupID = string.Empty;
 
-                    for(int i=0;i<cboDeviceGroup.Items.Count;i++)
+                    for (int i = 0; i < cboDeviceGroup.Items.Count; i++)
                     {
                         tGroupID = cboDeviceGroup.Items[i].Tag.ToString();
-                        if(tGroupID == m_GroupID)
+                        if (tGroupID == m_GroupID)
                         {
                             cboDeviceGroup.SelectedIndex = i;
                             break;
@@ -190,7 +185,7 @@ namespace RACTClient
         private void cboProtocol_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-            
+
             if (cboProtocol.Items.Count == 0 || cboProtocol.SelectedIndex < 0)
             {
                 return;
@@ -198,7 +193,7 @@ namespace RACTClient
 
             E_ConnectionProtocol tConnectionProtocol = (E_ConnectionProtocol)cboProtocol.Items[cboProtocol.SelectedIndex].Tag;
 
-            switch(tConnectionProtocol)
+            switch (tConnectionProtocol)
             {
                 case E_ConnectionProtocol.TELNET:
                     pnlSerialOption.Visible = false;
@@ -261,8 +256,19 @@ namespace RACTClient
                 return;
             }
 
+            // 20260220 ShinMyungsu User별 접근권한(망구분) 
+            if (AppGlobal.s_LoginResult.UserInfo.MangTypes.Count > 0)
+            {
+                if (CheckDeviceMangType() == false)
+                {
+                    AppGlobal.ShowMessageBox(this, "등록 할 수 없는 장비입니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+            //===============================================================================================================
+
             m_OldDeviceInfo = m_DeviceInfo.DeepClone();
-            
+
             m_DeviceInfo.GroupID = cboDeviceGroup.Items[cboDeviceGroup.SelectedIndex].Tag.ToString();
 
             m_DeviceInfo.TerminalConnectInfo.TelnetPort = (int)nudPort.Value;
@@ -323,12 +329,12 @@ namespace RACTClient
                 return;
             }
 
-            
+
             if (m_WorkType == E_WorkType.Modify)
             {
                 EventProcessor.Run(m_OldDeviceInfo, E_WorkType.Delete);
             }
-            
+
 
             EventProcessor.Run((DeviceInfo)m_Result.ResultData, m_WorkType);
 
@@ -349,6 +355,51 @@ namespace RACTClient
             }
             this.Close();
 
+        }
+        /// <summary>
+        /// 20260220 ShinMyungsu User별 접근권한(망구분)
+        /// 입력한 IP에 해당하는 장비가 NE_NE table에 존재 시 , User의 망구분(MangTypeCd)에 해당하는지 체크
+        /// </summary>
+        /// <returns></returns>
+        private bool CheckDeviceMangType()
+        {
+            DeviceInfo tDeviceInfo = new DeviceInfo();
+
+            RequestCommunicationData tRequestData = null;
+            DeviceSearchInfo tSearchInfo = new DeviceSearchInfo();
+
+            tSearchInfo.DeviceIPAddress = ipDevice.IPAddress;
+            tSearchInfo.UserID = AppGlobal.s_LoginResult.UserID;
+            tRequestData = AppGlobal.MakeDefaultRequestData();
+            tSearchInfo.IsCheckPermission = false;
+            tRequestData.CommType = E_CommunicationType.RequestSearchDeviceAuth;     // 20260227 ShinMyungsu User별 장비접속권한(E_CommunicationType.RequestOneTerminalSearchDevice 에서 RequestSearchDeviceAuth로 변경)
+
+            tRequestData.RequestData = tSearchInfo;
+
+            m_Result = null;
+            m_MRE.Reset();
+
+            AppGlobal.SendRequestData(this, tRequestData);
+            m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
+
+            if (m_Result == null || m_Result.ResultData == null)
+            { return true; }
+            else
+            {
+                tDeviceInfo = ((DeviceInfoCollection)AppGlobal.DecompressObject((CompressData)m_Result.ResultData))[ipDevice.IPAddress];
+
+                if (tDeviceInfo == null)
+                { return true; }
+
+                if (AppGlobal.s_LoginResult.UserInfo.MangTypes.Count > 0)
+                {
+                    if (!AppGlobal.s_LoginResult.UserInfo.MangTypes.Contains(tDeviceInfo.MangTypeCd))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         private void ipDevice_KeyPress(object sender, KeyPressEventArgs e)

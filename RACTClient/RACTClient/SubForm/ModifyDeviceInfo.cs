@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,18 +15,18 @@ namespace RACTClient
     public partial class ModifyDeviceInfo : BaseForm
     {
         /// <summary>
-        /// Àåºñ Á¤º¸ ÀÔ´Ï´Ù.
+        /// ì¥ë¹„ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         DeviceInfo m_DeviceInfo = null;
 
-        // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+        // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
         /// <summary>
-        /// Àåºñ°¡ ¼Ò¼ÓµÈ ±×·ì ID ÀÔ´Ï´Ù.
+        /// ì¥ë¹„ê°€ ì†Œì†ëœ ê·¸ë£¹ ID ì…ë‹ˆë‹¤.
         /// </summary>
         private string m_GroupID = "-1";
-        // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+        // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
         /// <summary>
-        /// ±×·ì ID ¼Ó¼ºÀ» °¡Á®¿À°Å³ª ¼³Á¤ÇÕ´Ï´Ù.
+        /// ê·¸ë£¹ ID ì†ì„±ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì •í•©ë‹ˆë‹¤.
         /// </summary>
         public string GroupID
         {
@@ -35,11 +35,11 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Àåºñ Á¢¼Ó ÇÁ·ÎÅäÄİÀÔ´Ï´Ù.
+        /// ì¥ë¹„ ì ‘ì† í”„ë¡œí† ì½œì…ë‹ˆë‹¤.
         /// </summary>
         private E_ConnectionProtocol m_Protocol;
         /// <summary>
-        /// ÇÁ·ÎÅäÄİ ¼Ó¼ºÀ» °¡Á®¿À°Å³ª ¼³Á¤ÇÕ´Ï´Ù.
+        /// í”„ë¡œí† ì½œ ì†ì„±ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì •í•©ë‹ˆë‹¤.
         /// </summary>
         public E_ConnectionProtocol Protocol
         {
@@ -48,7 +48,7 @@ namespace RACTClient
         }	
 
         /// <summary>
-        /// ÀÛ¾÷ Å¸ÀÔ ÀÔ´Ï´Ù.
+        /// ì‘ì—… íƒ€ì… ì…ë‹ˆë‹¤.
         /// </summary>
         private E_WorkType m_WorkType = E_WorkType.Add;
 
@@ -57,14 +57,14 @@ namespace RACTClient
             InitializeComponent();
         }
 
-        // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+        // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
         public ModifyDeviceInfo(string aGroupID)
         {
             m_GroupID = aGroupID;
             InitializeComponent();
         }
 
-        // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+        // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
         public ModifyDeviceInfo(DeviceInfo aDeviceInfo, E_WorkType aWorkType)
         {
             m_DeviceInfo = new DeviceInfo(aDeviceInfo);
@@ -75,7 +75,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         public void InitializeControl()
         {
@@ -83,8 +83,8 @@ namespace RACTClient
             AppGlobal.InitializeComboBoxStyle(cboDeviceGroup);
             AppGlobal.InitializeComboBoxStyle(cboProtocol);
 
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "ÀúÀå");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "ì €ì¥");
 
             if (m_WorkType.Equals(E_WorkType.Modify))
             {
@@ -103,9 +103,9 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// È­¸éÀÇ ButtonÀ» Å¬¸¯ÇÑ ÀÌº¥Æ®¸¦ Ã³¸®ÇÏ´Â °¡»ó ÇÔ¼öÀÔ´Ï´Ù.
+        /// í™”ë©´ì˜ Buttonì„ í´ë¦­í•œ ì´ë²¤íŠ¸ë¥¼ ì²˜ë¦¬í•˜ëŠ” ê°€ìƒ í•¨ìˆ˜ì…ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aButtonType">¹öÆ° Å¸ÀÔ</param>
+        /// <param name="aButtonType">ë²„íŠ¼ íƒ€ì…</param>
         protected override void ButtonProcess(E_ButtonType aButtonType) 
         {
             switch (aButtonType)
@@ -120,27 +120,27 @@ namespace RACTClient
         }
         DeviceInfo m_OldDeviceInfo;
         /// <summary>
-        /// Àåºñ Á¤º¸¸¦ ÀúÀåÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
+        /// ì¥ë¹„ ì •ë³´ë¥¼ ì €ì¥í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
         /// </summary>
         private void SaveDeviceInfo()
         {
             if (cboDeviceGroup.SelectedIndex < 0)
             {
-                AppGlobal.ShowMessageBox(this, "±×·ìÀ» ¼±ÅÃ ÇÏ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(this, "ê·¸ë£¹ì„ ì„ íƒ í•˜ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2013-01-11 - shinyn - ¹Ù·Î ÀúÀå Å¬¸¯ ÇßÀ»¶§ ¿À·ù ¼öÁ¤
+            // 2013-01-11 - shinyn - ë°”ë¡œ ì €ì¥ í´ë¦­ í–ˆì„ë•Œ ì˜¤ë¥˜ ìˆ˜ì •
             if (m_DeviceInfo == null)
             {
-                AppGlobal.ShowMessageBox(this, "°Ë»öÈÄ ÀúÀåÇØÁÖ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(this, "ê²€ìƒ‰í›„ ì €ì¥í•´ì£¼ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             m_OldDeviceInfo = m_DeviceInfo.DeepClone();
-            // »õ·Î¿î Àåºñ Á¤º¸¸¦ ÀúÀåÇÕ´Ï´Ù.
+            // ìƒˆë¡œìš´ ì¥ë¹„ ì •ë³´ë¥¼ ì €ì¥í•©ë‹ˆë‹¤.
 
-            // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+            // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
             m_DeviceInfo.GroupID = cboDeviceGroup.Items[cboDeviceGroup.SelectedIndex].Tag.ToString();
 
             m_DeviceInfo.TerminalConnectInfo.TelnetPort = (int)nudPort.Value;
@@ -148,7 +148,7 @@ namespace RACTClient
             m_DeviceInfo.TerminalConnectInfo.IPAddress = m_DeviceInfo.IPAddress;
             m_DeviceInfo.TerminalConnectInfo.SerialConfig = pnlSerialOption.SerialConfig;
             m_DeviceInfo.TerminalConnectInfo.TelnetPort =(int)nudPort.Value;
-            // 2013-01-18 - shinyn - NE¿¡ µî·ÏµÈ Àåºñ ÀúÀå ¿äÃ»
+            // 2013-01-18 - shinyn - NEì— ë“±ë¡ëœ ì¥ë¹„ ì €ì¥ ìš”ì²­
             m_DeviceInfo.DeviceType = E_DeviceType.NeGroup;
 
             RequestCommunicationData tRequestData = null;
@@ -173,13 +173,13 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¿äÃ» °á°ú¸¦ È®ÀÎÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
+        /// ìš”ì²­ ê²°ê³¼ë¥¼ í™•ì¸í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
         /// </summary>
         private void CheckedResult()
         {
             if (m_Result == null)
             {
-                AppGlobal.ShowMessageBox(this, "¾Ë ¼ö ¾ø´Â ¿¡·¯°¡ ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, "ì•Œ ìˆ˜ ì—†ëŠ” ì—ëŸ¬ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (m_Result.Error.Error != E_ErrorType.NoError)
@@ -199,22 +199,22 @@ namespace RACTClient
             {
 
                 case E_WorkType.Add :
-                    AppGlobal.ShowMessageBox(this, "Àåºñ Á¤º¸¸¦ Ãß°¡ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(this, "ì¥ë¹„ ì •ë³´ë¥¼ ì¶”ê°€ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
 
                 case E_WorkType.Modify:
-                    AppGlobal.ShowMessageBox(this, "Àåºñ Á¤º¸¸¦ ¼öÁ¤ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(this, "ì¥ë¹„ ì •ë³´ë¥¼ ìˆ˜ì • í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
 
                 case E_WorkType.Delete:
-                    AppGlobal.ShowMessageBox(this, "Àåºñ Á¤º¸¸¦ »èÁ¦ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(this, "ì¥ë¹„ ì •ë³´ë¥¼ ì‚­ì œ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
             this.Close();
         }
 
         /// <summary>
-        /// ÇÁ·ÎÅäÄİ ¸ñ·ÏÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// í”„ë¡œí† ì½œ ëª©ë¡ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         private void initializeProtocolList()
         {
@@ -230,9 +230,9 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±×·ì ¸ñ·ÏÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ê·¸ë£¹ ëª©ë¡ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="vTV">±×·ì ¸ñ·ÏÀ» ÃÊ±âÈ­ ÇÒ ÄŞº¸¹Ú½º ÀÔ´Ï´Ù.</param>
+        /// <param name="vTV">ê·¸ë£¹ ëª©ë¡ì„ ì´ˆê¸°í™” í•  ì½¤ë³´ë°•ìŠ¤ ì…ë‹ˆë‹¤.</param>
         private void InitializeGroupList()
         {
             if (AppGlobal.s_GroupInfoList == null) return;
@@ -245,7 +245,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ±âº» Á¤º¸¸¦ Ç¥½ÃÇÕ´Ï´Ù.
+        /// ê¸°ë³¸ ì •ë³´ë¥¼ í‘œì‹œí•©ë‹ˆë‹¤.
         /// </summary>
         private void displayBaseData()
         {
@@ -258,7 +258,7 @@ namespace RACTClient
             {
                 ipDevice.IPAddress = m_DeviceInfo.IPAddress;
                 txtDisplayName.Text = m_DeviceInfo.Name;
-                // 2013-01-18 - shinyn - ¸ğµ¨¸í °¡Á®¿À´Â ºÎºĞ ¼öÁ¤
+                // 2013-01-18 - shinyn - ëª¨ë¸ëª… ê°€ì ¸ì˜¤ëŠ” ë¶€ë¶„ ìˆ˜ì •
                 txtModelName.Text = m_DeviceInfo.ModelName;
                 txtModelName.Tag = m_DeviceInfo.ModelID;
                 txtLocation.Text = m_DeviceInfo.Location;
@@ -295,18 +295,18 @@ namespace RACTClient
 
             }
 
-            // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+            // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
             if (m_GroupID == "-1")
             {
                 cboDeviceGroup.SelectedIndex = 0;
             }
             else
             {
-                // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                 string tGroupID;
                 for (int i = 0; i < cboDeviceGroup.Items.Count; i++)
                 {
-                    // shinyn - 2012-12-13 - NE Group ID int -> string ¼öÁ¤ 'B' PON(Biz) -> FOMs¿¬µ¿ °ª¿¡ µû¸¥ ¼öÁ¤
+                    // shinyn - 2012-12-13 - NE Group ID int -> string ìˆ˜ì • 'B' PON(Biz) -> FOMsì—°ë™ ê°’ì— ë”°ë¥¸ ìˆ˜ì •
                     tGroupID = cboDeviceGroup.Items[i].Tag.ToString();
 
                     if (tGroupID == m_GroupID)
@@ -348,7 +348,7 @@ namespace RACTClient
                     nudPort.Value = 23;
                     break;
                 case E_ConnectionProtocol.SSHTelnet:
-                    // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                     pnlSerialOption.Visible = false;
                     nudPort.Value = 22;
                     break;

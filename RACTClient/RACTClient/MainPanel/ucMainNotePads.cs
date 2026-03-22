@@ -8,7 +8,6 @@ using System.Windows.Forms;
 using RACTCommonClass;
 using DevComponents.DotNetBar;
 using RACTTerminal;
-using RACTSerialProcess;
 using System.Threading;
 using MKLibrary.MKProcess;
 

@@ -42,6 +42,7 @@
             this.mnuRestoreCfgCmd = new DevComponents.DotNetBar.ButtonItem();
             this.mnuChangeStatus = new DevComponents.DotNetBar.ButtonItem();
             this.mnuSaveTerminalLog = new DevComponents.DotNetBar.ButtonItem();
+            this.mnuCloseAll = new DevComponents.DotNetBar.ButtonItem();
             this.imlTab = new System.Windows.Forms.ImageList(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.tabTerminal)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.contextMenuBar1)).BeginInit();
@@ -101,7 +102,6 @@
             this.cmTabPopup.Name = "cmTabPopup";
             this.cmTabPopup.SubItems.AddRange(new DevComponents.DotNetBar.BaseItem[] {
             this.mnuReName,
-            this.mnuCloseOther,
             this.mnuReConnect,
             this.mnuDisConnect,
             this.mnuLinkConnect,
@@ -109,7 +109,9 @@
             this.mnuModifyDevice,
             this.mnuRestoreCfgCmd,
             this.mnuChangeStatus,
-            this.mnuSaveTerminalLog});
+            this.mnuSaveTerminalLog,
+            this.mnuCloseAll,
+            this.mnuCloseOther});
             this.cmTabPopup.Text = "buttonItem1";
             // 
             // mnuReName
@@ -121,8 +123,7 @@
             // mnuCloseOther
             // 
             this.mnuCloseOther.Name = "mnuCloseOther";
-            this.mnuCloseOther.Text = "현재연결만 남기고 모두 닫기";
-            this.mnuCloseOther.Visible = false;
+            this.mnuCloseOther.Text = "다른 탭 닫기";
             this.mnuCloseOther.Click += new System.EventHandler(this.mnuCloseOther_Click);
             // 
             // mnuReConnect
@@ -179,6 +180,12 @@
             this.mnuSaveTerminalLog.Text = "결과저장";
             this.mnuSaveTerminalLog.Click += new System.EventHandler(this.mnuSaveTerminalLog_Click);
             // 
+            // mnuCloseAll
+            // 
+            this.mnuCloseAll.Name = "mnuCloseAll";
+            this.mnuCloseAll.Text = "모든 탭 닫기";
+            this.mnuCloseAll.Click += new System.EventHandler(this.mnuCloseAll_Click);
+            // 
             // imlTab
             // 
             this.imlTab.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
@@ -213,6 +220,7 @@
         private DevComponents.DotNetBar.ButtonItem mnuCloseOther;
         private DevComponents.DotNetBar.ButtonItem mnuChangeStatus;
         private DevComponents.DotNetBar.ButtonItem mnuSaveTerminalLog;
+        private DevComponents.DotNetBar.ButtonItem mnuCloseAll;
         private DevComponents.DotNetBar.ButtonItem mnuRestoreCfgCmd;
         private DevComponents.DotNetBar.ButtonItem mnuLinkConnect;
 

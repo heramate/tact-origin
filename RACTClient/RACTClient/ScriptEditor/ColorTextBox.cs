@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,12 +10,12 @@ namespace RACTClient
     public partial class ColorTextBox : RichTextBox
     {
         /// <summary>
-        /// »ö»ó ÀÔ´Ï´Ù.
+        /// ìƒ‰ìƒ ì…ë‹ˆë‹¤.
         /// </summary>
         private SyntaxColor[] m_SyntaxColors;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ColorTextBox()
         {
@@ -66,28 +66,26 @@ namespace RACTClient
             }
             set
             {
-                string[] tSplit = value.Split(
-
                 base.Text = value;
             }
         }
 
         /// <summary>
-        /// Syntax Color ±¸Á¶Ã¼ ÀÔ´Ï´Ù.
+        /// Syntax Color êµ¬ì¡°ì²´ ì…ë‹ˆë‹¤.
         /// </summary>
         public struct SyntaxColor
         {
             /// <summary>
-            /// ¹®ÀÚ ÀÔ´Ï´Ù.
+            /// ë¬¸ì ì…ë‹ˆë‹¤.
             /// </summary>
             private String m_SyntaxString;
             /// <summary>
-            /// »ö»ó ÀÔ´Ï´Ù.
+            /// ìƒ‰ìƒ ì…ë‹ˆë‹¤.
             /// </summary>
             private Color m_Color;
 
             /// <summary>
-            /// ¹®ÀÚ¿­ º¯È¯ ÇÕ´Ï´Ù.
+            /// ë¬¸ìì—´ ë³€í™˜ í•©ë‹ˆë‹¤.
             /// </summary>
             /// <returns></returns>
             public override string ToString()
@@ -95,7 +93,7 @@ namespace RACTClient
                 return SyntaxString + " " + Color.ToString(); // GetType().Name;
             }
             /// <summary>
-            /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+            /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
             /// </summary>
             /// <param name="aString"></param>
             /// <param name="aColor"></param>

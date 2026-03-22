@@ -213,7 +213,7 @@ namespace RACTClient
                             tScript.Append(tCode);
                             tScript.Append(Convert.ToString(fgCommand.Rows[i][j]));
                             tScript.Append(tCode);
-                            tScript.Append("&char(13)\r\n");
+                            tScript.Append("&chr(13)\r\n");
                         }
                         // Prompt는 TACT.WaitForString Script이다
                         if (j == 2 && Convert.ToString(fgCommand.Rows[i][j]) != "")

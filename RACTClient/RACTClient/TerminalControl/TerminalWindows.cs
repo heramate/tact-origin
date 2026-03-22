@@ -1,11 +1,6 @@
+﻿using DevComponents.DotNetBar;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using DevComponents.DotNetBar;
 
 namespace RACTClient
 {
@@ -26,11 +21,11 @@ namespace RACTClient
         /// <summary>
         /// 폼 닫기 처리 입니다.
         /// </summary>
-        private void TerminalWindows_FormClosing(object sender, FormClosingEventArgs e)
+        private async void TerminalWindows_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (m_IsClose)
             {
-                ((ITactTerminal)this.Controls[0]).Disconnect();
+                await ((ITactTerminal)this.Controls[0]).DisconnectAsync();
             }
         }
         /// <summary>
@@ -38,7 +33,7 @@ namespace RACTClient
         /// </summary>
         private void TerminalWindows_MinimumSizeChanged(object sender, EventArgs e)
         {
-           
+
         }
 
         private void TerminalWindows_Resize(object sender, EventArgs e)
@@ -47,7 +42,7 @@ namespace RACTClient
             if (this.WindowState == FormWindowState.Minimized)
             {
                 m_IsClose = false;
-                ((ClientMain)AppGlobal.s_ClientMainForm).AddTerminalTab((MCTerminalEmulator)this.Controls[0]);
+                ((ClientMain)AppGlobal.s_ClientMainForm).AddTerminalTab((ITactTerminal)this.Controls[0]);
                 this.Close();
 
             }
@@ -57,6 +52,21 @@ namespace RACTClient
         {
             this.Controls.Add(tEmulator.UIControl);
             tEmulator.OnTerminalStatusChange += new HandlerArgument2<ITactTerminal, E_TerminalStatus>(tEmulator_OnTerminalStatusChange);
+            UpdateWindowTitle(tEmulator, tEmulator.TerminalStatus);
+        }
+
+        private void UpdateWindowTitle(ITactTerminal terminal, E_TerminalStatus status)
+        {
+            if (terminal == null) return;
+
+            string title = terminal.Name ?? string.Empty;
+            string toolTip = terminal.ToolTip ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(toolTip) && !title.Contains(toolTip))
+            {
+                title += " " + toolTip;
+            }
+
+            this.Text = title + " [ " + status.ToString() + " ]";
         }
 
         void tEmulator_OnTerminalStatusChange(ITactTerminal aValue1, E_TerminalStatus aValue2)
@@ -67,7 +77,7 @@ namespace RACTClient
                 return;
             }
 
-            this.Text = this.Controls[0].Name + " [ " +aValue2.ToString() +" ]";
+            UpdateWindowTitle(aValue1, aValue2);
         }
     }
 }

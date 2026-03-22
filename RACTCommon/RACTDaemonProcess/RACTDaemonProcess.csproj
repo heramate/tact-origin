@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RACTCommon.Messaging\RACTCommon.Messaging.csproj" />
-    <ProjectReference Include="..\RACTTerminal\RACTTerminal.csproj" />
     <ProjectReference Include="..\TelnetProcess\TelnetProcessor.csproj" />
   </ItemGroup>
 

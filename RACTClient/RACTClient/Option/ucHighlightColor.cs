@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -70,7 +70,7 @@ namespace RACTClient
         {
            lblBackColor.BackColor= Color.Black;
            lblFontColor.BackColor = Color.Red;
-           Font tFont = new System.Drawing.Font("±¼¸²Ã¼", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+           Font tFont = new System.Drawing.Font("êµ´ë¦¼ì²´", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
            lblFont.Tag = tFont;
 
            lblFont.Text = string.Concat("'", tFont.FontFamily.Name, "', ", tFont.Size);

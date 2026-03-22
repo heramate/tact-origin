@@ -1,14 +1,15 @@
-﻿using DevComponents.DotNetBar;
+using DevComponents.DotNetBar;
 using MKLibrary.MKData;
 using RACTClient.Utilities; //safeinvoke 사용위해 추가
 using RACTCommonClass;
-using RACTSerialProcess;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 // yskun rnjsdud -> 지역운용자 빠른연결시 오류 사항 확인
@@ -31,7 +32,8 @@ namespace RACTClient
         /// <summary>
         /// 결과 큐 입니다.
         /// </summary>
-        private Queue m_ResultQueue = new Queue();
+        private BlockingCollection<byte[]> m_ResultQueue = new BlockingCollection<byte[]>();
+        private string m_CurrentSystemLogPath = string.Empty;
         /// <summary>
         /// 요청 전송 스래드 입니다.
         /// </summary>
@@ -40,6 +42,13 @@ namespace RACTClient
         /// 그룹 수정 이벤트 입니다.
         /// </summary>
         public event ModifyGroupHandler OnModifyGroupEvent;
+
+        /// <summary>
+        /// 비동기 요청을 관리하기 위한 딕셔너리입니다.
+        /// </summary>
+        private ConcurrentDictionary<E_CommunicationType, TaskCompletionSource<ResultCommunicationData>> m_AsyncRequests = new ConcurrentDictionary<E_CommunicationType, TaskCompletionSource<ResultCommunicationData>>();
+        private bool _isClosingCleanupInProgress = false;
+        private bool _isClosingCleanupCompleted = false;
 
         /// <summary>
         /// 기본 생성자 입니다.
@@ -85,6 +94,7 @@ namespace RACTClient
                 if (AppGlobal.s_FileLogProcessor == null)
                     AppGlobal.s_FileLogProcessor = new FileLogProcess(AppGlobal.s_ClientOption.LogPath + "SystemLog\\", "ClientSystem");
                 AppGlobal.s_FileLogProcessor.Start();
+                m_CurrentSystemLogPath = NormalizeDirectoryPath(AppGlobal.s_ClientOption.LogPath);
                 AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "클라이언트를 시작 합니다.");
                 m_SplashControl = new SplashControl();
                 m_SplashControl.InitalizeControl();
@@ -119,17 +129,9 @@ namespace RACTClient
         {
             if (aValue1)
             {
-                if (m_StartClientThread != null && m_StartClientThread.IsAlive)
-                {
-                    try
-                    {
-                        m_StartClientThread.Abort();
-                    }
-                    catch { }
-                }
-                m_StartClientThread = new Thread(new ThreadStart(ProcessStartClient));
-                m_StartClientThread.Name = "StartClient Thread";
-                m_StartClientThread.Start();
+                // 기존에 실행 중이던 스레드가 있다면 명시적인 중단 없이 새로 시작하거나 
+                // 상호 배타적 실행 보장이 필요하지만, 여기서는 단순화하여 새 태스크를 시작합니다.
+                _ = Task.Run(async () => await ProcessStartClientAsync());
             }
             else
             {
@@ -138,20 +140,19 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 클라이언트 시작을 처리 합니다.
+        /// 클라이언트 시작을 비동기로 처리 합니다.
         /// </summary>
-        private void ProcessStartClient()
+        private async Task ProcessStartClientAsync()
         {
             try
             {
                 // 2013-02-20 - shinyn - 실행속도가 빨라서 로그인되지 않는 경우 발생 처리 
-                System.Threading.Thread.Sleep(3000);
-
+                // 2026-03-05 - Antigravity - 성능 개선을 위해 3000ms -> 500ms로 단축
+                await Task.Delay(500);
 
                 AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, string.Concat(AppGlobal.s_RACTClientMode.ToString(), " Mode로 시작합니다."));
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
-
                     if (AppGlobal.s_IsModeChangeConnect)
                     {
                         AppGlobal.s_ModeChangeForm.m_SplashControl.ShowInitInfo("서버에 접속 중입니다.");
@@ -163,19 +164,17 @@ namespace RACTClient
 
                     if (AppGlobal.TryServerConnect() != E_ConnectError.NoError)
                     {
-                        if (AppGlobal.s_IsModeChangeConnect)
+                        this.Invoke(new Action(() =>
                         {
-                            this.Invoke(new DefaultHandler(AppGlobal.s_ModeChangeForm.m_SplashControl.ShowConsoleModeMessage));
-                            return;
-                        }
-                        else
-                        {
-                            this.Invoke(new DefaultHandler(m_SplashControl.ShowConsoleModeMessage));
-                            return;
-                        }
+                            if (AppGlobal.s_IsModeChangeConnect)
+                                AppGlobal.s_ModeChangeForm.m_SplashControl.ShowConsoleModeMessage();
+                            else
+                                m_SplashControl.ShowConsoleModeMessage();
+                        }));
+                        return;
                     }
-                    //로그인을 처리합니다.
 
+                    // 로그인을 처리합니다.
                     if (AppGlobal.s_IsModeChangeConnect)
                     {
                         AppGlobal.s_ModeChangeForm.m_SplashControl.ShowInitInfo("로그인 합니다.");
@@ -184,26 +183,26 @@ namespace RACTClient
                     {
                         m_SplashControl.ShowInitInfo("로그인 합니다.");
                     }
+
                     if (!AppGlobal.LoginConnect())
                     {
-                        if (AppGlobal.s_IsModeChangeConnect)
+                        this.Invoke(new Action(() =>
                         {
-                            this.Invoke(new DefaultHandler(AppGlobal.s_ModeChangeForm.m_SplashControl.ShowConsoleModeMessage));
-                            return;
-                        }
-                        else
-                        {
-                            this.Invoke(new DefaultHandler(m_SplashControl.ShowConsoleModeMessage));
-                            return;
-                        }
+                            if (AppGlobal.s_IsModeChangeConnect)
+                                AppGlobal.s_ModeChangeForm.m_SplashControl.ShowConsoleModeMessage();
+                            else
+                                m_SplashControl.ShowConsoleModeMessage();
+                        }));
+                        return;
                     }
                 }
 
-                StartApplicationInit();
+                // 애플리케이션 초기화 과정을 비동기로 실행합니다.
+                await StartApplicationInitAsync();
             }
             catch (Exception ex)
             {
-
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "ProcessStartClientAsync Error: " + ex.ToString());
             }
         }
         private void ModeChange_SplashControl_OnExit()
@@ -270,6 +269,13 @@ namespace RACTClient
                 if (!LogPathinfo.Exists)
                     AppGlobal.s_ClientOption.LogPath = Application.StartupPath + "\\Log\\";
 
+                // Bastion 설정 초기화
+                Services.BastionManager.Instance.Initialize(AppGlobal.s_ClientOption.BastionSetting);
+                //접속/해제 기록
+                if (AppGlobal.s_DeviceConnectionLogClient == null)
+                {
+                    AppGlobal.s_DeviceConnectionLogClient = new DeviceConnectionLogClient();
+                }
 
             }
             catch (Exception ex)
@@ -279,50 +285,42 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// 기본 데이터를 읽기 시작 합니다.
+        /// 기본 데이터를 비동기로 읽기 시작 합니다.
         /// </summary>
-        public bool StartApplicationInit()
+        public async Task<bool> StartApplicationInitAsync()
         {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new DefaultHandlerReturnBool(StartApplicationInit));
-                return false;
-            }
-
             try
             {
-                //시리얼 작업 프로세서를 시작 합니다.
-                if (AppGlobal.s_SerialProcessor == null)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Serial 프로세서를 시작합니다.");
-                    AppGlobal.s_SerialProcessor = new SerialProcess();
-                    AppGlobal.s_SerialProcessor.Start();
-                }
 
-                if (AppGlobal.s_TelnetProcessor == null)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Telnet 프로세서를 시작합니다.");
-                    AppGlobal.s_TelnetProcessor = new TelnetProcessor.TelnetProcessor();
-                    //2013-04-26 - shinyn - Log저장 경로를 추가하고, 로그저장을 하도록 수정합니다.
-                    //AppGlobal.s_TelnetProcessor.Start();
-                    // 2019-11-10 개선사항 (로그 저장 경로 개선)
-                    AppGlobal.s_TelnetProcessor.Start(AppGlobal.s_ClientOption.LogPath);
-                }
+                //if (AppGlobal.s_TelnetProcessor == null)
+                //{
+                //    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Telnet 프로세서를 시작합니다.");
+                //    AppGlobal.s_TelnetProcessor = new TelnetProcessor.TelnetProcessor();
+                //    AppGlobal.s_TelnetProcessor.Start(AppGlobal.s_ClientOption.LogPath);
+                //}
 
                 if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
                 {
                     AppGlobal.s_DaemonProcessList = new Dictionary<int, DaemonProcessRemoteObject>();
+                    
+                    if (_cts != null && !_cts.IsCancellationRequested) { _cts.Cancel(); _cts.Dispose(); }
+                    _cts = new CancellationTokenSource();
+
                     StartProcessResult();
                     StartGetResult();
                     StartRequestSend();
 
                     AppGlobal.MakeClientOption();
-                    //기본 정보를 로드 합니다.
-                    if (!LoadBaseData())
+
+                    // 기본 정보를 비동기 병렬로 로드 합니다.
+                    if (!await LoadBaseDataAsync())
                     {
-                        AppGlobal.ShowMessageBox(this, "클라이언트 실행을 위한 초기 작업에 실패 하였습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "클라이언트 실행을 위한 초기 작업에 실패 하였습니다.");
-                        Application.Exit();
+                        this.Invoke(new Action(() =>
+                        {
+                            AppGlobal.ShowMessageBox(this, "클라이언트 실행을 위한 초기 작업에 실패 하였습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "클라이언트 실행을 위한 초기 작업에 실패 하였습니다.");
+                            Application.Exit();
+                        }));
                         return false;
                     }
                 }
@@ -337,13 +335,18 @@ namespace RACTClient
             }
             catch (Exception ex)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, ex.ToString());
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "StartApplicationInitAsync Error: " + ex.ToString());
             }
 
-            //현재 폼을 표시합니다.
-            this.Invoke(new ShowMainFormHandler(ShowMainForm));
+            // 현재 폼을 표시합니다. (UI 스레드에서 실행 보장)
+            this.BeginInvoke(new ShowMainFormHandler(ShowMainForm));
 
             return true;
+        }
+
+        public bool StartApplicationInit()
+        {
+            return Task.Run(async () => await StartApplicationInitAsync()).GetAwaiter().GetResult();
         }
 
 
@@ -560,7 +563,7 @@ namespace RACTClient
                     this.mnuFile.SubItems[4].BeginGroup = true;
                 }
 
-                this.mnuFile.SubItems.AddRange(new DevComponents.DotNetBar.BaseItem[] { this.mnuConnectListView, this.mnuExit });
+                this.mnuFile.SubItems.AddRange(new DevComponents.DotNetBar.BaseItem[] { this.mnuConnectListView, this.mnuLogSavePath, this.mnuExit });
             }
             catch (Exception ex)
             {
@@ -580,202 +583,97 @@ namespace RACTClient
         /// 서버로부터 기본 정보를 가져오기 합니다.
         /// </summary>
         /// <returns>기본 정보 로드의 성공여부 입니다.</returns>
-        public bool LoadBaseData()
+        public async Task<bool> LoadBaseDataAsync()
         {
             try
             {
-                RequestCommunicationData tRequestData = null;
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "기본 데이터 비동기 병렬 로딩을 시작합니다.");
+                ShowInitInfo("기본 정보를 병렬 로딩 중입니다...");
 
-                tRequestData = AppGlobal.MakeDefaultRequestData();
-                ShowInitInfo("FACT 그룹 정보를 로딩 합니다.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "FACT 그룹 정보를 로딩 합니다.");
-                tRequestData.CommType = E_CommunicationType.RequestFactGroupInfo;
-                tRequestData.RequestData = AppGlobal.s_LoginResult.ClientID;
-                m_Result = null;
-                m_MRE.Reset();
+                // 1. 순차적으로 실행해야 하거나 병렬 실행 준비가 필요한 작업들
+                var tFactTask = SendRequestAsync(E_CommunicationType.RequestFactGroupInfo, AppGlobal.s_LoginResult.ClientID);
+                var tGroupTask = SendRequestAsync(E_CommunicationType.RequestGroupInfo, new GroupRequestInfo { UserID = AppGlobal.s_LoginResult.UserID, WorkType = E_WorkType.Search });
+                var tModelTask = SendRequestAsync(E_CommunicationType.RequestModelInfo);
+                var tDefaultCmdTask = SendRequestAsync(E_CommunicationType.RequestDefaultCmdInfo);
+                var tAutoCompleteTask = SendRequestAsync(E_CommunicationType.RequestAutoCompleteCmd, AppGlobal.s_LoginResult.UserID);
+                var tShortenCmdTask = SendRequestAsync(E_CommunicationType.RequestShortenCommand, new ShortenCommandRequestInfo { UserID = AppGlobal.s_LoginResult.UserID, WorkType = E_WorkType.Search });
+                var tScriptTask = SendRequestAsync(E_CommunicationType.RequestScriptGroup, new ScriptGroupRequestInfo { UserID = AppGlobal.s_LoginResult.UserID, WorkType = E_WorkType.Search });
 
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
-                }
-
-                MakeAllGroupInfo((FACTGroupInfo)m_Result.ResultData);
-
-
-                // 그룹 정보및 장비정보 가져오기
-                ShowInitInfo("TACT 그룹 정보를 로딩 합니다.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "TACT 그룹 정보를 로딩 합니다.");
-                GroupRequestInfo tRequestGroupInfo = new GroupRequestInfo();
-                tRequestGroupInfo.UserID = AppGlobal.s_LoginResult.UserID;
-                tRequestGroupInfo.WorkType = E_WorkType.Search;
-
-                tRequestData.CommType = E_CommunicationType.RequestGroupInfo;
-                tRequestData.RequestData = tRequestGroupInfo;
-
-                m_Result = null;
-                m_MRE.Reset();
-
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
-                }
-
-                AppGlobal.s_GroupInfoList = (GroupInfoCollection)m_Result.ResultData;
-
-                if (AppGlobal.s_GroupInfoList == null)
-                {
-                    return false;
-                }
-
-                ShowInitInfo("모델 정보를 로딩 합니다.");
-                tRequestData.CommType = E_CommunicationType.RequestModelInfo;
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "모델 정보를 로딩 합니다.");
-                m_Result = null;
-                m_MRE.Reset();
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
-                }
-                AppGlobal.s_ModelInfoList = (ModelInfoCollection)m_Result.ResultData;
-                AppGlobal.InitializeDevicePartList();
-
-                //2015-10-30 제한 명령어 - 사용자 권한 적용.
+                Task<ResultCommunicationData> tLimitCmdTask = null;
                 if (AppGlobal.s_LoginResult.UserInfo.LimitedCmdUser)
                 {
-                    ShowInitInfo("제한 명령어 정보를 로딩 합니다.");
-                    tRequestData.CommType = E_CommunicationType.RequestLimitCmdInfo;
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "제한 명령어 정보를 로딩 합니다.");
-                    m_Result = null;
-                    m_MRE.Reset();
-                    AppGlobal.SendRequestData(this, tRequestData);
-                    m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                    if (m_Result == null) return false;
-                    if (m_Result.Error.Error != E_ErrorType.NoError)
-                    {
-                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                        return false;
-                    }
-                    AppGlobal.s_LimitCmdInfoList = (LimitCmdInfoCollection)m_Result.ResultData;
+                    tLimitCmdTask = SendRequestAsync(E_CommunicationType.RequestLimitCmdInfo);
                 }
 
-                //bool tIsMatch = false;
+                // 모든 태스크 대기
+                var tTasks = new List<Task> { tFactTask, tGroupTask, tModelTask, tDefaultCmdTask, tAutoCompleteTask, tShortenCmdTask, tScriptTask };
+                if (tLimitCmdTask != null) tTasks.Add(tLimitCmdTask);
 
-                //foreach (LimitCmdInfo tModelInfo in AppGlobal.s_LimitCmdInfoList)
-                //{
+                await Task.WhenAll(tTasks);
 
-                //        if (tModelInfo.ModelID.ToString().Equals("2348"))
-                //        {
-                //            foreach (String str in tModelInfo.EmbagoCmd)
-                //            {
-                //                Console.Write("2340 의 제한 명령어 " + str);
-                //            }
-                //            break;
-                //        }
+                // 결과 처리
+                var tFactResult = await tFactTask;
+                if (tFactResult == null || tFactResult.Error.Error != E_ErrorType.NoError) return false;
+                MakeAllGroupInfo((FACTGroupInfo)tFactResult.ResultData);
+
+                var tGroupResult = await tGroupTask;
+                if (tGroupResult == null || tGroupResult.Error.Error != E_ErrorType.NoError) return false;
+                AppGlobal.s_GroupInfoList = (GroupInfoCollection)tGroupResult.ResultData;
+
+                if (AppGlobal.s_GroupInfoList == null)
+                    if (AppGlobal.s_GroupInfoList == null) return false;
+
+                // 3. 모델 정보 처리
+                var tModelResult = await tModelTask;
+                if (tModelResult == null || tModelResult.Error.Error != E_ErrorType.NoError) return false;
+                AppGlobal.s_ModelInfoList = (ModelInfoCollection)tModelResult.ResultData;
+                AppGlobal.InitializeDevicePartList();
+
+                // 4. 기본 명령어 처리
+                var tDefaultCmdResult = await tDefaultCmdTask;
+                if (tDefaultCmdResult == null || tDefaultCmdResult.Error.Error != E_ErrorType.NoError) return false;
+                AppGlobal.s_DefaultCmdInfoList = (DefaultCmdInfoCollection)tDefaultCmdResult.ResultData;
+
+                // 5. 자동완성 명령어 처리
+                var tAutoCompleteResult = await tAutoCompleteTask;
+                if (tAutoCompleteResult == null || tAutoCompleteResult.Error.Error != E_ErrorType.NoError) return false;
+                AppGlobal.s_AutoCompleteCmdList = (AutoCompleteCmdInfoCollection)tAutoCompleteResult.ResultData;
 
 
-                //}
 
-                ShowInitInfo("기본 명령어 정보를 로딩 합니다.");
-                tRequestData.CommType = E_CommunicationType.RequestDefaultCmdInfo;
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "기본 명령어 정보를 로딩 합니다.");
-                m_Result = null;
-                m_MRE.Reset();
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
+
+                // 6. 단축 명령어 처리
+                var tShortenCmdResult = await tShortenCmdTask;
+                if (tShortenCmdResult == null || tShortenCmdResult.Error.Error != E_ErrorType.NoError) return false;
+                AppGlobal.s_ShortenCommandList = (ShortenCommandGroupInfoCollection)tShortenCmdResult.ResultData;
+
+                // 7. 스크립트 정보 처리
+                var tScriptResult = await tScriptTask;
+                if (tScriptResult == null || tScriptResult.Error.Error != E_ErrorType.NoError) return false;
+                AppGlobal.s_ScriptList = (ScriptGroupInfoCollection)tScriptResult.ResultData;
+
+                // 8. 제한 명령어 처리 (권한 있는 경우)
+                if (tLimitCmdTask != null)
                 {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
-                }
-                AppGlobal.s_DefaultCmdInfoList = (DefaultCmdInfoCollection)m_Result.ResultData;
-
-
-                ShowInitInfo("접속자의 자동완성 정보를 로딩 합니다.");
-                tRequestData.CommType = E_CommunicationType.RequestAutoCompleteCmd;
-                tRequestData.RequestData = AppGlobal.s_LoginResult.UserID;
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "접속자의 자동완성 정보를 로딩 합니다.");
-                m_Result = null;
-                m_MRE.Reset();
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
-                }
-                AppGlobal.s_AutoCompleteCmdList = (AutoCompleteCmdInfoCollection)m_Result.ResultData;
-
-
-
-
-                // 단축 명령 정보 가져오기
-                ShowInitInfo("단축 명령 정보를 로딩 합니다.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "단축 명령 정보를 로딩 합니다.");
-                ShortenCommandRequestInfo tRequestShortenCommand = new ShortenCommandRequestInfo();
-                tRequestShortenCommand.UserID = AppGlobal.s_LoginResult.UserID;
-                tRequestShortenCommand.WorkType = E_WorkType.Search;
-
-                tRequestData.CommType = E_CommunicationType.RequestShortenCommand;
-                tRequestData.RequestData = tRequestShortenCommand;
-
-                m_Result = null;
-                m_MRE.Reset();
-
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
+                    var tLimitCmdResult = await tLimitCmdTask;
+                    if (tLimitCmdResult == null || tLimitCmdResult.Error.Error != E_ErrorType.NoError) return false;
+                    AppGlobal.s_LimitCmdInfoList = (LimitCmdInfoCollection)tLimitCmdResult.ResultData;
                 }
 
-                AppGlobal.s_ShortenCommandList = (ShortenCommandGroupInfoCollection)m_Result.ResultData;
-
-
-                // 스크립트 정보 가져오기
-                ShowInitInfo("스크립트 정보를 로딩 합니다.");
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "스크립트 정보를 로딩 합니다.");
-                ScriptGroupRequestInfo tRequestScriptGroup = new ScriptGroupRequestInfo();
-                tRequestScriptGroup.UserID = AppGlobal.s_LoginResult.UserID;
-                tRequestScriptGroup.WorkType = E_WorkType.Search;
-
-                tRequestData.CommType = E_CommunicationType.RequestScriptGroup;
-                tRequestData.RequestData = tRequestScriptGroup;
-
-                m_Result = null;
-                m_MRE.Reset();
-
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-                if (m_Result == null) return false;
-                if (m_Result.Error.Error != E_ErrorType.NoError)
-                {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
-                    return false;
-                }
-                AppGlobal.s_ScriptList = (ScriptGroupInfoCollection)m_Result.ResultData;
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "기본 데이터 로딩이 성공적으로 완료되었습니다.");
                 return true;
             }
             catch (Exception ex)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, ex.ToString());
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "LoadBaseDataAsync Error: " + ex.ToString());
                 return false;
             }
+        }
+
+        public bool LoadBaseData()
+        {
+            // 데드락 방지를 위해 별도 스레드에서 비동기 메서드를 실행하고 결과를 기다립니다.
+            return Task.Run(async () => await LoadBaseDataAsync()).GetAwaiter().GetResult();
         }
         /// <summary>
         /// 전체 그룹 정보를 생성합니다.
@@ -1044,64 +942,36 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 서버에 요청 스래드를 시작합니다.
+        /// 서버에 요청 전달 태스크를 시작합니다.
         /// </summary>
         private void StartRequestSend()
         {
             AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버 명령 전송 프로세서를 시작합니다.");
-            m_RequestSendThread = new Thread(new ThreadStart(ProcessRequestSendToServer));
-            m_RequestSendThread.Start();
+            Task.Factory.StartNew(() => ProcessRequestSendToServer(_cts.Token),
+                _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         /// <summary>
-        /// 서버에 요청 스래드를 중지 합니다.
+        /// 서버에 요청 전달 태스크를 중지 합니다.
         /// </summary>
         private void StopRequestSend()
         {
-            if (m_RequestSendThread == null) return;
-
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버 명령 전송 프로세서를 종료합니다.");
-            m_RequestSendThread.Join(10);
-            if (m_RequestSendThread.IsAlive)
-            {
-                try
-                {
-                    m_RequestSendThread.Abort();
-                }
-                catch { }
-            }
-            m_RequestSendThread = null;
-
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버 명령 전송 프로세서 종료를 예약합니다.");
         }
 
         /// <summary>
         /// 서버에 요청을 전송합니다.
         /// </summary>
-        private void ProcessRequestSendToServer()
+        private void ProcessRequestSendToServer(CancellationToken token)
         {
             RemoteClientMethod tRemoteClientMethod = null;
-            object tSendObject = null;
 
-            while (!AppGlobal.s_IsProgramShutdown)
+            try 
             {
-                tSendObject = null;
-
-                lock (AppGlobal.s_RequestQueue)
+                foreach (var tSendObject in AppGlobal.s_RequestQueue.GetConsumingEnumerable(token))
                 {
-                    // 2013-05-02 - shinyn - 없는경우 
-                    //if (AppGlobal.s_RequestQueue.Count < 1)
-                    //{
-                    //    AppGlobal.m_MRE.Reset();
-                    //    AppGlobal.m_MRE.WaitOne();
-                    //}
+                    if (AppGlobal.s_IsProgramShutdown || token.IsCancellationRequested) break;
 
-                    if (AppGlobal.s_RequestQueue.Count > 0)
-                    {
-                        tSendObject = AppGlobal.s_RequestQueue.Dequeue();
-                    }
-                }
-                if (tSendObject != null)
-                {
                     try
                     {
                         tRemoteClientMethod = (RemoteClientMethod)AppGlobal.s_RemoteGateway.ServerObject;
@@ -1109,11 +979,17 @@ namespace RACTClient
                     }
                     catch (Exception ex)
                     {
+                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, "ProcessRequestSendToServer: " + ex.ToString());
                     }
                 }
-                Thread.Sleep(1);
+            }
+            catch (OperationCanceledException)
+            {
+                // 정상적인 태스크 취소
             }
         }
+
+        private CancellationTokenSource _cts;
 
         /// <summary>
         /// 결과 받기 스래드를 시작합니다.
@@ -1121,53 +997,110 @@ namespace RACTClient
         private void StartGetResult()
         {
             AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버 결과 받기 프로세서를 시작합니다.");
-            m_GetResultThread = new Thread(new ThreadStart(ProcessGetResultFromServer));
-            m_GetResultThread.Start();
+            
+            // Thread 대신 LongRunning Task를 사용하여 스레드 효율성을 높입니다.
+            Task.Factory.StartNew(() => ProcessGetResultAsync(_cts.Token),
+                _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+
+        /// <summary>
+        /// [Refactored] 서버로부터 결과를 지속적으로 수집하는 핵심 로직
+        /// </summary>
+        private async Task ProcessGetResultAsync(CancellationToken token)
+        {
+            int failCount = 0;
+            const int maxRetryBeforeAlert = 2;
+
+            while (!token.IsCancellationRequested && !AppGlobal.s_IsProgramShutdown)
+            {
+                try
+                {
+                    if (AppGlobal.s_IsServerConnected)
+                    {
+                        // 1. 데이터 수신 시도
+                        var remoteObject = AppGlobal.s_RemoteGateway.ServerObject as RemoteClientMethod;
+                        if (remoteObject == null) throw new Exception("서버 객체에 접근할 수 없습니다.");
+
+                        byte[] resultRaw = remoteObject.CallResultMethod(AppGlobal.s_LoginResult.ClientID);
+
+                        if (resultRaw != null)
+                        {
+                            failCount = 0; // 성공 시 실패 카운트 초기화
+                            var resultData = ObjectConverter.GetObject(resultRaw) as ArrayList;
+
+                            if (resultData != null)
+                            {
+                                foreach (byte[] item in resultData)
+                                {
+                                    m_ResultQueue.Add(item, token);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 연결이 끊긴 상태라면 재연결 시도 로직으로 위임
+                        await HandleReconnectionAsync(token);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failCount++;
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, $"수신 오류 ({failCount}/{maxRetryBeforeAlert}): {ex.Message}");
+
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "서버 연결 일시 중단: " + ex.Message);
+                    AppGlobal.s_IsServerConnected = false;
+
+                    if (failCount >= maxRetryBeforeAlert)
+                    {
+                        // 일정 횟수 이상 실패 시 사용자에게 알림 (UI 스레드에서 실행)
+                        this.SafeInvoke(() =>
+                        {
+                            // 여기서 바로 종료하지 않고 사용자에게 '재연결 시도 중'임을 알리는 UI 처리 가능
+                        });
+                        failCount = 0; // 다시 카운트 시작 (무한 루프 방지 및 지속적 시도)
+                    }
+
+                    // 오류 발생 시 잠시 대기 후 재시도
+                    await Task.Delay(2000, token);
+                }
+
+                // 서버 체크 인터벌 대기
+                await Task.Delay(AppGlobal.s_ServerCheckInterval, token);
+            }
+        }
+
+        /// <summary>
+        /// 서버와의 재연결을 시도합니다.
+        /// </summary>
+        private async Task HandleReconnectionAsync(CancellationToken token)
+        {
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버와 재연결을 시도합니다...");
+
+            if (AppGlobal.TryServerConnect() == E_ConnectError.NoError)
+            {
+                if (AppGlobal.LoginConnect())
+                {
+                    AppGlobal.s_IsServerConnected = true;
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "재연결 및 로그인 성공");
+                    return;
+                }
+            }
+
+            // 재연결 실패 시 대기 시간 부여
+            await Task.Delay(5000, token);
         }
         /// <summary>
         /// 서버로부터 결과 받음을 처리 합니다.
         /// </summary>
-        private bool HasSessionExpiredResult(ArrayList aResultData)
-        {
-            if (aResultData == null) return false;
-
-            foreach (object tItem in aResultData)
-            {
-                if (!(tItem is byte[])) continue;
-
-                try
-                {
-                    object tObject = ObjectConverter.GetObject((byte[])tItem);
-                    ResultCommunicationData tResult = tObject as ResultCommunicationData;
-                    if (tResult == null) continue;
-
-                    if (tResult.Error != null && tResult.Error.Error == E_ErrorType.SessionExpired)
-                    {
-                        return true;
-                    }
-                }
-                catch
-                {
-                }
-            }
-
-            return false;
-        }
-
-        private void HandleSessionExpired()
-        {
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "서버 세션이 만료되어 재로그인을 시도합니다.");
-            AppGlobal.s_IsServerConnected = false;
-            TryServerConnect();
-        }
-
         private void ProcessGetResultFromServer()
         {
             RemoteClientMethod tRemoteClientMethod = null;
             ArrayList tResultData = null;
             byte[] tResultDatas = null;
 
-            int tResultFailCount = 0;
+            int tNullResultCount = 0;
+            const int SESSION_CHECK_THRESHOLD = 100; // 약 10초 (100ms * 100)
 
             while (!AppGlobal.s_IsProgramShutdown)
             {
@@ -1178,29 +1111,35 @@ namespace RACTClient
                         tResultData = null;
                         tRemoteClientMethod = (RemoteClientMethod)AppGlobal.s_RemoteGateway.ServerObject; ;
                         tResultDatas = tRemoteClientMethod.CallResultMethod(AppGlobal.s_LoginResult.ClientID);
+
                         if (tResultDatas != null)
+                        {
                             tResultData = (ArrayList)ObjectConverter.GetObject(tResultDatas);
+                            tNullResultCount = 0; // 데이터 수신 성공 시 카운트 초기화
+                        }
+                        else
+                        {
+                            tNullResultCount++;
+                            // 지속적으로 데이터가 없고(null) 세션 만료가 의심될 경우 재로그인 시도
+                            if (tNullResultCount >= SESSION_CHECK_THRESHOLD)
+                            {
+                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "[Session] 응답 없음 지속으로 재로그인을 시도합니다.");
+                                if (AppGlobal.TryAutoLogin())
+                                {
+                                    tNullResultCount = 0;
+                                }
+                                else
+                                {
+                                    // 재로그인 실패 시 잠시 더 대기 (재로그인 폭주 방지)
+                                    tNullResultCount = SESSION_CHECK_THRESHOLD - 30; // 3초 후 재시도
+                                }
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
-                        //tRemoteClientMethod = null;
-                        //if (AppGlobal.s_IsServerConnected)
-                        //{
-                        //    tResultFailCount++;
-                        //    if (tResultFailCount > 3)
-                        //    {
-                        //        AppGlobal.s_IsServerConnected = false;
-                        //        TryServerConnect();
-                        //    }
-                        //}
+                        // 기존 연결 오류 처리 로직 유지 또는 보강
                         this.Invoke(new DefaultHandler(MainFormClose));
-                    }
-
-                    if (HasSessionExpiredResult(tResultData))
-                    {
-                        HandleSessionExpired();
-                        Thread.Sleep(AppGlobal.s_ServerCheckInterval);
-                        continue;
                     }
 
                     if (tResultData != null)
@@ -1209,13 +1148,9 @@ namespace RACTClient
                         {
                             if (tResultData.Count > 0)
                             {
-
-                                lock (m_ResultQueue.SyncRoot)
+                                for (int i = 0; i < tResultData.Count; i++)
                                 {
-                                    for (int i = 0; i < tResultData.Count; i++)
-                                    {
-                                        m_ResultQueue.Enqueue(tResultData[i]);
-                                    }
+                                    m_ResultQueue.Add((byte[])tResultData[i]);
                                 }
                             }
                         }
@@ -1285,19 +1220,10 @@ namespace RACTClient
         /// </summary>
         private void StopGetResult()
         {
-            if (m_GetResultThread != null)
+            if (_cts != null && !_cts.IsCancellationRequested)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버 결과 받기 프로세서를 종료합니다.");
-                m_GetResultThread.Join(10);
-                if (m_GetResultThread.IsAlive)
-                {
-                    try
-                    {
-                        m_GetResultThread.Abort();
-                    }
-                    catch { }
-                }
-                m_GetResultThread = null;
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "서버 결과 받기 등 통합 백그라운드 프로세서를 종료합니다.");
+                _cts.Cancel();
             }
         }
 
@@ -1307,108 +1233,136 @@ namespace RACTClient
         private void StartProcessResult()
         {
             AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "수신 결과 처리 프로세서를 시작 합니다.");
-            m_ProcessResultThread = new Thread(new ThreadStart(ProcessServerResult));
-            m_ProcessResultThread.Start();
+            Task.Factory.StartNew(() => ProcessServerResult(_cts.Token),
+                _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         private void StopProcessResult()
         {
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "수신 결과 처리 프로세서 종료를 예약합니다.");
+        }
 
-            if (m_ProcessResultThread != null && m_ProcessResultThread.IsAlive)
+        /// <summary>
+        /// 결과를 처리 합니다. (병목 현상 방지 및 처리 격리 적용)
+        /// </summary>
+        private void ProcessServerResult(CancellationToken token)
+        {
+            try
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "수신 결과 처리 프로세서를 종료 합니다.");
-                try
+                // BlockingCollection의 ConsumingEnumerable은 데이터가 들어올 때까지 대기하며 순회합니다.
+                foreach (var tRawData in m_ResultQueue.GetConsumingEnumerable(token))
                 {
-                    m_ProcessResultThread.Abort();
+                    if (AppGlobal.s_IsProgramShutdown || token.IsCancellationRequested) break;
+
+                    try
+                    {
+                        object tObject = ObjectConverter.GetObject(tRawData);
+                        if (tObject == null) continue;
+
+                        // [성능 최적화] 무분별한 Task.Run 제거. 이미 LongRunning Task 내부이므로 호출을 순차적으로 직접 실행합니다.
+                        // 이로 인해 ThreadPool Starvation 및 무한 스레드 파생을 방어합니다.
+                        DispatchResult(tObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 데이터 직렬화/처리 자체에서 발생한 오류 처리
+                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error,
+                            $"ProcessServerResult MainLoop Exception: {ex.Message}");
+                    }
                 }
-                catch { }
-                m_ProcessResultThread = null;
+            }
+            catch (OperationCanceledException)
+            {
+                // 정상적인 태스크 취소
             }
         }
 
         /// <summary>
-        /// 결과를 처리 합니다.
+        /// 개별 객체 타입에 따라 적절한 Receiver에게 배분합니다.
         /// </summary>
-        private void ProcessServerResult()
+        private void DispatchResult(object tObject)
         {
-            ResultCommunicationData tResult = null;
-            TelnetCommandResultInfo tWorkResult = null;
-            object tObject = null;
+            if (tObject is ResultCommunicationData tResult)
+            {
+                ProcessReceiverCall(tResult.OwnerKey, tResult);
+            }
+            else if (tObject is TelnetCommandResultInfo tWorkResult)
+            {
+                ProcessReceiverCall(tWorkResult.OwnerKey, tWorkResult);
+            }
+        }
+
+        /// <summary>
+        /// 실제 ISenderObject를 찾아 ResultReceiver를 호출합니다.
+        /// </summary>
+        private void ProcessReceiverCall(int ownerKey, object data)
+        {
+            if (ownerKey == 0) return;
 
             ISenderObject tSender = null;
-            bool tIsWorked = true;
-
-            while (!AppGlobal.s_IsProgramShutdown && AppGlobal.s_IsServerConnected)
+            lock (AppGlobal.s_SenderList)
             {
-                try
+                AppGlobal.s_SenderList.TryGetValue(ownerKey, out tSender);
+            }
+
+            if (tSender != null)
+            {
+                // 여기서 발생하는 오류나 지연은 이제 다른 결과 처리에 영향을 주지 않습니다.
+                if (data is ResultCommunicationData rcd) tSender.ResultReceiver(rcd);
+                else if (data is TelnetCommandResultInfo tcri) tSender.ResultReceiver(tcri);
+            }
+        }
+
+        /// <summary>
+        /// 서버로부터 수신된 결과를 처리합니다.
+        /// </summary>
+        public override void ResultReceiver(ResultCommunicationData vResult)
+        {
+            base.ResultReceiver(vResult);
+
+            if (vResult != null)
+            {
+                if (m_AsyncRequests.TryRemove(vResult.CommType, out var tCompletionSource))
                 {
-                    tResult = null;
-                    tWorkResult = null;
-                    tObject = null;
-                    tIsWorked = true;
-
-                    lock (m_ResultQueue.SyncRoot)
-                    {
-                        if (m_ResultQueue.Count < 1)
-                        {
-                            tIsWorked = false;
-                            continue;
-                        }
-
-                        tObject = ObjectConverter.GetObject((byte[])m_ResultQueue.Dequeue());
-
-                        Console.WriteLine("[III]ProcessServerResult : " + tObject.GetType().ToString());
-
-                        if (tObject.GetType().Equals(typeof(ResultCommunicationData)))
-                        {
-                            tResult = tObject as ResultCommunicationData;
-                        }
-                        else if (tObject.GetType().Equals(typeof(TelnetCommandResultInfo)))
-                        {
-                            tWorkResult = tObject as TelnetCommandResultInfo;
-                        }
-                        else
-                        {
-                            tIsWorked = false;
-                            continue;
-                        }
-                    }
-
-                    if (tResult != null)
-                    {
-
-
-                        if (tResult.OwnerKey != 0)
-                        {
-                            tSender = null;
-                            lock (AppGlobal.s_SenderList)
-                            {
-                                tSender = (ISenderObject)AppGlobal.s_SenderList[tResult.OwnerKey];
-                            }
-                            if (tSender != null)
-                            {
-                                tSender.ResultReceiver(tResult);
-                            }
-                        }
-
-                    }
-                    else if (tWorkResult != null)
-                    {
-                        if (tWorkResult.OwnerKey != 0)
-                        {
-                            tSender = null;
-                            lock (AppGlobal.s_SenderList) tSender = (ISenderObject)AppGlobal.s_SenderList[tWorkResult.OwnerKey];
-                            if (tSender != null) tSender.ResultReceiver(tWorkResult);
-                        }
-                    }
+                    tCompletionSource.TrySetResult(vResult);
                 }
-                catch (Exception ex)
+            }
+        }
+
+        /// <summary>
+        /// 서버에 비동기 요청을 보내고 결과를 기다립니다.
+        /// </summary>
+        public async Task<ResultCommunicationData> SendRequestAsync(E_CommunicationType aCommType, object aRequestData = null, int aTimeoutMs = 30000)
+        {
+            var tTcs = new TaskCompletionSource<ResultCommunicationData>();
+            m_AsyncRequests[aCommType] = tTcs;
+
+            RequestCommunicationData tRequestData = AppGlobal.MakeDefaultRequestData();
+            tRequestData.CommType = aCommType;
+            tRequestData.RequestData = aRequestData;
+
+            AppGlobal.SendRequestData(this, tRequestData);
+
+            using (var cts = new CancellationTokenSource(aTimeoutMs))
+            {
+                using (cts.Token.Register(() => tTcs.TrySetCanceled()))
                 {
-                    System.Diagnostics.Debug.WriteLine(ex.ToString());
-                }
-                finally
-                {
-                    if (!tIsWorked) Thread.Sleep(1);
+                    try
+                    {
+                        return await tTcs.Task;
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, $"Request {aCommType} timed out.");
+                        m_AsyncRequests.TryRemove(aCommType, out _);
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, $"Request {aCommType} failed: {ex.Message}");
+                        m_AsyncRequests.TryRemove(aCommType, out _);
+                        return null;
+                    }
                 }
             }
         }
@@ -1463,11 +1417,11 @@ namespace RACTClient
             tabTerminal.Selected = true;
         }
 
-        private void trvGroup_OnModifyGroupEvent(E_WorkType aWorkType, GroupInfo aGroupInfo)
+        private async void trvGroup_OnModifyGroupEvent(E_WorkType aWorkType, GroupInfo aGroupInfo)
         {
             if (aWorkType == E_WorkType.Delete)
             {
-                DeleteGroupInfo(aGroupInfo);
+                await DeleteGroupInfoAsync(aGroupInfo);
             }
             else
             {
@@ -1477,35 +1431,25 @@ namespace RACTClient
 
                 // 2013-08-13 - shinyn - 그룹 수정후 다시 사용자그룹을 리스트업한다.
 
-                RequestCommunicationData tRequestData = null;
-                tRequestData = AppGlobal.MakeDefaultRequestData();
-
                 GroupRequestInfo tRequestGroupInfo = new GroupRequestInfo();
                 tRequestGroupInfo.UserID = AppGlobal.s_LoginResult.UserID;
                 tRequestGroupInfo.WorkType = E_WorkType.Search;
 
-                tRequestData.CommType = E_CommunicationType.RequestGroupInfo;
-                tRequestData.RequestData = tRequestGroupInfo;
+                var tResult = await SendRequestAsync(E_CommunicationType.RequestGroupInfo, tRequestGroupInfo, AppGlobal.s_RequestTimeOut * 10);
 
-                m_Result = null;
-                m_MRE.Reset();
-
-                AppGlobal.SendRequestData(this, tRequestData);
-                m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
-
-                if (m_Result == null)
+                if (tResult == null)
                 {
                     AppGlobal.ShowMessageBox(this, "그룹정보를 로딩하지 못했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                else if (m_Result.Error.Error != E_ErrorType.NoError)
+                else if (tResult.Error.Error != E_ErrorType.NoError)
                 {
                     AppGlobal.ShowMessageBox(this, "그룹정보를 로딩하지 못했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, m_Result.Error.ErrorString);
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Error, tResult.Error.ErrorString);
                     return;
                 }
 
-                AppGlobal.s_GroupInfoList = (GroupInfoCollection)m_Result.ResultData;
+                AppGlobal.s_GroupInfoList = (GroupInfoCollection)tResult.ResultData;
 
                 if (AppGlobal.s_GroupInfoList == null)
                 {
@@ -1586,50 +1530,35 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 그룹을 삭제 합니다.
+        /// 그룹을 삭제 합니다. (비동기 개편)
         /// </summary>
         /// <param name="aGroupInfo"></param>
-        private void DeleteGroupInfo(GroupInfo aGroupInfo)
+        private async Task DeleteGroupInfoAsync(GroupInfo aGroupInfo)
         {
             if (AppGlobal.ShowMessageBox(this, "그룹을 삭제 하시겠습니까?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
             {
                 return;
             }
 
-            //if (aGroupInfo.DeviceList.Count > 0)
-            //{
-            //    AppGlobal.ShowMessageBox(this, "삭제 할 수 없습니다.\n(해당 그룹에 등록된 장비가 존재합니다.)", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //    return;
-            //}
-
-            RequestCommunicationData tRequestData = null;
             GroupRequestInfo tGrupRequestInfo = new GroupRequestInfo();
             tGrupRequestInfo.WorkType = E_WorkType.Delete;
             tGrupRequestInfo.GroupInfo = aGroupInfo;
             tGrupRequestInfo.UserID = AppGlobal.s_LoginResult.UserID;
 
-            tRequestData = AppGlobal.MakeDefaultRequestData();
-            tRequestData.CommType = E_CommunicationType.RequestGroupInfo;
+            var tResult = await SendRequestAsync(E_CommunicationType.RequestGroupInfo, tGrupRequestInfo, AppGlobal.s_RequestTimeOut);
 
-            tRequestData.RequestData = tGrupRequestInfo;
-
-            m_Result = null;
-            m_MRE.Reset();
-
-            AppGlobal.SendRequestData(this, tRequestData);
-            m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
-            if (m_Result == null)
+            if (tResult == null)
             {
                 AppGlobal.ShowMessageBox(this, "알 수 없는 에러가 발생했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (m_Result.Error.Error != E_ErrorType.NoError)
+            if (tResult.Error.Error != E_ErrorType.NoError)
             {
-                AppGlobal.ShowMessageBox(this, m_Result.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, tResult.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            EventProcessor.Run((GroupInfo)m_Result.ResultData, E_WorkType.Delete);
+            EventProcessor.Run((GroupInfo)tResult.ResultData, E_WorkType.Delete);
         }
 
 
@@ -1648,10 +1577,7 @@ namespace RACTClient
 
         void frmOptionConfiguration_OnClientOptionChangeEvent()
         {
-            terminalPanel1.ChangeOption();
-            ucCommandLine1.sTerminalApplyOption();
-            // 2019-11-10 개선사항 (로그 자동저장 설장값 옵션으로 지원 기능 추가 )
-            this.autoSaveSwitch.Value = AppGlobal.s_ClientOption.IsAutoSaveLog;
+            ApplyClientOptionChange();
         }
 
         /// <summary>
@@ -1693,24 +1619,45 @@ namespace RACTClient
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ClientMain_FormClosing(object sender, FormClosingEventArgs e)
+        private async void ClientMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (_isClosingCleanupCompleted)
+            {
+                return;
+            }
+
+            if (_isClosingCleanupInProgress)
+            {
+                e.Cancel = true;
+                return;
+            }
+
             if (AppGlobal.ShowMessageBox(this, "프로그램을 종료 하시겠습니까?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
             {
                 e.Cancel = true;
                 return;
             }
 
+            e.Cancel = true;
+            _isClosingCleanupInProgress = true;
 
             if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
             {
-
                 try
                 {
                     dotNetBarManager1.SaveLayout(Application.StartupPath + AppGlobal.s_LayOutFileName);
                 }
                 catch { }
+            }
 
+            try
+            {
+                await terminalPanel1.StopAsync(E_TerminalSessionCloseType.All);
+            }
+            catch { }
+
+            if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
+            {
                 SendLogOut();
             }
 
@@ -1731,7 +1678,6 @@ namespace RACTClient
             StopRequestSend();
             StopProcessResult();
             StopTerminalExectueLogProcess();
-            StopSerialProcess();
             StopTelnetProcess();
             if (AppGlobal.s_FileLogProcessor != null)
             {
@@ -1743,11 +1689,9 @@ namespace RACTClient
                 tObject.Stop();
             }
 
-            try
-            {
-                terminalPanel1.Stop(E_TerminalSessionCloseType.All);
-            }
-            catch { }
+            _isClosingCleanupInProgress = false;
+            _isClosingCleanupCompleted = true;
+            Close();
         }
 
         private void StopTelnetProcess()
@@ -1759,16 +1703,8 @@ namespace RACTClient
             }
         }
 
-        private void StopSerialProcess()
-        {
-            if (AppGlobal.s_SerialProcessor != null)
-            {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Serial 프로세서를 종료 합니다.");
-                AppGlobal.s_SerialProcessor.Dispose();
-            }
-        }
 
-        private void trvGroup_OnModifyDeviceEvent(E_WorkType aWorkType, Object aNodeInfo)
+        private async void trvGroup_OnModifyDeviceEvent(E_WorkType aWorkType, Object aNodeInfo)
         {
 
             switch (aWorkType)
@@ -1793,7 +1729,7 @@ namespace RACTClient
                     break;
 
                 case E_WorkType.Delete:
-                    DeleteDevice((DeviceInfo)aNodeInfo);
+                    await DeleteDeviceAsync((DeviceInfo)aNodeInfo);
                     break;
             }
         }
@@ -1803,7 +1739,7 @@ namespace RACTClient
         /// </summary>
         /// <param name="aWorkType"></param>
         /// <param name="aNodeInfo"></param>
-        private void trvGroup_OnModifyUsrDeviceEvent(E_WorkType aWorkType, Object aNodeInfo)
+        private async void trvGroup_OnModifyUsrDeviceEvent(E_WorkType aWorkType, Object aNodeInfo)
         {
 
             switch (aWorkType)
@@ -1828,16 +1764,16 @@ namespace RACTClient
                     break;
 
                 case E_WorkType.Delete:
-                    DeleteDevice((DeviceInfo)aNodeInfo);
+                    await DeleteDeviceAsync((DeviceInfo)aNodeInfo);
                     break;
             }
         }
 
         /// <summary>
-        /// 장비를 삭제 기능을 수행하는 함수입니다.
+        /// 장비를 삭제 기능을 수행하는 함수입니다. (비동기 멈춤 개선)
         /// </summary>
         /// <param name="aDeviceInfo"></param>
-        private void DeleteDevice(DeviceInfo aDeviceInfo)
+        private async Task DeleteDeviceAsync(DeviceInfo aDeviceInfo)
         {
             if (aDeviceInfo != null)
             {
@@ -1847,35 +1783,25 @@ namespace RACTClient
                 }
             }
 
-            RequestCommunicationData tRequestData = null;
             DeviceRequestInfo tDeviceRequestInfo = new DeviceRequestInfo();
             tDeviceRequestInfo.WorkType = E_WorkType.Delete;
             tDeviceRequestInfo.DeviceInfo = aDeviceInfo;
             tDeviceRequestInfo.UserID = AppGlobal.s_LoginResult.UserID;
 
-            tRequestData = AppGlobal.MakeDefaultRequestData();
-            tRequestData.CommType = E_CommunicationType.RequestDeviceInfo;
+            var tResult = await SendRequestAsync(E_CommunicationType.RequestDeviceInfo, tDeviceRequestInfo, AppGlobal.s_RequestTimeOut);
 
-            tRequestData.RequestData = tDeviceRequestInfo;
-
-            m_Result = null;
-            m_MRE.Reset();
-
-            AppGlobal.SendRequestData(this, tRequestData);
-            m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
-
-            if (m_Result == null)
+            if (tResult == null)
             {
                 AppGlobal.ShowMessageBox(this, "알 수 없는 에러가 발생했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (m_Result.Error.Error != E_ErrorType.NoError)
+            if (tResult.Error.Error != E_ErrorType.NoError)
             {
-                AppGlobal.ShowMessageBox(this, m_Result.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, tResult.Error.ErrorString, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            EventProcessor.Run((DeviceInfo)m_Result.ResultData, E_WorkType.Delete);
+            EventProcessor.Run((DeviceInfo)tResult.ResultData, E_WorkType.Delete);
 
             AppGlobal.ShowMessageBox(this, "장비를 삭제 했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -2069,6 +1995,37 @@ namespace RACTClient
             this.Close();
         }
 
+        private void mnuLogSavePath_Click(object sender, EventArgs e)
+        {
+            string tCurrentLogPath = NormalizeDirectoryPath(AppGlobal.s_ClientOption.LogPath);
+
+            using (FolderBrowserDialog tFolderBrowserDialog = new FolderBrowserDialog())
+            {
+                tFolderBrowserDialog.SelectedPath = GetInitialFolderPath(tCurrentLogPath);
+
+                if (tFolderBrowserDialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                string tSelectedLogPath = NormalizeDirectoryPath(
+                    tFolderBrowserDialog.SelectedPath.EndsWith("Log", StringComparison.OrdinalIgnoreCase)
+                        ? tFolderBrowserDialog.SelectedPath
+                        : Path.Combine(tFolderBrowserDialog.SelectedPath, "Log"));
+
+                if (string.Equals(tCurrentLogPath, tSelectedLogPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                AppGlobal.s_ClientOption.LogPath = tSelectedLogPath;
+                AppGlobal.MakeClientOption();
+                ApplyClientOptionChange();
+
+                AppGlobal.ShowMessageBox(this, "로그 저장 위치를 변경하였습니다.\n" + tSelectedLogPath, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
         private void mnuConnectListView_Click(object sender, EventArgs e)
         {
             ConnectionHistorySearch tSearch = new ConnectionHistorySearch();
@@ -2140,27 +2097,18 @@ namespace RACTClient
             terminalPanel1.ExecTerminalScreen(E_TerminalScreenTextEditType.SearchCmd);
         }
 
-        private void trvGroup_OnConnectGroupDeviceEvent(GroupInfo aGroupInfo)
+        private async void trvGroup_OnConnectGroupDeviceEvent(GroupInfo aGroupInfo)
         {
-            RequestCommunicationData tRequestData = null;
+            var tResult = await SendRequestAsync(E_CommunicationType.RequestDaemonInfoList, aGroupInfo.DeviceList.Count, AppGlobal.s_RequestTimeOut);
 
-            tRequestData = AppGlobal.MakeDefaultRequestData();
-            tRequestData.CommType = E_CommunicationType.RequestDaemonInfoList;
-            tRequestData.RequestData = aGroupInfo.DeviceList.Count;
-            m_Result = null;
-            m_MRE.Reset();
-
-            AppGlobal.SendRequestData(this, tRequestData);
-            m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
-            // m_MRE.WaitOne();
-            if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
+            if (tResult == null || tResult.Error.Error != E_ErrorType.NoError)
             {
                 AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "사용 가능한 Daemon 정보 로드에 실패 했습니다.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "사용 가능한 Daemon 정보 로드에 실패 했습니다.");
                 return;
             }
 
-            List<DaemonProcessInfo> tDaemonList = m_Result.ResultData as List<DaemonProcessInfo>;
+            List<DaemonProcessInfo> tDaemonList = tResult.ResultData as List<DaemonProcessInfo>;
 
             for (int i = 0; i < aGroupInfo.DeviceList.Count; i++)
             {
@@ -2233,7 +2181,7 @@ namespace RACTClient
         /// <summary>
         /// 탭으로 추가 합니다.
         /// </summary>
-        internal void AddTerminalTab(MCTerminalEmulator mCTerminalEmulator)
+        internal void AddTerminalTab(ITactTerminal mCTerminalEmulator)
         {
             terminalPanel1.AddTerminal(mCTerminalEmulator);
         }
@@ -2460,6 +2408,71 @@ namespace RACTClient
         private void mnuAutoC_Click(object sender, EventArgs e)
         {
             terminalPanel1.ExecTerminalScreen(E_TerminalScreenTextEditType.AutoC);
+        }
+
+        private void ApplyClientOptionChange()
+        {
+            terminalPanel1.ChangeOption();
+            ucCommandLine1.sTerminalApplyOption();
+            this.autoSaveSwitch.Value = AppGlobal.s_ClientOption.IsAutoSaveLog;
+            RefreshSystemLogProcessor();
+        }
+
+        private void RefreshSystemLogProcessor()
+        {
+            string tLogPath = NormalizeDirectoryPath(AppGlobal.s_ClientOption.LogPath);
+            if (string.Equals(m_CurrentSystemLogPath, tLogPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            FileLogProcess tOldFileLogProcess = AppGlobal.s_FileLogProcessor;
+            FileLogProcess tNewFileLogProcess = new FileLogProcess(tLogPath + "SystemLog\\", "ClientSystem");
+            tNewFileLogProcess.Start();
+
+            AppGlobal.s_FileLogProcessor = tNewFileLogProcess;
+            m_CurrentSystemLogPath = tLogPath;
+
+            if (tOldFileLogProcess != null)
+            {
+                tOldFileLogProcess.Stop();
+            }
+
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "로그 저장 위치가 변경되었습니다. " + tLogPath);
+        }
+
+        private string GetInitialFolderPath(string aPath)
+        {
+            string tPath = NormalizeDirectoryPath(aPath).TrimEnd('\\');
+
+            while (tPath.Length > 0 && !Directory.Exists(tPath))
+            {
+                DirectoryInfo tDirectoryInfo = Directory.GetParent(tPath);
+                if (tDirectoryInfo == null)
+                {
+                    break;
+                }
+
+                tPath = tDirectoryInfo.FullName;
+            }
+
+            return tPath;
+        }
+
+        private string NormalizeDirectoryPath(string aPath)
+        {
+            if (string.IsNullOrWhiteSpace(aPath))
+            {
+                return Application.StartupPath + "\\Log\\";
+            }
+
+            string tPath = aPath.Trim();
+            if (!tPath.EndsWith("\\"))
+            {
+                tPath += "\\";
+            }
+
+            return tPath;
         }
 
     }

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,11 +7,11 @@ namespace RACTClient
     public interface IOptionPanal
     {
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         void InitializeControl();
         /// <summary>
-        /// ¿É¼ÇÀ» ÀúÀå ÇÕ´Ï´Ù.
+        /// ì˜µì…˜ì„ ì €ì¥ í•©ë‹ˆë‹¤.
         /// </summary>
         bool SaveOption();
     }

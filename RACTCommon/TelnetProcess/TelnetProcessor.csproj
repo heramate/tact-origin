@@ -9,12 +9,16 @@
     <Nullable>disable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RACTCommon.Messaging\RACTCommon.Messaging.csproj" />
     <ProjectReference Include="..\RACTServerCommon\RACTServerCommon.csproj" />
-    <ProjectReference Include="..\RACTTerminal\RACTTerminal.csproj" />
+  </ItemGroup>
+
+  <!-- 컴파일할 파일이 없으므로 빈 항목으로 유지 (다른 프로젝트 참조를 통해 타입 제공) -->
+  <ItemGroup>
   </ItemGroup>
 
   <ItemGroup>

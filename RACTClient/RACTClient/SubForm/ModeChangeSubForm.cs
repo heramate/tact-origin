@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -20,7 +20,7 @@ namespace RACTClient
         {
             AppGlobal.s_IsModeChangeConnect = false;
             AppGlobal.s_RACTClientMode = E_RACTClientMode.Console;
-            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "Å¬¶óÀÌ¾ğÆ® ¸ğµå¸¦ º¯°æÀ» Ãë¼Ò Çß½À´Ï´Ù.");
+            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Infomation, "í´ë¼ì´ì–¸íŠ¸ ëª¨ë“œë¥¼ ë³€ê²½ì„ ì·¨ì†Œ í–ˆìŠµë‹ˆë‹¤.");
             this.Hide();
         }
 

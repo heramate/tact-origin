@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -6,19 +6,18 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using RACTCommonClass;
-using RACTSerialProcess;
 
 namespace RACTClient
 {
     public partial class QuickConnect : BaseForm
     {
         /// <summary>
-        /// ¿¬°á Á¤º¸ ÀÔ´Ï´Ù.
+        /// ì—°ê²° ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         private TerminalConnectInfo m_ConnectionInfo;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public QuickConnect()
         {
@@ -31,20 +30,20 @@ namespace RACTClient
             switch (aButtonType)
             {
                 case E_ButtonType.OK:
-                    // 2013-01-28 - SSH ¿¬°á ¼öÁ¤
+                    // 2013-01-28 - SSH ì—°ê²° ìˆ˜ì •
                     E_ConnectionProtocol tConnectionProtocol = (E_ConnectionProtocol)cboProtocol.SelectedIndex;
 
                     if (tConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                     {
                         if (txtID.Text == "")
                         {
-                            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "¾ÆÀÌµğ¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì•„ì´ë””ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
 
                         if (txtPassword.Text == "")
                         {
-                            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
                         
@@ -60,8 +59,8 @@ namespace RACTClient
         }
         public void InitializeControl()
         {
-            AddButton(E_ButtonType.Cancel, E_ButtonSide.Right, "Ãë¼Ò");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "¿¬°á");
+            AddButton(E_ButtonType.Cancel, E_ButtonSide.Right, "ì·¨ì†Œ");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "ì—°ê²°");
 
             pnlSerialOption.Initialize();
 
@@ -77,7 +76,7 @@ namespace RACTClient
 
 
         /// <summary>
-        /// 2013-01-28 - SSH ºü¸¥ ¿¬°á ±â´É Ãß°¡
+        /// 2013-01-28 - SSH ë¹ ë¥¸ ì—°ê²° ê¸°ëŠ¥ ì¶”ê°€
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -103,7 +102,7 @@ namespace RACTClient
                     this.Size = new Size(275, 166);
                     break;
                 case E_ConnectionProtocol.SSHTelnet:
-                    // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ°æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                     pnlSerialOption.Visible = false;
                     nudPort.Value = 22;
                     lblID.Visible = true;
@@ -126,7 +125,7 @@ namespace RACTClient
         
 
         /// <summary>
-        /// Serial ¿¬°á Á¤º¸ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// Serial ì—°ê²° ì •ë³´ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public TerminalConnectInfo QuickConnectInfo
         {

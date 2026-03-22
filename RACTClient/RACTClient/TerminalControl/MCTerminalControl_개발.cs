@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Specialized;
 using System.Windows.Forms;
 using System.Text;
@@ -26,20 +26,20 @@ using System.Text.RegularExpressions;
 namespace RACTClient
 {
     /// <summary>
-    /// ÅÍ¹Ì³Î ÄÁÆ®·Ñ ÀÔ´Ï´Ù.
+    /// í„°ë¯¸ë„ ì»¨íŠ¸ë¡¤ ì…ë‹ˆë‹¤.
     /// </summary>
     /// <remarks>
-    /// [2017/08/04] VScroll/Resize½Ã ¿¬°ü°ª Á¤¸®(HScrollÀº ¹ÌÀÛµ¿):
-    /// - m_ScrollbackBuffer.Count  : ¸ğµç ¹®ÀÚ¿­ º¸°ü [0 .. N]
-    /// - m_Cols  (=°íÁ¤°ª, AppGlobal.s_ClientOption.TerminalColumnCount/PopupSizeWidth)
-    ///   : È­¸éÀÇ ÄÃ·³ ¼ö (ÁÂ¿ì½ºÅ©·Ñ ¹ÌÁö¿ø, ÄÚµå´Â ÀÖÀ¸³ª ¹Ì»ç¿ë)
-    /// - m_Rows : È­¸éÀÇ ÁÙ ¼ö [0 .. m_Rows-1]
+    /// [2017/08/04] VScroll/Resizeì‹œ ì—°ê´€ê°’ ì •ë¦¬(HScrollì€ ë¯¸ì‘ë™):
+    /// - m_ScrollbackBuffer.Count  : ëª¨ë“  ë¬¸ìì—´ ë³´ê´€ [0 .. N]
+    /// - m_Cols  (=ê³ ì •ê°’, AppGlobal.s_ClientOption.TerminalColumnCount/PopupSizeWidth)
+    ///   : í™”ë©´ì˜ ì»¬ëŸ¼ ìˆ˜ (ì¢Œìš°ìŠ¤í¬ë¡¤ ë¯¸ì§€ì›, ì½”ë“œëŠ” ìˆìœ¼ë‚˜ ë¯¸ì‚¬ìš©)
+    /// - m_Rows : í™”ë©´ì˜ ì¤„ ìˆ˜ [0 .. m_Rows-1]
     /// - m_CharGrid[m_Rows][col] 
-    ///   : È­¸éÀÇ ¹®ÀÚ¿­(m_ScrollbackBuffer ÀÇ ÀÏºÎ + Ä¿¼­ÁÙ ¹®ÀÚ¿­ Æ÷ÇÔ)
-    /// - m_AttribGrid[m_Rows][col]  (m_CharGrid¿Í µ¿ÀÏ »çÀÌÁî)
-    ///   : È­¸éÀÇ ¹®ÀÚº° ÆùÆ®¼Ó¼º (¿¹: IsInverse = true ÀÌ¸é Çü±¤Ç¥½Ã)
+    ///   : í™”ë©´ì˜ ë¬¸ìì—´(m_ScrollbackBuffer ì˜ ì¼ë¶€ + ì»¤ì„œì¤„ ë¬¸ìì—´ í¬í•¨)
+    /// - m_AttribGrid[m_Rows][col]  (m_CharGridì™€ ë™ì¼ ì‚¬ì´ì¦ˆ)
+    ///   : í™”ë©´ì˜ ë¬¸ìë³„ í°íŠ¸ì†ì„± (ì˜ˆ: IsInverse = true ì´ë©´ í˜•ê´‘í‘œì‹œ)
     /// - m_VertScrollBar [-1 .. N]
-    ///   m_VertScrollBar.Minimum = 0 (°¡²û -1·Î ¼³Á¤µÇ´Â °æ¿ì no scroll»óÅÂ·Î Ã³¸®)
+    ///   m_VertScrollBar.Minimum = 0 (ê°€ë” -1ë¡œ ì„¤ì •ë˜ëŠ” ê²½ìš° no scrollìƒíƒœë¡œ ì²˜ë¦¬)
     ///   m_VertScrollBar.Maximum = m_ScrollbackBuffer.Count - m_Rows + 1
     ///   m_ScrollbackBuffer.Index = m_VertScrollBar.Value + m_Rows - 2  (m_BeginRow/m_EndRow)
     ///   m_LastVisibleLine = (m_Rows - m_ScrollbackBuffer.Count - 1) .. 0
@@ -69,55 +69,55 @@ namespace RACTClient
         /// </summary>
         private bool m_IsOutPut = false;
         /// <summary>
-        /// ÀÚµ¿ÀúÀå °ü·Ã ¸í·É¾î ÀĞÀ» Å¸ÀÌ¹Ö °ü·Ã boolean
+        /// ìë™ì €ì¥ ê´€ë ¨ ëª…ë ¹ì–´ ì½ì„ íƒ€ì´ë° ê´€ë ¨ boolean
         /// </summary>
         private bool m_IsAutoLogSaver = false;
         /// <summary>
-        /// ¸í·É¾î È®ÀÎÇÏ´Â °ª
+        /// ëª…ë ¹ì–´ í™•ì¸í•˜ëŠ” ê°’
         /// </summary>
         private string lineCommendBuffer = "";
 
         /// <summary>
-        /// ¸í·É¾î ÀÔ·Â °á°ú È®ÀÎÇÏ´Â °ª
+        /// ëª…ë ¹ì–´ ì…ë ¥ ê²°ê³¼ í™•ì¸í•˜ëŠ” ê°’
         /// </summary>
         private string lineRunningBuffer = "";
 
         
         /// <summary>
-        /// ÀÚµ¿¿Ï¼ºÀÎÁö È®ÀÎ
+        /// ìë™ì™„ì„±ì¸ì§€ í™•ì¸
         /// </summary>
         private bool FromAutoCmd = false;
         /// <summary>
-        /// ¸í·É¾î ÀÔ·Â ÈÄÀÎÁö È®ÀÎÇÏ´Â °ª
+        /// ëª…ë ¹ì–´ ì…ë ¥ í›„ì¸ì§€ í™•ì¸í•˜ëŠ” ê°’
         /// </summary>
         private bool isAfterCmd = false;
         /// <summary>
-        /// ¼ö½Å ´ë±â ½ºÅ©¸³Æ®¸¦ ÀúÀåÇß´ÂÁö ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ìˆ˜ì‹  ëŒ€ê¸° ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì €ì¥í–ˆëŠ”ì§€ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsSaveWaitScript = false;
         /// <summary>
-        /// ÇÁ·ÒÇÁÆ®¸¦ È®ÀÎÇß´ÂÁö ¿©ºÎ ÀÔ´Ï´Ù.
+        /// í”„ë¡¬í”„íŠ¸ë¥¼ í™•ì¸í–ˆëŠ”ì§€ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsCheckPrompt = false;
         /// <summary>
-        /// ÅÍ¹Ì³Î »óÅÂ º¯°æ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ ìƒíƒœ ë³€ê²½ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event HandlerArgument2<MCTerminalEmulator, E_TerminalStatus> OnTerminalStatusChange;
         /// <summary>
-        /// »õ·Î°íÄ§ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ìƒˆë¡œê³ ì¹¨ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private event RefreshEventHandler OnRefreshEvent;
         /// <summary>
-        /// ¼ö½Å ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ìˆ˜ì‹  ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private event RxdTextEventHandler OnRxdTextEvent;
         // ===== Rx batching (UI stutter fix) =====
         private readonly ConcurrentQueue<string> _rxQueue = new ConcurrentQueue<string>();
         private System.Windows.Forms.Timer _rxFlushTimer;
 
-        // ³Ê¹« ¿À·¡ ÇÑ ¹ø¿¡ Ã³¸®ÇÏ¸é UI°¡ ¸ØÃß¹Ç·Î "Æ½´ç" »óÇÑÀ» µÓ´Ï´Ù.
-        private const int RX_FLUSH_INTERVAL_MS = 16;//33;               // ¾à 30fps
-        private const int RX_MAX_FLUSH_CHARS_PER_TICK = 64 * 1024; // Æ½´ç ÃÖ´ë 64KB
+        // ë„ˆë¬´ ì˜¤ë˜ í•œ ë²ˆì— ì²˜ë¦¬í•˜ë©´ UIê°€ ë©ˆì¶”ë¯€ë¡œ "í‹±ë‹¹" ìƒí•œì„ ë‘¡ë‹ˆë‹¤.
+        private const int RX_FLUSH_INTERVAL_MS = 16;//33;               // ì•½ 30fps
+        private const int RX_MAX_FLUSH_CHARS_PER_TICK = 64 * 1024; // í‹±ë‹¹ ìµœëŒ€ 64KB
         // ===== Dirty row redraw (putty-style: changed rows only) =====
         private bool[] _dirtyRows;
         // ===== Dirty rect (per-row x-range) =====
@@ -143,9 +143,9 @@ namespace RACTClient
             return _bgBrushCache;
         }
         // ===== Frame buffer (for dirty-row redraw + caret blink) =====
-        // Dirty-row ¸ğµå¿¡¼­´Â "º¯°æµÈ ÁÙ¸¸" ´Ù½Ã ±×¸®Áö¸¸,
-        // WinForms´Â OnPaint ¶§¸¶´Ù ¹è°æÀÌ Áö¿öÁú ¼ö ÀÖ¾î¼­(Æ¯È÷ caret blink·Î Invalidate°¡ ÁÖ±âÀûÀ¸·Î ¹ß»ı),
-        // ÀÌÀü ÇÁ·¹ÀÓÀ» À¯ÁöÇÒ ¼ö ÀÖ´Â ¹é¹öÆÛ(Bitmap)¸¦ µÓ´Ï´Ù.
+        // Dirty-row ëª¨ë“œì—ì„œëŠ” "ë³€ê²½ëœ ì¤„ë§Œ" ë‹¤ì‹œ ê·¸ë¦¬ì§€ë§Œ,
+        // WinFormsëŠ” OnPaint ë•Œë§ˆë‹¤ ë°°ê²½ì´ ì§€ì›Œì§ˆ ìˆ˜ ìˆì–´ì„œ(íŠ¹íˆ caret blinkë¡œ Invalidateê°€ ì£¼ê¸°ì ìœ¼ë¡œ ë°œìƒ),
+        // ì´ì „ í”„ë ˆì„ì„ ìœ ì§€í•  ìˆ˜ ìˆëŠ” ë°±ë²„í¼(Bitmap)ë¥¼ ë‘¡ë‹ˆë‹¤.
         private Bitmap _frameBuffer = null;
         private Graphics _frameGraphics = null;
         private bool _frameValid = false;
@@ -163,7 +163,7 @@ namespace RACTClient
                 _frameBuffer = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
                 _frameGraphics = Graphics.FromImage(_frameBuffer);
 
-                // ¹é¹öÆÛ ·»´õ¸µ Ç°Áú/¼Óµµ ¼³Á¤ (¿øº» OnPaint¿Í µ¿ÀÏÇÏ°Ô)
+                // ë°±ë²„í¼ ë Œë”ë§ í’ˆì§ˆ/ì†ë„ ì„¤ì • (ì›ë³¸ OnPaintì™€ ë™ì¼í•˜ê²Œ)
                 _frameGraphics.SmoothingMode = SmoothingMode.HighSpeed;
                 _frameGraphics.TextRenderingHint = TextRenderingHint.SystemDefault;
                 _frameGraphics.TextContrast = 0;
@@ -175,76 +175,76 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// Ã£±â ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì°¾ê¸° ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event DefaultHandler OnTelnetFindString;
         /// <summary>
-        /// Ä¿¼­ ²ô±â ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì»¤ì„œ ë„ê¸° ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private event CaretOffEventHandler OnCaretOffEvent;
         /// <summary>
-        /// Ä¿¼­ ÄÑ±â ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì»¤ì„œ ì¼œê¸° ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private event CaretOnEventHandler OnCaretEvent;
         /// <summary>
-        /// Caret Ç¥½Ã ¿©ºÎ ÀÔ´Ï´Ù.
+        /// Caret í‘œì‹œ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsShowCaret = true;
         /// <summary>
-        /// ÅÍ¹Ì³Î »óÅÂ ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ ìƒíƒœ ì…ë‹ˆë‹¤.
         /// </summary>
         private E_TerminalStatus m_TerminalStatus = E_TerminalStatus.TryConnection;
         /// <summary>
-        /// ½ºÅ©¸³Æ® »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public ScriptGenerator m_ScriptGenerator = new ScriptGenerator();
         /// <summary>
-        /// ¿¬°á Å¸ÀÔ ÀÔ´Ï´Ù.
+        /// ì—°ê²° íƒ€ì… ì…ë‹ˆë‹¤.
         /// </summary>
         private ConnectionTypes m_ConnectionType;
         /// <summary>
-        /// Host ÀÌ¸§ ÀÔ´Ï´Ù.
+        /// Host ì´ë¦„ ì…ë‹ˆë‹¤.
         /// </summary>
         private string m_Hostname;
         /// <summary>
-        /// ÅÍ¹Ì³Î ½ÇÇà ¸ğµå ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ ì‹¤í–‰ ëª¨ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private E_TerminalMode m_TerminalMode = E_TerminalMode.RACTClient;
         /// <summary>
-        /// µå·¡±× ½ÃÀÛ À§Ä¡ ÀÔ´Ï´Ù.
+        /// ë“œë˜ê·¸ ì‹œì‘ ìœ„ì¹˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private Point m_BeginDrag;
         /// <summary>
-        /// µå·¡±× Á¾·á À§Ä¡ ÀÔ´Ï´Ù.
+        /// ë“œë˜ê·¸ ì¢…ë£Œ ìœ„ì¹˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private Point m_EndDrag;
 
         /// <summary>
-        /// ¸í·É¾î ¹®ÀÚ ÀÔ´Ï´Ù.
+        /// ëª…ë ¹ì–´ ë¬¸ì ì…ë‹ˆë‹¤.
         /// </summary>
         private String strCmd;
 
         /// <summary>
-        /// ¼øÂ÷Àû ¸í·ÉÃ³¸® ÁßÀÎÁö ÆÄ¾Ç.
+        /// ìˆœì°¨ì  ëª…ë ¹ì²˜ë¦¬ ì¤‘ì¸ì§€ íŒŒì•….
         /// </summary>
         private bool isBatchCmdRunning = false;
 
         /// <summary>
-        /// ¼øÂ÷Àû ¸í·ÉÃ³¸® Count
+        /// ìˆœì°¨ì  ëª…ë ¹ì²˜ë¦¬ Count
         /// </summary>
         private int BatchCmdCount = 0;
 
         /// <summary>
-        /// ¼øÂ÷Àû ¸í·É ¹è¿­
+        /// ìˆœì°¨ì  ëª…ë ¹ ë°°ì—´
         /// </summary>
         private string[] BatchCmdArray;
 
         /// <summary>
-        /// ¼øÂ÷Àû ¸í·É Å¸ÀÌ¸Ó
+        /// ìˆœì°¨ì  ëª…ë ¹ íƒ€ì´ë¨¸
         /// </summary>
         private System.Windows.Forms.Timer timer;
 
-        // 2014-07-02 - ½ÅÀ±³² - ½ºÅ©·Ñ ÈÄ °ª º¹»çÇÏ´Â ±â´É Ãß°¡
+        // 2014-07-02 - ì‹ ìœ¤ë‚¨ - ìŠ¤í¬ë¡¤ í›„ ê°’ ë³µì‚¬í•˜ëŠ” ê¸°ëŠ¥ ì¶”ê°€
         private int m_BeginRow;
         private int m_BeginCol;
         private int m_EndRow;
@@ -252,39 +252,39 @@ namespace RACTClient
         private StringBuilder m_CopyValue;
 
         /// <summary>
-        /// Ä¿¼­ÀÇ ¹®ÀÚ ÀÔ´Ï´Ù.
+        /// ì»¤ì„œì˜ ë¬¸ì ì…ë‹ˆë‹¤.
         /// </summary>
         private string m_TextAtCursor = "";
         /// <summary>
-        /// ¸¶Áö¸· Ç¥½Ã ¶óÀÎ ÀÔ´Ï´Ù.
+        /// ë§ˆì§€ë§‰ í‘œì‹œ ë¼ì¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_LastVisibleLine;
         
-        // 2015-06-01 - ½ÅÀ±³² - ¸¶Áö¸· column ÀÔ´Ï´Ù.
+        // 2015-06-01 - ì‹ ìœ¤ë‚¨ - ë§ˆì§€ë§‰ column ì…ë‹ˆë‹¤.
         private int m_LastVisibleCol;
         /// <summary>
-        /// Àåºñ Á¢¼Ó ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ì¥ë¹„ ì ‘ì† ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsConnected;
         /// <summary>
-        /// ¿£ÅÍ ´©¸§ ÀÔ´Ï´Ù.
+        /// ì—”í„° ëˆ„ë¦„ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsPressEnter = false;
         /// <summary>
-        /// µ¥¸ó °´Ã¼ ÀÔ´Ï´Ù.
+        /// ë°ëª¬ ê°ì²´ ì…ë‹ˆë‹¤.
         /// </summary>
         private DaemonProcessRemoteObject m_DaemonProcessRemoteObject;
         private bool m_XOff = false;
         /// <summary>
-        /// ÀÓ½Ã ¹öÆÛ ÀÔ´Ï´Ù.
+        /// ì„ì‹œ ë²„í¼ ì…ë‹ˆë‹¤.
         /// </summary>
         private string m_OutBuffer = "";
         /// <summary>
-        /// ÀúÀåµÉ ÃÖ´ë ¶óÀÎ ¼ö ÀÔ´Ï´Ù.
+        /// ì €ì¥ë  ìµœëŒ€ ë¼ì¸ ìˆ˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_ScrollbackBufferSize;
         /// <summary>
-        /// ÀüÃ¼ ¹ŞÀº ¹®ÀÚ ÀÔ´Ï´Ù.
+        /// ì „ì²´ ë°›ì€ ë¬¸ì ì…ë‹ˆë‹¤.
         /// </summary>
         private StringCollection m_ScrollbackBuffer;
         /// <summary>
@@ -295,62 +295,62 @@ namespace RACTClient
         private Keyboard m_Keyboard = null;
         private TabStops m_TabStops = null;
         /// <summary>
-        /// Erase Buffer ÀÔ´Ï´Ù.
+        /// Erase Buffer ì…ë‹ˆë‹¤.
         /// </summary>
         private Bitmap m_EraseBitmap = null;
         private Graphics m_EraseBuffer = null;
         /// <summary>
-        /// ¹®ÀÚ°¡ ÀúÀåµÉ ±×¸®µå ÀÔ´Ï´Ù.
+        /// ë¬¸ìê°€ ì €ì¥ë  ê·¸ë¦¬ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Char[][] m_CharGrid = null;
         /// <summary>
-        /// ¹®ÀÚ ¼Ó¼ºÁ¤º¸°¡ ÀúÀåµË´Ï´Ù.
+        /// ë¬¸ì ì†ì„±ì •ë³´ê°€ ì €ì¥ë©ë‹ˆë‹¤.
         /// </summary>
         private CharAttribStruct[][] m_AttribGrid = null;
         private CharAttribStruct m_CharAttribs;
         /// <summary>
-        /// ¿­ °¹¼ö ÀÔ´Ï´Ù.
+        /// ì—´ ê°¯ìˆ˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private Int32 m_Cols;
         /// <summary>
-        /// Çà °¹¼ö ÀÔ´Ï´Ù.
+        /// í–‰ ê°¯ìˆ˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private Int32 m_Rows;
         /// <summary>
-        /// Top Margin ÀÔ´Ï´Ù.
+        /// Top Margin ì…ë‹ˆë‹¤.
         /// </summary>
         private Int32 m_TopMargin;
         /// <summary>
-        /// Bottom Margin ÀÔ´Ï´Ù.
+        /// Bottom Margin ì…ë‹ˆë‹¤.
         /// </summary>
         private Int32 m_BottomMargin;
         /// <summary>
-        /// ¹®ÀÚ Å©±â ÀÔ´Ï´Ù.
+        /// ë¬¸ì í¬ê¸° ì…ë‹ˆë‹¤.
         /// </summary>
         private Size m_CharSize;
         /// <summary>
-        /// ¹ØÁÙ À§Ä¡ ÀÔ´Ï´Ù.
+        /// ë°‘ì¤„ ìœ„ì¹˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private Int32 m_UnderlinePos;
         /// <summary>
-        /// Ä¿¼­ ÀÔ´Ï´Ù.
+        /// ì»¤ì„œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Caret m_Caret;
         private ArrayList m_SavedCarets;
         /// <summary>
-        /// ÆùÆ® ½ÃÀÛ À§Ä¡ ÀÔ´Ï´Ù.
+        /// í°íŠ¸ ì‹œì‘ ìœ„ì¹˜ ì…ë‹ˆë‹¤.
         /// </summary>
         private Point m_DrawstringOffset;
         /// <summary>
-        /// Fg Color ÀÔ´Ï´Ù.
+        /// Fg Color ì…ë‹ˆë‹¤.
         /// </summary>
         private Color m_FGColor;
         /// <summary>
-        /// Bold Color ÀÔ´Ï´Ù.
+        /// Bold Color ì…ë‹ˆë‹¤.
         /// </summary>
         private Color m_BoldColor;
         /// <summary>
-        /// Blink Color ÀÔ´Ï´Ù.
+        /// Blink Color ì…ë‹ˆë‹¤.
         /// </summary>
         private Color m_BlinkColor;
         private Chars m_G0;
@@ -359,69 +359,69 @@ namespace RACTClient
         private Chars m_G3;
         private Mode m_Modes;
         /// <summary>
-        /// ¸¶Áö¸· Ã£Àº Row ÀÔ´Ï´Ù.
+        /// ë§ˆì§€ë§‰ ì°¾ì€ Row ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_LastFindRow = 0;
         /// <summary>
-        /// ¸¶Áö¸· Ã£Àº Col ÀÔ´Ï´Ù.
+        /// ë§ˆì§€ë§‰ ì°¾ì€ Col ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_LastFindCol = 0;
         /// <summary>
-        /// Caret Ç¥½Ã¿ë Å¸ÀÌ¸Ó ÀÔ´Ï´Ù.
+        /// Caret í‘œì‹œìš© íƒ€ì´ë¨¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private System.Windows.Forms.Timer timer1;
 
-        // ½ºÅ©·Ñ¹Ù
+        // ìŠ¤í¬ë¡¤ë°”
         private VertScrollBar m_VertScrollBar;
         private HorzScrollBar m_HorzScrollBar;
         
         /// <summary>
-        /// ½ºÅ©¸³Æ® °ü¸®ÀÚ ÀÔ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ ê´€ë¦¬ì ì…ë‹ˆë‹¤.
         /// </summary>
         private ScriptManager m_ScriptManager;
         /// <summary>
-        /// ÅÍ¹Ì³Î ¿¬°á Å¸ÀÔ ÀÔ´Ï´Ù.
+        /// í„°ë¯¸ë„ ì—°ê²° íƒ€ì… ì…ë‹ˆë‹¤.
         /// </summary>
         private E_ConnectionProtocol m_ConnectionProtocolType = E_ConnectionProtocol.TELNET;
         /// <summary>
-        /// ºü¸¥ ¿¬°á Ã³¸® ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ë¹ ë¥¸ ì—°ê²° ì²˜ë¦¬ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsQuickConnection = false;
         /// <summary>
-        /// ºü¸¥ ¿¬°áÀÎÁö ¿©ºÎ¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ë¹ ë¥¸ ì—°ê²°ì¸ì§€ ì—¬ë¶€ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public bool IsQuickConnection
         {
             get { return m_IsQuickConnection; }
         }
         /// <summary>
-        /// ¶óÀÎ ¹øÈ£ Ç¥½Ã ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ë¼ì¸ ë²ˆí˜¸ í‘œì‹œ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_IsShowLineNumber = false;
 		// 2019-11-10 ???? (?? ?? ??)
         /// <summary>
-        /// ¿É¼Ç Ã¢À» È£Ãâ ÇÏ±â À§ÇÑ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì˜µì…˜ ì°½ì„ í˜¸ì¶œ í•˜ê¸° ìœ„í•œ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event DefaultHandler CallOptionHandlerEvent;
 		// 2019-11-10 ???? (OneTerminal ??? ?? ??UI ??)
         /// <summary>
-        /// Oneterminal Á¢½Ã ÇÁ·Î±×·¡½º¹Ù¸¦ Á¦¾îÇÏ±â À§ÇÑ ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// Oneterminal ì ‘ì‹œ í”„ë¡œê·¸ë˜ìŠ¤ë°”ë¥¼ ì œì–´í•˜ê¸° ìœ„í•œ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary
         public event HandlerArgument3<String, eProgressItemType, bool> ProgreBarHandlerEvent;
 
-        //2019-11-18 Àü¼ÛÁö¿¬ ¿É¼Ç Ã³¸®
+        //2019-11-18 ì „ì†¡ì§€ì—° ì˜µì…˜ ì²˜ë¦¬
         public bool m_IsConected = false;
         private Thread m_CmdControlThread = null;
         //public Queue<RequestCommunicationData> m_CmdQueue;
         public Queue<String> m_CmdQueue;
 
-        //2022-11-28 À¯¼±Á¢¼Ó¿¡¼­ ¹«¼±Á¢¼Ó ÀüÈ¯½Ã ¹®Á¦Á¡ °³¼±
+        //2022-11-28 ìœ ì„ ì ‘ì†ì—ì„œ ë¬´ì„ ì ‘ì† ì „í™˜ì‹œ ë¬¸ì œì  ê°œì„ 
         /// <summary>
-        /// CatM1 ¿¬°á Ã³¸® ¿©ºÎ ÀÔ´Ï´Ù.
+        /// CatM1 ì—°ê²° ì²˜ë¦¬ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_ChangeMode = false;
         /// <summary>
-        /// CatM1 ¿¬°áÀÎÁö ¿©ºÎ¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// CatM1 ì—°ê²°ì¸ì§€ ì—¬ë¶€ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public bool IsChangeMode
         {
@@ -429,7 +429,7 @@ namespace RACTClient
             set { m_ChangeMode = value; }
         }
 
-        //È°¼ºÈ­µÈ ÅÍ¹Ì³ÎÀ» Ã¼Å© ÇÏ±â À§ÇÑ ÀÓ½Ã º¯¼ö Å×½ºÆ® 20250116
+        //í™œì„±í™”ëœ í„°ë¯¸ë„ì„ ì²´í¬ í•˜ê¸° ìœ„í•œ ì„ì‹œ ë³€ìˆ˜ í…ŒìŠ¤íŠ¸ 20250116
         private bool m_TermialActive = false;
         public bool IsTermialActive
         {
@@ -439,22 +439,22 @@ namespace RACTClient
 
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public MCTerminalEmulator() : this(false) { }
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public MCTerminalEmulator(bool aIsQuickConnection)
         {
             string tTempFont = AppGlobal.s_ClientOption.TerminalFontName;
-            if (tTempFont.Equals("±¼¸²")
-                || tTempFont.Equals("µ¸¿ò")
-                || tTempFont.Equals("±Ã¼­")
-                || tTempFont.Equals("¹ÙÅÁ"))
+            if (tTempFont.Equals("êµ´ë¦¼")
+                || tTempFont.Equals("ë‹ì›€")
+                || tTempFont.Equals("ê¶ì„œ")
+                || tTempFont.Equals("ë°”íƒ•"))
             {
-                tTempFont += "Ã¼";
+                tTempFont += "ì²´";
             }
             this.Font = new Font(tTempFont, AppGlobal.s_ClientOption.TerminalFontSize, AppGlobal.s_ClientOption.TerminalFontStyle, GraphicsUnit.Point, ((byte)(0))); ;
 
@@ -462,7 +462,7 @@ namespace RACTClient
             this.AutoScroll = true;
             DoubleBuffered = true;
             //m_ScrollbackBufferSize = 3000;
-            //2015-11-12 hanjiyeon ¹öÆÛ»çÀÌÁî Áõ°¡½ÃÅ´. (show tech µîÀÇ °á°ú°¡ ±ä °æ¿ì ¸ğµÎ Ç¥½Ã ¾ÈµÇ´Â ¹®Á¦ º¸¿Ï)
+            //2015-11-12 hanjiyeon ë²„í¼ì‚¬ì´ì¦ˆ ì¦ê°€ì‹œí‚´. (show tech ë“±ì˜ ê²°ê³¼ê°€ ê¸´ ê²½ìš° ëª¨ë‘ í‘œì‹œ ì•ˆë˜ëŠ” ë¬¸ì œ ë³´ì™„)
             m_ScrollbackBufferSize = 20000;
             m_ScrollbackBuffer = new StringCollection();
 
@@ -524,14 +524,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             MakeContextMenu();
 
-            // 2015-06-01 - ½ÅÀ±³² - Terminal »çÀÌÁî ´Ã¸®±â
+            // 2015-06-01 - ì‹ ìœ¤ë‚¨ - Terminal ì‚¬ì´ì¦ˆ ëŠ˜ë¦¬ê¸°
             this.SetSize(24, AppGlobal.s_ClientOption.TerminalColumnCount);
 
             m_Parser.OnParserEvent += new ParserEventHandler(CommandRouter);
             
-            // Å°º¸µå ÀÔ·Â ÀÌº¥Æ®
+            // í‚¤ë³´ë“œ ì…ë ¥ ì´ë²¤íŠ¸
             m_Keyboard.OnKeyboardEvent          +=      new KeyboardEventHandler(DispatchMessage);
-            // ÄÁÆ®·Ñ Å° ÀÔ·Â ÀÌº¥Æ®
+            // ì»¨íŠ¸ë¡¤ í‚¤ ì…ë ¥ ì´ë²¤íŠ¸
             m_Keyboard.OnControlKeyBoardEvent   +=      new ControlKeyboardEventHandler(DispatchControlMessage);
 
             m_NvtParser.NvtParserEvent          +=      new NegotiateParserEventHandler(TelnetInterpreter);
@@ -550,21 +550,21 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             timer1.Start();
   
-            // Rx batching timer (¼ö½Å µ¥ÀÌÅÍ UI ¹ö¹÷ÀÓ °³¼±)
+            // Rx batching timer (ìˆ˜ì‹  ë°ì´í„° UI ë²„ë²…ì„ ê°œì„ )
             _rxFlushTimer = new System.Windows.Forms.Timer();
             _rxFlushTimer.Interval = RX_FLUSH_INTERVAL_MS;
             _rxFlushTimer.Tick += new System.EventHandler(this.RxFlushTimer_Tick);
             _rxFlushTimer.Start();
             MCSmallTerminal.OnSendCommandToTerminalEvent += new HandlerArgument2<List<string>, string>(AppGlobal_OnSendCommandToTerminalEvent);
 
-            //2019-11-18 Àü¼ÛÁö¿¬ ¿É¼Ç Ã³¸®
+            //2019-11-18 ì „ì†¡ì§€ì—° ì˜µì…˜ ì²˜ë¦¬
             m_CmdQueue = new Queue<String>();
             m_CmdControlThread = new Thread(new ThreadStart(SendTelnetCommand));
             m_CmdControlThread.Start();
 
             m_IsCheckPrompt = false;
 
-            // ¿µ¿ª¼±ÅÃ Ãë¼Ò
+            // ì˜ì—­ì„ íƒ ì·¨ì†Œ
             Deselect();
         }
 		
@@ -572,12 +572,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         public MCTerminalEmulator(bool aIsQuickConnection, E_TerminalMode eTerminalMode)
         {
             string tTempFont = AppGlobal.s_ClientOption.TerminalFontName;
-            if (tTempFont.Equals("±¼¸²")
-                || tTempFont.Equals("µ¸¿ò")
-                || tTempFont.Equals("±Ã¼­")
-                || tTempFont.Equals("¹ÙÅÁ"))
+            if (tTempFont.Equals("êµ´ë¦¼")
+                || tTempFont.Equals("ë‹ì›€")
+                || tTempFont.Equals("ê¶ì„œ")
+                || tTempFont.Equals("ë°”íƒ•"))
             {
-                tTempFont += "Ã¼";
+                tTempFont += "ì²´";
             }
             this.Font = new Font(tTempFont, AppGlobal.s_ClientOption.TerminalFontSize, AppGlobal.s_ClientOption.TerminalFontStyle, GraphicsUnit.Point, ((byte)(0))); ;
 
@@ -585,7 +585,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             this.AutoScroll = true;
             DoubleBuffered = true;
             //m_ScrollbackBufferSize = 3000;
-            //2015-11-12 hanjiyeon ¹öÆÛ»çÀÌÁî Áõ°¡½ÃÅ´. (show tech µîÀÇ °á°ú°¡ ±ä °æ¿ì ¸ğµÎ Ç¥½Ã ¾ÈµÇ´Â ¹®Á¦ º¸¿Ï)
+            //2015-11-12 hanjiyeon ë²„í¼ì‚¬ì´ì¦ˆ ì¦ê°€ì‹œí‚´. (show tech ë“±ì˜ ê²°ê³¼ê°€ ê¸´ ê²½ìš° ëª¨ë‘ í‘œì‹œ ì•ˆë˜ëŠ” ë¬¸ì œ ë³´ì™„)
             m_ScrollbackBufferSize = 20000;
             m_ScrollbackBuffer = new StringCollection();
 
@@ -649,14 +649,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             MakeContextMenu();
 
-            // 2015-06-01 - ½ÅÀ±³² - Terminal »çÀÌÁî ´Ã¸®±â
+            // 2015-06-01 - ì‹ ìœ¤ë‚¨ - Terminal ì‚¬ì´ì¦ˆ ëŠ˜ë¦¬ê¸°
             this.SetSize(24, AppGlobal.s_ClientOption.TerminalColumnCount);
 
             m_Parser.OnParserEvent += new ParserEventHandler(CommandRouter);
 
-            // Å°º¸µå ÀÔ·Â ÀÌº¥Æ®
+            // í‚¤ë³´ë“œ ì…ë ¥ ì´ë²¤íŠ¸
             m_Keyboard.OnKeyboardEvent += new KeyboardEventHandler(DispatchMessage);
-            // ÄÁÆ®·Ñ Å° ÀÔ·Â ÀÌº¥Æ®
+            // ì»¨íŠ¸ë¡¤ í‚¤ ì…ë ¥ ì´ë²¤íŠ¸
             m_Keyboard.OnControlKeyBoardEvent += new ControlKeyboardEventHandler(DispatchControlMessage);
 
             m_NvtParser.NvtParserEvent += new NegotiateParserEventHandler(TelnetInterpreter);
@@ -677,19 +677,19 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             MCSmallTerminal.OnSendCommandToTerminalEvent += new HandlerArgument2<List<string>, string>(AppGlobal_OnSendCommandToTerminalEvent);
 
-            //2019-11-18 Àü¼ÛÁö¿¬ ¿É¼Ç Ã³¸®
+            //2019-11-18 ì „ì†¡ì§€ì—° ì˜µì…˜ ì²˜ë¦¬
             m_CmdQueue = new Queue<String>();
             m_CmdControlThread = new Thread(new ThreadStart(SendTelnetCommand));
             m_CmdControlThread.Start();
 			
             m_IsCheckPrompt = false;
 
-            // ¿µ¿ª¼±ÅÃ Ãë¼Ò
+            // ì˜ì—­ì„ íƒ ì·¨ì†Œ
             Deselect();
         }
 
         /// <summary>
-        /// ½ºÅ©¸³Æ® Á¾·áÃ³¸® ÇÕ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ ì¢…ë£Œì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         void m_ScriptManager_OnRunScriptComplete()
         {
@@ -697,7 +697,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             {
                 TerminalStatus = E_TerminalStatus.Connection;
                 if (ProgreBarHandlerEvent != null)
-                    ProgreBarHandlerEvent("µğ¹ÙÀÌ½º¿¡ ¿¬°á µÇ¾ú½À´Ï´Ù.", eProgressItemType.Standard, false);
+                    ProgreBarHandlerEvent("ë””ë°”ì´ìŠ¤ì— ì—°ê²° ë˜ì—ˆìŠµë‹ˆë‹¤.", eProgressItemType.Standard, false);
                 if (isBatchCmdRunning) return;
 
                 m_ScriptManager.Stop();
@@ -706,8 +706,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             finally
             {
                 //2019-11-21
-                //ScriptManager.Stop ½Ã ThreadAbortException°¡ catchµÇÁö ¾È´Â Çö»óÀÌ ÀÖ¾î 
-                //try catch finally ±¸¹®À¸·Î CheckPrompt°¡ ¼öÇà µÉ ¼ö ÀÖµµ·Ï º¯°æ
+                //ScriptManager.Stop ì‹œ ThreadAbortExceptionê°€ catchë˜ì§€ ì•ˆëŠ” í˜„ìƒì´ ìˆì–´ 
+                //try catch finally êµ¬ë¬¸ìœ¼ë¡œ CheckPromptê°€ ìˆ˜í–‰ ë  ìˆ˜ ìˆë„ë¡ ë³€ê²½
                 CheckPrompt();
                 AppGlobal.s_MultipleCmd = 20;
             }
@@ -715,7 +715,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ¹®ÀÚ ÀÚ¸£±â ÇÕ´Ï´Ù.
+        /// ë¬¸ì ìë¥´ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         /// <returns></returns>
         public void ScreenScrape(int aStartColumn, int aStartRow, int aEndColumn, int aEndRow)
@@ -745,7 +745,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Ã£Àº °á°ú¸¦ Àû¿ë ÇÕ´Ï´Ù.
+        /// ì°¾ì€ ê²°ê³¼ë¥¼ ì ìš© í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aInfo"></param>
         private void ApplyFindInformation(TelnetStringFind aInfo)
@@ -764,12 +764,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             if (aInfo.IsMatch)
             {
-                //System.Diagnostics.Debug.WriteLine("Ã£Àº ¶óÀÎ : " + (aInfo.FindList[0].Row + 1));
+                //System.Diagnostics.Debug.WriteLine("ì°¾ì€ ë¼ì¸ : " + (aInfo.FindList[0].Row + 1));
 
 
                 if (aInfo.FindList[0].Row >= NowDrawStart && aInfo.FindList[0].Row <= NowDrawEnd)
                 {
-                    //½ºÅ©·Ñ ¾ÈÇØµµ µÇ¸é ÇÒ °Å ¾ø³ª????????????
+                    //ìŠ¤í¬ë¡¤ ì•ˆí•´ë„ ë˜ë©´ í•  ê±° ì—†ë‚˜????????????
                 }
                 else
                 {
@@ -793,7 +793,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ÇöÀç Ç¥½ÃÇÏ°í ÀÖ´Â RowÀÇ ½ÃÀÛ À§Ä¡¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// í˜„ì¬ í‘œì‹œí•˜ê³  ìˆëŠ” Rowì˜ ì‹œì‘ ìœ„ì¹˜ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         private int NowDrawStart
         {
@@ -806,7 +806,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// ÇöÀç Ç¥½ÃÇÏ°í ÀÖ´Â RowÀÇ Á¾·á À§Ä¡¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// í˜„ì¬ í‘œì‹œí•˜ê³  ìˆëŠ” Rowì˜ ì¢…ë£Œ ìœ„ì¹˜ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         private int NowDrawEnd
         {
@@ -814,12 +814,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¹®ÀÚ¿­ °Ë»öÀ» ÇÕ´Ï´Ù.
+        /// ë¬¸ìì—´ ê²€ìƒ‰ì„ í•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aString">Ã£À» ¹®ÀÚ ÀÔ´Ï´Ù.</param>
-        /// <param name="aOption">Ã£±â ¿É¼Ç ÀÔ´Ï´Ù.</param>
-        /// <param name="oFindInfo">Ã£±â °á°ú ÀÔ´Ï´Ù.</param>
-        /// <returns>Ã£À½ ¿©ºÎÀÔ´Ï´Ù.</returns>
+        /// <param name="aString">ì°¾ì„ ë¬¸ì ì…ë‹ˆë‹¤.</param>
+        /// <param name="aOption">ì°¾ê¸° ì˜µì…˜ ì…ë‹ˆë‹¤.</param>
+        /// <param name="oFindInfo">ì°¾ê¸° ê²°ê³¼ ì…ë‹ˆë‹¤.</param>
+        /// <returns>ì°¾ìŒ ì—¬ë¶€ì…ë‹ˆë‹¤.</returns>
         private bool FindString(TelnetStringFindHandlerArgs aArgs, out TelnetStringFind oFindInfo)
         {
             oFindInfo = new TelnetStringFind(aArgs.FindString);
@@ -902,7 +902,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¿ÜºÎ¿¡¼­ ¸í·ÉÀÌ µé¾î ¿ÔÀ» °æ¿ì Ã³¸® ÀÔ´Ï´Ù.
+        /// ì™¸ë¶€ì—ì„œ ëª…ë ¹ì´ ë“¤ì–´ ì™”ì„ ê²½ìš° ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aList"></param>
         /// <param name="aValue1"></param>
@@ -910,11 +910,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         {
             if (m_IsConnected && aList.Contains(this.Name))
             {
-                //1.String ¸í·É¾î´ÜÀ§(ÁÙ¹Ù²Ş)·Î ¹®ÀÚ¿­ ¹è¿­»ı¼º
+                //1.String ëª…ë ¹ì–´ë‹¨ìœ„(ì¤„ë°”ê¿ˆ)ë¡œ ë¬¸ìì—´ ë°°ì—´ìƒì„±
                 String[] SepStrs = { "\r" };
                 String[] CmdStr = aValue1.Split(SepStrs, StringSplitOptions.RemoveEmptyEntries);
 
-                //´ÜÀÏ ¸í·ÉÀÏ¶§ Ã³¸® 
+                //ë‹¨ì¼ ëª…ë ¹ì¼ë•Œ ì²˜ë¦¬ 
                 if (CmdStr.Length == 1)
                 {
                     if (IsLimitCmd(aValue1))
@@ -926,7 +926,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else
                 {
-                    //2. Á¦ÇÑ ¸í·É¾î È®ÀÎ 
+                    //2. ì œí•œ ëª…ë ¹ì–´ í™•ì¸ 
                     for (int i = 0; i < CmdStr.Length; i++)
                     {
                         String CurrentCmd = CmdStr[i].ToString();
@@ -942,11 +942,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             }
                         }
                     }
-                    //3.½ºÅ©¸³Æ®·Î ÇØ´ç ¸í·É¾î OR ¸í·É¾îµé ¼öÇà
+                    //3.ìŠ¤í¬ë¦½íŠ¸ë¡œ í•´ë‹¹ ëª…ë ¹ì–´ OR ëª…ë ¹ì–´ë“¤ ìˆ˜í–‰
                     Script tCommandScript = null;
 
-                    //½ºÅ©¸³Æ® Å¸ÀÓ¾Æ¿ô °ª ¼³Á¤ ¸í·É¾î´ç ÀûÀıÇÑ ¼öÄ¡¸¦ ¼³Á¤ÇÏ±â ¾Ö¸ÅÇÔ.
-                    //Cmd ´ç ±âº» 30À¸·Î ´õÇÔ. ÃßÈÄ ¿É¼Ç ¸Ş´º¿¡¼­ µû·Î ¼³Á¤ÇÏµµ·Ï ±â´É Áö¿øÇÏ¸é.. »ç¿ëÀÚ ÆíÀÇ Á¦°ø.
+                    //ìŠ¤í¬ë¦½íŠ¸ íƒ€ì„ì•„ì›ƒ ê°’ ì„¤ì • ëª…ë ¹ì–´ë‹¹ ì ì ˆí•œ ìˆ˜ì¹˜ë¥¼ ì„¤ì •í•˜ê¸° ì• ë§¤í•¨.
+                    //Cmd ë‹¹ ê¸°ë³¸ 30ìœ¼ë¡œ ë”í•¨. ì¶”í›„ ì˜µì…˜ ë©”ë‰´ì—ì„œ ë”°ë¡œ ì„¤ì •í•˜ë„ë¡ ê¸°ëŠ¥ ì§€ì›í•˜ë©´.. ì‚¬ìš©ì í¸ì˜ ì œê³µ.
                     AppGlobal.s_MultipleCmd = 60 + (30 * CmdStr.Length);
 
                     tCommandScript = ScriptGenerator.MakeBatchCommand(aValue1, m_Prompt + "|#|>");
@@ -955,7 +955,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     RunScript(tCommandScript);
                 }
 
-                //4.¼öÇàÇÑ ¸í·É¾î ·Î±× ÀúÀå
+                //4.ìˆ˜í–‰í•œ ëª…ë ¹ì–´ ë¡œê·¸ ì €ì¥
                 for (int i = 0; i < CmdStr.Length; i++)
                 {
                     String CurrentCmd = CmdStr[i].ToString();
@@ -970,7 +970,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¸Ş´º¸¦ ±¸¼º ÇÕ´Ï´Ù.
+        /// ë©”ë‰´ë¥¼ êµ¬ì„± í•©ë‹ˆë‹¤.
         /// </summary>
         private void MakeContextMenu()
         {
@@ -1052,13 +1052,13 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // buttonItem2
             // 
             this.mnuCopy.Name = "buttonItem2";
-            this.mnuCopy.Text = "º¹»ç(&Y)";
-            //2016-03-31 ¼­¿µÀÀ ´ÜÃàÅ° º¯°æ
+            this.mnuCopy.Text = "ë³µì‚¬(&Y)";
+            //2016-03-31 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ë³€ê²½
             //this.mnuCopy.Shortcuts.Add(eShortcut.CtrlC);
             this.mnuCopy.Shortcuts.Add(eShortcut.CtrlY);
             this.mnuCopy.ImageSmall = (Image)global::RACTClient.Properties.Resources.copy;
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuCopy.Click += new EventHandler(mnuCopy_Click);
             mnuCopy.Click += new EventHandler(mnuCopy_Click_Event);
             
@@ -1066,14 +1066,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // buttonItem3
             // 
             this.mnuPaste.Name = "buttonItem3";
-            this.mnuPaste.Text = "ºÙ¿©³Ö±â(&P)";
+            this.mnuPaste.Text = "ë¶™ì—¬ë„£ê¸°(&P)";
 
-            //2016-03-31 ¼­¿µÀÀ ´ÜÃàÅ° º¯°æ
+            //2016-03-31 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ë³€ê²½
             //this.mnuPaste.Shortcuts.Add(eShortcut.CtrlV);
             this.mnuPaste.Shortcuts.Add(eShortcut.CtrlP);
             this.mnuPaste.ImageSmall = (Image)global::RACTClient.Properties.Resources.paste;
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuPaste.Click += new EventHandler(mnuPaste_Click);
             mnuPaste.Click += new EventHandler(mnuPaste_Click_Event);
             
@@ -1081,11 +1081,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // buttonItem3
             // 
             this.mnuPasteE.Name = "buttonItem9";
-            this.mnuPasteE.Text = "<CR>ºÙ¿©³Ö±â(&B)";
+            this.mnuPasteE.Text = "<CR>ë¶™ì—¬ë„£ê¸°(&B)";
             this.mnuPasteE.Shortcuts.Add(eShortcut.CtrlB);
             this.mnuPasteE.ImageSmall = (Image)global::RACTClient.Properties.Resources.paste;
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuPasteE.Click += new EventHandler(mnuPasteCR_Click);
             mnuPasteE.Click += new EventHandler(mnuPasteCR_Click_Event);
 
@@ -1093,12 +1093,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // buttonItem3
             // 
             this.mnuAutoC.Name = "buttonItem10";
-            //2016-01-19 ¼­¿µÀÀ ´ÜÃàÅ° Ctrl+E -> F2·Î º¯°æ
-            this.mnuAutoC.Text = "ÀÚµ¿¿Ï¼º(F2)";
+            //2016-01-19 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ Ctrl+E -> F2ë¡œ ë³€ê²½
+            this.mnuAutoC.Text = "ìë™ì™„ì„±(F2)";
             this.mnuAutoC.Shortcuts.Add(eShortcut.F2);
-            //this.mnuAutoC.Text = "ÀÚµ¿¿Ï¼º(&E)";
+            //this.mnuAutoC.Text = "ìë™ì™„ì„±(&E)";
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuAutoC.Click += new EventHandler(mnuAutoC_Click);
             mnuAutoC.Click += new EventHandler(mnuAutoC_Click_Event);
 
@@ -1107,11 +1107,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // 
             this.mnuFind.BeginGroup = true;
             this.mnuFind.Name = "buttonItem4";
-            this.mnuFind.Text = "Ã£±â(&F)";
+            this.mnuFind.Text = "ì°¾ê¸°(&F)";
             this.mnuFind.Shortcuts.Add(eShortcut.CtrlF);
             this.mnuFind.ImageSmall = (Image)global::RACTClient.Properties.Resources.find;
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuFind.Click += new EventHandler(mnuFind_Click);
             mnuFind.Click += new EventHandler(mnuFind_Click_Event);
 
@@ -1119,11 +1119,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // buttonItem5
             // 
             this.mnuSelectAll.Name = "buttonItem5";
-            this.mnuSelectAll.Text = "¸ğµÎ¼±ÅÃ(&A)";
+            this.mnuSelectAll.Text = "ëª¨ë‘ì„ íƒ(&A)";
             this.mnuSelectAll.Shortcuts.Add(eShortcut.CtrlA);
             this.mnuSelectAll.ImageSmall = (Image)global::RACTClient.Properties.Resources.select_all;
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuSelectAll.Click += new EventHandler(mnuSelectAll_Click);
             mnuSelectAll.Click += new EventHandler(mnuSelectAll_Click_Event);
             // 
@@ -1131,34 +1131,34 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             // 
             this.mnuClear.BeginGroup = true;
             this.mnuClear.Name = "buttonItem6";
-            this.mnuClear.Text = "È­¸éÁö¿ò(&R)";
+            this.mnuClear.Text = "í™”ë©´ì§€ì›€(&R)";
             this.mnuClear.Shortcuts.Add(eShortcut.CtrlR);
             this.mnuClear.ImageSmall = (Image)global::RACTClient.Properties.Resources.Clear;
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuClear.Click += new EventHandler(mnuClear_Click);
             mnuClear.Click += new EventHandler(mnuClear_Click_Event);
 
             this.mnuCmdClear.BeginGroup = true;
             this.mnuCmdClear.Name = "btnCmdClear";
-            this.mnuCmdClear.Text = "ÀÔ·Â ¸í·É Áö¿ò(&U)";
+            this.mnuCmdClear.Text = "ì…ë ¥ ëª…ë ¹ ì§€ì›€(&U)";
             this.mnuCmdClear.Shortcuts.Add(eShortcut.CtrlU);
             this.mnuCmdClear.ImageSmall = (Image)global::RACTClient.Properties.Resources.Clear;
             mnuCmdClear.Click += new EventHandler(mnuCmdClear_Click_Event);
 
             this.mnuSearchDefaultCmd.BeginGroup = true;
             this.mnuSearchDefaultCmd.Name = "buttonItemDefaultCmd";
-            this.mnuSearchDefaultCmd.Text = "±âº» ¸í·É Á¶È¸ (F1)";
+            this.mnuSearchDefaultCmd.Text = "ê¸°ë³¸ ëª…ë ¹ ì¡°íšŒ (F1)";
 
             this.mnuSearchDefaultCmd.Shortcuts.Add(eShortcut.F1);
 
-            //2016-04-01 ¼­¿µÀÀ ´ÜÃàÅ° ÀÌº¥Æ® º¯°æ
+            //2016-04-01 ì„œì˜ì‘ ë‹¨ì¶•í‚¤ ì´ë²¤íŠ¸ ë³€ê²½
             //mnuSearchDefaultCmd.Click += new EventHandler(this.mnuSearchDefaultCmd_Click);
             mnuSearchDefaultCmd.Click += new EventHandler(this.mnuSearchDefaultCmd_Click_Event);
             
             this.mnuBatchCmd.BeginGroup = true;
             this.mnuBatchCmd.Name = "buttonItemBatchCmd";
-            this.mnuBatchCmd.Text = "ÀÏ°ı ¸í·É½ÇÇà";
+            this.mnuBatchCmd.Text = "ì¼ê´„ ëª…ë ¹ì‹¤í–‰";
  
             this.mnuBatchCmd.ImageSmall = (Image)global::RACTClient.Properties.Resources.Clear;
             this.mnuBatchCmd.Click += new EventHandler(mnuBatchCmd_Click);
@@ -1166,19 +1166,19 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             this.mnuStopScript.BeginGroup = true;
             this.mnuStopScript.Name = "buttonItem7";
-            this.mnuStopScript.Text = "½ºÅ©¸³Æ® Ãë¼Ò";
+            this.mnuStopScript.Text = "ìŠ¤í¬ë¦½íŠ¸ ì·¨ì†Œ";
             this.mnuStopScript.ImageSmall = (Image)global::RACTClient.Properties.Resources.run_cancel;
             mnuStopScript.Click += new EventHandler(mnuStopScript_Click);
 
             this.mnuSaveTerminal.BeginGroup = true;
             this.mnuSaveTerminal.Name = "buttonItem8";
-            this.mnuSaveTerminal.Text = "°á°úÀúÀå";
+            this.mnuSaveTerminal.Text = "ê²°ê³¼ì €ì¥";
             this.mnuSaveTerminal.ImageSmall = (Image)global::RACTClient.Properties.Resources.run_cancel;
             mnuSaveTerminal.Click += new EventHandler(mnuSaveTerminal_Click);
 
             this.mnuOption.BeginGroup = true;
             this.mnuOption.Name = "buttonItem11";
-            this.mnuOption.Text = "¿É¼Ç";
+            this.mnuOption.Text = "ì˜µì…˜";
             this.mnuOption.ImageSmall = (Image)global::RACTClient.Properties.Resources.run_cancel;
             mnuOption.Click += new EventHandler(mnuOption_Click);
             // 
@@ -1203,7 +1203,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Á¾·á Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¢…ë£Œ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
@@ -1212,7 +1212,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             timer1.Stop();
                 if (_rxFlushTimer != null) { _rxFlushTimer.Stop(); _rxFlushTimer = null; }
 
-            SendTelnetStop(); //2019-11-18 Àü¼ÛÁö¿¬ ¿É¼Ç Ã³¸®
+            SendTelnetStop(); //2019-11-18 ì „ì†¡ì§€ì—° ì˜µì…˜ ì²˜ë¦¬
             // frame buffer dispose
             if (_frameGraphics != null) { _frameGraphics.Dispose(); _frameGraphics = null; }
             if (_frameBuffer != null) { _frameBuffer.Dispose(); _frameBuffer = null; }
@@ -1233,7 +1233,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         }
         /// <summary>
-        /// Å©±â º¯°æ ÀÌº¥Æ® Ã³¸® ÀÔ´Ï´Ù.
+        /// í¬ê¸° ë³€ê²½ ì´ë²¤íŠ¸ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="e"></param>
         protected override void OnResize(System.EventArgs e)
@@ -1254,7 +1254,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 tTextAtCursor = tTextAtCursor + Convert.ToString(tCurChar);
             }
 
-            // 2015-06-01 - ½ÅÀ±³² - ÄÃ·³»çÀÌÁî º¯°æ
+            // 2015-06-01 - ì‹ ìœ¤ë‚¨ - ì»¬ëŸ¼ì‚¬ì´ì¦ˆ ë³€ê²½
             int tColumns = ClientSize.Width / m_CharSize.Width - 1;
             int tRows = ClientSize.Height / m_CharSize.Height;
 
@@ -1278,7 +1278,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
             }
 
-            // 2015-06-01 - ½ÅÀ±³² - Terminal »çÀÌÁî ´Ã¸®±â
+            // 2015-06-01 - ì‹ ìœ¤ë‚¨ - Terminal ì‚¬ì´ì¦ˆ ëŠ˜ë¦¬ê¸°
             SetSize(tRows, AppGlobal.s_ClientOption.TerminalColumnCount);
 
             StringCollection tVisiblebuffer = new StringCollection();
@@ -1310,7 +1310,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             base.OnResize(e);
 
-            // ½ºÅ©·Ñ Àç°è»ê(OnResizeÇÏ¸é ÃÊ±âÈ­µÇ¾î Ãß°¡ÇÔ)
+            // ìŠ¤í¬ë¡¤ ì¬ê³„ì‚°(OnResizeí•˜ë©´ ì´ˆê¸°í™”ë˜ì–´ ì¶”ê°€í•¨)
             SetScrollBarValues();
             UpdateAttribGridInverse();
             Refresh();
@@ -1318,12 +1318,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
         {
-            // 1) ¹é¹öÆÛ ÁØºñ
+            // 1) ë°±ë²„í¼ ì¤€ë¹„
             EnsureFrameBuffer();
 
-            // 2) ³»¿ëÀÌ º¯°æµÈ °æ¿ì¿¡¸¸ ¹é¹öÆÛ¸¦ °»½Å
-            //    - ÀüÃ¼ ´Ù½Ã±×¸²(_fullRedraw) ¶Ç´Â
-            //    - dirty row°¡ Á¸ÀçÇÏ´Â °æ¿ì
+            // 2) ë‚´ìš©ì´ ë³€ê²½ëœ ê²½ìš°ì—ë§Œ ë°±ë²„í¼ë¥¼ ê°±ì‹ 
+            //    - ì „ì²´ ë‹¤ì‹œê·¸ë¦¼(_fullRedraw) ë˜ëŠ”
+            //    - dirty rowê°€ ì¡´ì¬í•˜ëŠ” ê²½ìš°
             if (!_frameValid || !_useDirtyRedraw || _fullRedraw || HasAnyDirtyRow())
             {
                 if (!_useDirtyRedraw || _fullRedraw)
@@ -1331,17 +1331,17 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     WipeScreen(_frameGraphics);
                 }
 
-                // Redraw()´Â _useDirtyRedraw + _dirtyRows ¸¦ º¸°í
-                // "ÀüÃ¼/ºÎºĞ" ·»´õ¸µÀ» ¾Ë¾Æ¼­ ¼öÇàÇÕ´Ï´Ù.
+                // Redraw()ëŠ” _useDirtyRedraw + _dirtyRows ë¥¼ ë³´ê³ 
+                // "ì „ì²´/ë¶€ë¶„" ë Œë”ë§ì„ ì•Œì•„ì„œ ìˆ˜í–‰í•©ë‹ˆë‹¤.
                 Redraw(_frameGraphics);
 
                 _frameValid = true;
             }
 
-            // 3) È­¸é¿¡´Â ¹é¹öÆÛ¸¦ ±×´ë·Î Ãâ·Â
+            // 3) í™”ë©´ì—ëŠ” ë°±ë²„í¼ë¥¼ ê·¸ëŒ€ë¡œ ì¶œë ¥
             e.Graphics.DrawImageUnscaled(_frameBuffer, 0, 0);
 
-            // 4) Ä¿¼­´Â È­¸é À§¿¡¸¸ ¿À¹ö·¹ÀÌ(¹é¹öÆÛ¿¡ ±ÁÁö ¾ÊÀ½)
+            // 4) ì»¤ì„œëŠ” í™”ë©´ ìœ„ì—ë§Œ ì˜¤ë²„ë ˆì´(ë°±ë²„í¼ì— êµ½ì§€ ì•ŠìŒ)
             if (m_IsShowCaret && m_IsConnected && this.Focused)
             {
                 ShowCaret(e.Graphics);
@@ -1350,8 +1350,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         protected override void OnPaintBackground(PaintEventArgs pevent)
         {
-            // ¹é¹öÆÛ¸¦ »ç¿ëÇÏ¹Ç·Î ±âº» ¹è°æ Áö¿ì±â¸¦ ¸·¾Æ ±ôºıÀÓ/Áö¿öÁüÀ» ¹æÁö
-            // (Æ¯È÷ caret blink·Î Invalidate°¡ ÁÖ±âÀûÀ¸·Î ¹ß»ıÇÏ´Â °æ¿ì)
+            // ë°±ë²„í¼ë¥¼ ì‚¬ìš©í•˜ë¯€ë¡œ ê¸°ë³¸ ë°°ê²½ ì§€ìš°ê¸°ë¥¼ ë§‰ì•„ ê¹œë¹¡ì„/ì§€ì›Œì§ì„ ë°©ì§€
+            // (íŠ¹íˆ caret blinkë¡œ Invalidateê°€ ì£¼ê¸°ì ìœ¼ë¡œ ë°œìƒí•˜ëŠ” ê²½ìš°)
         }
 		
         protected override void WndProc(ref Message m)
@@ -1434,10 +1434,10 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             if (CurArgs.Button != MouseButtons.Left) return;
             if (TerminalStatus == E_TerminalStatus.RunScript) return;
 
-            // 2014-08-19 - ½ÅÀ±³² - ¸¶¿ì½º ÀÌµ¿½Ã ÁÂÇ¥°ª ¿À·ù ¹ß»ı½Ã ¿À·ù ·Î±× ÀúÀåÇÑ´Ù.
+            // 2014-08-19 - ì‹ ìœ¤ë‚¨ - ë§ˆìš°ìŠ¤ ì´ë™ì‹œ ì¢Œí‘œê°’ ì˜¤ë¥˜ ë°œìƒì‹œ ì˜¤ë¥˜ ë¡œê·¸ ì €ì¥í•œë‹¤.
             try
             {
-                // ¿µ¿ª¼±ÅÃ ÁßÀÎÁö »óÅÂÃ¼Å©
+                // ì˜ì—­ì„ íƒ ì¤‘ì¸ì§€ ìƒíƒœì²´í¬
                 if (!IsSelectMode()) return;
 
                 m_EndDrag.X = CurArgs.X;
@@ -1448,7 +1448,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 int tBegCol = m_BeginDrag.X / m_CharSize.Width;
                 int tBegRow = m_BeginDrag.Y / m_CharSize.Height;
 
-                // »óÇÏ´Ü µå·¡±×½Ã ÀÚµ¿ ½ºÅ©·Ñ
+                // ìƒí•˜ë‹¨ ë“œë˜ê·¸ì‹œ ìë™ ìŠ¤í¬ë¡¤
                 if (m_VertScrollBar.Minimum == 0 && m_VertScrollBar.Maximum > 0)
                 {
                     if (m_EndDrag.Y > m_BeginDrag.Y)
@@ -1482,14 +1482,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¸¶¿ì½º up Ã³¸® ÇÕ´Ï´Ù.
+        /// ë§ˆìš°ìŠ¤ up ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="CurArgs"></param>
         protected override void OnMouseUp(MouseEventArgs CurArgs)
         {
             if (CurArgs.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                // ¿µ¿ª¼±ÅÃ ÁßÀÎÁö »óÅÂÃ¼Å©
+                // ì˜ì—­ì„ íƒ ì¤‘ì¸ì§€ ìƒíƒœì²´í¬
                 if (!IsSelectMode()) return;
 
                 if (this.m_BeginDrag.X == CurArgs.X && this.m_BeginDrag.Y == CurArgs.Y)
@@ -1500,7 +1500,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else
                 {
-                    // 2014-07-02 - ½ÅÀ±³² - ½ºÅ©·Ñ ÈÄ °ª º¹»çÇÏ´Â ±â´É Ãß°¡
+                    // 2014-07-02 - ì‹ ìœ¤ë‚¨ - ìŠ¤í¬ë¡¤ í›„ ê°’ ë³µì‚¬í•˜ëŠ” ê¸°ëŠ¥ ì¶”ê°€
                     int tRow = 0;
                     int tCol = 0;
 
@@ -1681,7 +1681,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                                 }
                             }
 
-                            //2016-03-31 ¼­¿µÀÀ ¼±ÅÃ(µå·¹±×) Copy ½Ã ¿£ÅÍ°ª ³ÖÀ½
+                            //2016-03-31 ì„œì˜ì‘ ì„ íƒ(ë“œë ˆê·¸) Copy ì‹œ ì—”í„°ê°’ ë„£ìŒ
 
                             if (tEndRow > tRow)
                              m_CopyValue.Append("\r\n");
@@ -1743,7 +1743,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¸¶¿ì½º ´Ù¿î Ã³¸® ÀÔ´Ï´Ù.
+        /// ë§ˆìš°ìŠ¤ ë‹¤ìš´ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="CurArgs"></param>
         protected override void OnMouseDown(MouseEventArgs aCurArgs)
@@ -1790,7 +1790,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     this.m_BeginDrag.X = aCurArgs.X;
                     this.m_BeginDrag.Y = aCurArgs.Y;
 
-                    // 2014-07-02 - ½ÅÀ±³² - ½ºÅ©·Ñ ÈÄ °ª º¹»çÇÏ´Â ±â´É Ãß°¡
+                    // 2014-07-02 - ì‹ ìœ¤ë‚¨ - ìŠ¤í¬ë¡¤ í›„ ê°’ ë³µì‚¬í•˜ëŠ” ê¸°ëŠ¥ ì¶”ê°€
                     if (m_CopyValue.Length > 0)
                     {
                         m_CopyValue.Remove(0, m_CopyValue.Length);
@@ -1805,7 +1805,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ¸ğµÎ »èÁ¦ Ã³¸® ÀÔ´Ï´Ù.
+        /// ëª¨ë‘ ì‚­ì œ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         void mnuClear_Click(object sender, EventArgs e)
         {
@@ -1813,7 +1813,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             m_ScrollbackBuffer.Clear();
             SetScrollBarValues();
 
-            //ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+            //ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
             for (int i = 0; i < this.m_Rows; i++)
             {
                 Array.Clear(this.m_CharGrid[i], 0, this.m_CharGrid[i].Length);
@@ -1830,7 +1830,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             //m_VertScrollBar.Value = 0;
             //m_VertScrollBar.Maximum = 0;
             //m_VertScrollBar.Minimum = -1;
-            ////ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+            ////ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
             //for (int i = 0; i < this.m_Rows; i++)
             //{
             //    Array.Clear(this.m_CharGrid[i], 0, this.m_CharGrid[i].Length);
@@ -1840,7 +1840,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 		// 2019-11-10 ???? (??? ??? ??? ?? ??_???  )
         /// <summary>
-        /// ¸ğµÎ »èÁ¦ Ã³¸® ÀÔ´Ï´Ù.
+        /// ëª¨ë‘ ì‚­ì œ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         void mnuCmdClear_Click(object sender, EventArgs e)
         {
@@ -1857,7 +1857,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         //2015-09-30
         /// <summary>
-        /// ±âº» ¸í·É Á¶È¸.
+        /// ê¸°ë³¸ ëª…ë ¹ ì¡°íšŒ.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1878,7 +1878,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         
         //2015-10-07
         /// <summary>
-        /// ÀÏ°ı ¸í·É½ÇÇà
+        /// ì¼ê´„ ëª…ë ¹ì‹¤í–‰
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1893,7 +1893,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         //2015-09-30
         /// <summary>
-        /// [ Gunny ] ¼±ÅÃµÈ ±âº» ¸í·É¾î Ç¥½Ã
+        /// [ Gunny ] ì„ íƒëœ ê¸°ë³¸ ëª…ë ¹ì–´ í‘œì‹œ
         /// </summary>
         /// <param name="DefaultCmd"></param>
         void defaultFrom_Command(string DefaultCmd)
@@ -1913,7 +1913,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         //2015-09-30
         /// <summary>
-        /// [ Gunny ] ÀÚµ¿ ¸í·É¾î Ç¥½Ã
+        /// [ Gunny ] ìë™ ëª…ë ¹ì–´ í‘œì‹œ
         /// </summary>
         /// <param name="DefaultCmd"></param>
         void SetAutoCompleteCmd(string AutoCKeyCmd)
@@ -1926,7 +1926,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         //2015-10-07
         /// <summary>
-        /// [ Gunny ] ¼øÂ÷Àû ¸í·É¾î ½ÇÇà
+        /// [ Gunny ] ìˆœì°¨ì  ëª…ë ¹ì–´ ì‹¤í–‰
         /// </summary>
         /// <param name="DefaultCmd"></param>
         void RunBatchCommnad(string BatchCmd , decimal CycleTime)
@@ -1991,7 +1991,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ½ºÅ©¸³Æ® ¸ØÃã
+        /// ìŠ¤í¬ë¦½íŠ¸ ë©ˆì¶¤
         /// </summary>
         void mnuStopScript_Click(object sender, EventArgs e)
         {
@@ -2000,11 +2000,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ¸ğµÎ ¼±ÅÃ Ã³¸® ÀÔ´Ï´Ù.
+        /// ëª¨ë‘ ì„ íƒ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         void mnuSelectAll_Click(object sender, EventArgs e)
         {
-            // ¼±ÅÃ¿µ¿ª ¼³Á¤
+            // ì„ íƒì˜ì—­ ì„¤ì •
             m_BeginRow = 0;
             m_BeginCol = 0;
             m_EndRow = m_ScrollbackBuffer.Count - 1;
@@ -2013,7 +2013,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             UpdateAttribGridInverse();
 
 
-            // ³»¿ë Copy
+            // ë‚´ìš© Copy
             List<char[]> list = new List<char[]>();
 
             for (int i = 0; i < m_ScrollbackBuffer.Count; i++)
@@ -2045,11 +2045,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Ã£±â Æû ÀÔ´Ï´Ù.
+        /// ì°¾ê¸° í¼ ì…ë‹ˆë‹¤.
         /// </summary>
         private TelnetFindForm m_FindForm = null;
         /// <summary>
-        /// Ã£±â Ã³¸® ÀÔ´Ï´Ù.
+        /// ì°¾ê¸° ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         void mnuFind_Click(object sender, EventArgs e)
         {
@@ -2104,7 +2104,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             FindForm_Close();
         }
         /// <summary>
-        /// Ã£±â Ã³¸® ÇÕ´Ï´Ù.
+        /// ì°¾ê¸° ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         void TelnetFindForm_OnTelnetStringFind(TelnetStringFindHandlerArgs aStringArgs)
         {
@@ -2114,15 +2114,15 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ÅÍ¹Ì³Î¿¡¼­ ÇØ´ç ¹®ÀÚ¸¦ Ã£½À´Ï´Ù.
+        /// í„°ë¯¸ë„ì—ì„œ í•´ë‹¹ ë¬¸ìë¥¼ ì°¾ìŠµë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aString">Ã£À» ¹®ÀÚ ÀÔ´Ï´Ù.</param>
+        /// <param name="aString">ì°¾ì„ ë¬¸ì ì…ë‹ˆë‹¤.</param>
         public void FindForm_OnTelnetStringFind(TelnetStringFindHandlerArgs aArgs)
         {
             TelnetStringFind tFindInfo;
             if (!FindString(aArgs, out tFindInfo))
             {
-                //Ã£Áö ¸øÇÔ
+                //ì°¾ì§€ ëª»í•¨
                 this.Invoke(new TelnetStringFindHandler(ShowNotFindMessage), new object[] { aArgs });
             }
             ApplyFindInformation(tFindInfo);
@@ -2130,7 +2130,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¸ø Ã£¾Ò´Ù°í Ç¥½ÃÇÑ´Ù.
+        /// ëª» ì°¾ì•˜ë‹¤ê³  í‘œì‹œí•œë‹¤.
         /// </summary>
         private void ShowNotFindMessage(TelnetStringFindHandlerArgs aArgs)
         {
@@ -2140,24 +2140,24 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 return;
             }
 
-            AppGlobal.ShowMessageBox(m_FindForm, "'" + aArgs.FindString + "'À»(¸¦) Ã£À» ¼ö ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            AppGlobal.ShowMessageBox(m_FindForm, "'" + aArgs.FindString + "'ì„(ë¥¼) ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
         /// <summary>
-        /// º¹»ç Ã³¸® ÇÕ´Ï´Ù.
+        /// ë³µì‚¬ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void mnuCopy_Click(object sender, System.EventArgs e)
         {
             if (m_CopyValue.Length < 1) 
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "º¹»çÇÒ ³»¿ëÀÌ ¾ø½À´Ï´Ù.\r\n´Ù½Ã ¼±ÅÃÇØÁÖ½Ê½Ã¿À.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ë³µì‚¬í•  ë‚´ìš©ì´ ì—†ìŠµë‹ˆë‹¤.\r\në‹¤ì‹œ ì„ íƒí•´ì£¼ì‹­ì‹œì˜¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             Clipboard.SetDataObject(m_CopyValue.ToString());
             //Console.WriteLine("MODE : " + this.TerminalMode);
 
-            // 2014-07-02 - ½ÅÀ±³² - ½ºÅ©·Ñ ÈÄ °ª º¹»çÇÏ´Â ±â´É Ãß°¡
+            // 2014-07-02 - ì‹ ìœ¤ë‚¨ - ìŠ¤í¬ë¡¤ í›„ ê°’ ë³µì‚¬í•˜ëŠ” ê¸°ëŠ¥ ì¶”ê°€
             //Clipboard.SetDataObject(m_CopyValue.ToString());
 
             /*
@@ -2236,21 +2236,21 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         }
         /// <summary>
-        /// ºÙÀÌ±âÃ³¸® ÇÕ´Ï´Ù.
+        /// ë¶™ì´ê¸°ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
 
         //20190307 KangBonghan
-        //Á¦ÇÑ ¸í·É¾î ÀÔ·Â½Ã ¿Àµ¿ÀÛ ÀÌ½´
-        //¸Ş¸ğÀåÀÌ³ª ÆÄÀÏ¿¡¼­ \n Æ÷ÇÔµÇ°Ô ´ÜÀÏ ¸í·É¾î ¶Ç´Â º¹¼ö ¸í·É¾î¸¦ µå·¡±× ¾Ø Ä«ÇÇ ÈÄ ºÙ¿©³Ö±â½Ã Á¦ÇÑ¸í·É¾î¸¦ Ã¼Å©ÇÏ½Ã ¾Ê°í
-        //Àåºñ¿¡¼­ ¸í·É¾î¸¦ ½ÇÇàÇÏ°ÔµÊ.
-        //1. \n\rÀ¸·Î ¸í·É ¹®ÀÚ¿­À» ±¸ºĞ
-        //2. ±¸ºĞÇÑ ¸í·É¾îº°·Î DispatchMessage ¸¦ ½ÇÇàÇÏµµ·Ï ¼öÁ¤
-        //3. \n\rÀ¸·Î ±¸ºĞÇÏ¿´´ÂÁö ±¸ºĞÇÑ ¸í·É¾î¿¡ \n\r¸¦ Æ÷ÇÔÇÏ¿©¾ß ÇÏ´ÂÁö Ã¼Å©ÇÏ´Â º¯¼ö ÇÊ¿ä(\r ¸¸Àü¼Û)
-        //4. º¹¼ö ¸í·É¾î¸¦ µå·¡±× ¾Ø Ä«ÇÇ ½Ã »çÀü¿¡ ÀÔ·ÂµÈ °ªÀÌ ÀÖ´ÂÁö Ã¼Å© ÈÄ Ã³¸®
-        //5. \r Æ÷ÇÔµÈ ¸í·É¾î ¶óÀÎÀº DB·Î±× ÀúÀåÀÌ ¾ÈµÇ´Â Çö»óÀÌ ÀÖ¾î µû·Î ÀúÀå ÇÒ ¼ö ÀÖµµ·Ï Ã³¸®
-        //6. mnuPasteCR_ClickÇÔ¼ö¿¡´Â °­Á¦ \rÀÌ ºÙ±â¶§¹®¿¡ DB·Î±× ÀúÀå Ã³¸® ÇÏµµ·Ï ¼öÁ¤
+        //ì œí•œ ëª…ë ¹ì–´ ì…ë ¥ì‹œ ì˜¤ë™ì‘ ì´ìŠˆ
+        //ë©”ëª¨ì¥ì´ë‚˜ íŒŒì¼ì—ì„œ \n í¬í•¨ë˜ê²Œ ë‹¨ì¼ ëª…ë ¹ì–´ ë˜ëŠ” ë³µìˆ˜ ëª…ë ¹ì–´ë¥¼ ë“œë˜ê·¸ ì•¤ ì¹´í”¼ í›„ ë¶™ì—¬ë„£ê¸°ì‹œ ì œí•œëª…ë ¹ì–´ë¥¼ ì²´í¬í•˜ì‹œ ì•Šê³ 
+        //ì¥ë¹„ì—ì„œ ëª…ë ¹ì–´ë¥¼ ì‹¤í–‰í•˜ê²Œë¨.
+        //1. \n\rìœ¼ë¡œ ëª…ë ¹ ë¬¸ìì—´ì„ êµ¬ë¶„
+        //2. êµ¬ë¶„í•œ ëª…ë ¹ì–´ë³„ë¡œ DispatchMessage ë¥¼ ì‹¤í–‰í•˜ë„ë¡ ìˆ˜ì •
+        //3. \n\rìœ¼ë¡œ êµ¬ë¶„í•˜ì˜€ëŠ”ì§€ êµ¬ë¶„í•œ ëª…ë ¹ì–´ì— \n\rë¥¼ í¬í•¨í•˜ì—¬ì•¼ í•˜ëŠ”ì§€ ì²´í¬í•˜ëŠ” ë³€ìˆ˜ í•„ìš”(\r ë§Œì „ì†¡)
+        //4. ë³µìˆ˜ ëª…ë ¹ì–´ë¥¼ ë“œë˜ê·¸ ì•¤ ì¹´í”¼ ì‹œ ì‚¬ì „ì— ì…ë ¥ëœ ê°’ì´ ìˆëŠ”ì§€ ì²´í¬ í›„ ì²˜ë¦¬
+        //5. \r í¬í•¨ëœ ëª…ë ¹ì–´ ë¼ì¸ì€ DBë¡œê·¸ ì €ì¥ì´ ì•ˆë˜ëŠ” í˜„ìƒì´ ìˆì–´ ë”°ë¡œ ì €ì¥ í•  ìˆ˜ ìˆë„ë¡ ì²˜ë¦¬
+        //6. mnuPasteCR_Clickí•¨ìˆ˜ì—ëŠ” ê°•ì œ \rì´ ë¶™ê¸°ë•Œë¬¸ì— DBë¡œê·¸ ì €ì¥ ì²˜ë¦¬ í•˜ë„ë¡ ìˆ˜ì •
         String[] SepStrs = {"\r\n"};
         String SepStr = "\r\n";
         private void mnuPaste_Click(object sender, System.EventArgs e)
@@ -2382,7 +2382,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         int SepCnt = Regex.Matches(Cmd, SepStr).Count;
                         String[] CmdStr = Cmd.Split(SepStrs, StringSplitOptions.RemoveEmptyEntries);
 
-                        //´ÜÀÏ ¸í·ÉÀÏ¶§ Ã³¸® 
+                        //ë‹¨ì¼ ëª…ë ¹ì¼ë•Œ ì²˜ë¦¬ 
                         if (CmdStr.Length == 1)
                         {
                             if (IsLimitCmd(Cmd))
@@ -2395,7 +2395,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         else
                         {
 
-                            //2. Á¦ÇÑ ¸í·É¾î È®ÀÎ 
+                            //2. ì œí•œ ëª…ë ¹ì–´ í™•ì¸ 
                             for (int i = 0; i < CmdStr.Length; i++)
                             {
                                 String CurrentCmd = CmdStr[i].ToString();
@@ -2411,18 +2411,18 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                                     }
                                 }
                             }
-                            //3.½ºÅ©¸³Æ®·Î ÇØ´ç ¸í·É¾î OR ¸í·É¾îµé ¼öÇà
+                            //3.ìŠ¤í¬ë¦½íŠ¸ë¡œ í•´ë‹¹ ëª…ë ¹ì–´ OR ëª…ë ¹ì–´ë“¤ ìˆ˜í–‰
                             Script tCommandScript = null;
 
-                            //½ºÅ©¸³Æ® Å¸ÀÓ¾Æ¿ô °ª ¼³Á¤ ¸í·É¾î´ç ÀûÀıÇÑ ¼öÄ¡¸¦ ¼³Á¤ÇÏ±â ¾Ö¸ÅÇÔ.
-                            //Cmd ´ç ±âº» 30À¸·Î ´õÇÔ. ÃßÈÄ ¿É¼Ç ¸Ş´º¿¡¼­ µû·Î ¼³Á¤ÇÏµµ·Ï ±â´É Áö¿øÇÏ¸é.. »ç¿ëÀÚ ÆíÀÇ Á¦°ø.
+                            //ìŠ¤í¬ë¦½íŠ¸ íƒ€ì„ì•„ì›ƒ ê°’ ì„¤ì • ëª…ë ¹ì–´ë‹¹ ì ì ˆí•œ ìˆ˜ì¹˜ë¥¼ ì„¤ì •í•˜ê¸° ì• ë§¤í•¨.
+                            //Cmd ë‹¹ ê¸°ë³¸ 30ìœ¼ë¡œ ë”í•¨. ì¶”í›„ ì˜µì…˜ ë©”ë‰´ì—ì„œ ë”°ë¡œ ì„¤ì •í•˜ë„ë¡ ê¸°ëŠ¥ ì§€ì›í•˜ë©´.. ì‚¬ìš©ì í¸ì˜ ì œê³µ.
                             AppGlobal.s_MultipleCmd = 60 + (30 * CmdStr.Length);
                             tCommandScript = ScriptGenerator.MakeBatchCommand(Cmd.Replace("\r\n","\r"), m_Prompt + "|#|>");
 
                             //tCommandScript.ScriptType = E_ScriptType.WaitScript;
                             RunScript(tCommandScript);
 
-                            //4. ¼öÇàÇÑ ¸í·É¾î ·Î±× ÀúÀå(º¹¼ö ¸í·É¾î ÀÏ¶§¸¸ ÀúÀå)
+                            //4. ìˆ˜í–‰í•œ ëª…ë ¹ì–´ ë¡œê·¸ ì €ì¥(ë³µìˆ˜ ëª…ë ¹ì–´ ì¼ë•Œë§Œ ì €ì¥)
                             for (int i = 0; i < CmdStr.Length; i++)
                             {
                                 String CurrentCmd = CmdStr[i].ToString();
@@ -2495,7 +2495,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ÀÚµ¿¿Ï¼º ÇÕ´Ï´Ù.
+        /// ìë™ì™„ì„± í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2540,7 +2540,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
         
         /// <summary>
-        /// ºÙÀÌ±âÃ³¸® ÇÕ´Ï´Ù.
+        /// ë¶™ì´ê¸°ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -2594,8 +2594,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             }
                             else
                             {
-                                //°­Á¦ CRÀ» º¸³»¸é Á¦ÇÑ¸í·É¾î Ã¼Å©°¡ µÇÁö ¾ÊÀ½.
-                                //ÇØ¼­ Á¦ÇÑ¸í·É¾î¸¦ ¸ÕÀú Ã¼Å©¸¦ ÇÏ°í ¾Æ´Ò °æ¿ì¿¡¸¸ CRÀ» º¸³¾ ¼ö ÀÖµµ·Ï ÇÑ´Ù.
+                                //ê°•ì œ CRì„ ë³´ë‚´ë©´ ì œí•œëª…ë ¹ì–´ ì²´í¬ê°€ ë˜ì§€ ì•ŠìŒ.
+                                //í•´ì„œ ì œí•œëª…ë ¹ì–´ë¥¼ ë¨¼ì € ì²´í¬ë¥¼ í•˜ê³  ì•„ë‹ ê²½ìš°ì—ë§Œ CRì„ ë³´ë‚¼ ìˆ˜ ìˆë„ë¡ í•œë‹¤.
                                 if (CurrentCmd.Length > 0)
                                 {
                                     if (IsLimitCmd(PreCmd + CurrentCmd))
@@ -2653,7 +2653,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         else
                         {
 
-                            //2. Á¦ÇÑ ¸í·É¾î È®ÀÎ 
+                            //2. ì œí•œ ëª…ë ¹ì–´ í™•ì¸ 
                             for (int i = 0; i < CmdStr.Length; i++)
                             {
                                 String CurrentCmd = CmdStr[i].ToString();
@@ -2669,18 +2669,18 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                                     }
                                 }
                             }
-                            //3.½ºÅ©¸³Æ®·Î ÇØ´ç ¸í·É¾î OR ¸í·É¾îµé ¼öÇà
+                            //3.ìŠ¤í¬ë¦½íŠ¸ë¡œ í•´ë‹¹ ëª…ë ¹ì–´ OR ëª…ë ¹ì–´ë“¤ ìˆ˜í–‰
                             Script tCommandScript = null;
 
-                            //½ºÅ©¸³Æ® Å¸ÀÓ¾Æ¿ô °ª ¼³Á¤ ¸í·É¾î´ç ÀûÀıÇÑ ¼öÄ¡¸¦ ¼³Á¤ÇÏ±â ¾Ö¸ÅÇÔ.
-                            //Cmd ´ç ±âº» 30À¸·Î ´õÇÔ. ÃßÈÄ ¿É¼Ç ¸Ş´º¿¡¼­ µû·Î ¼³Á¤ÇÏµµ·Ï ±â´É Áö¿øÇÏ¸é.. »ç¿ëÀÚ ÆíÀÇ Á¦°ø.
+                            //ìŠ¤í¬ë¦½íŠ¸ íƒ€ì„ì•„ì›ƒ ê°’ ì„¤ì • ëª…ë ¹ì–´ë‹¹ ì ì ˆí•œ ìˆ˜ì¹˜ë¥¼ ì„¤ì •í•˜ê¸° ì• ë§¤í•¨.
+                            //Cmd ë‹¹ ê¸°ë³¸ 30ìœ¼ë¡œ ë”í•¨. ì¶”í›„ ì˜µì…˜ ë©”ë‰´ì—ì„œ ë”°ë¡œ ì„¤ì •í•˜ë„ë¡ ê¸°ëŠ¥ ì§€ì›í•˜ë©´.. ì‚¬ìš©ì í¸ì˜ ì œê³µ.
                             AppGlobal.s_MultipleCmd = 60 + (30 * CmdStr.Length);
                             tCommandScript = ScriptGenerator.MakeBatchCommand(Cmd.Replace("\r\n", "\r"), m_Prompt + "|#|>");
 
                             //tCommandScript.ScriptType = E_ScriptType.WaitScript;
                             RunScript(tCommandScript);
 
-                            //4. ¼öÇàÇÑ ¸í·É¾î ·Î±× ÀúÀå(º¹¼ö ¸í·É¾î ÀÏ¶§¸¸ ÀúÀå)
+                            //4. ìˆ˜í–‰í•œ ëª…ë ¹ì–´ ë¡œê·¸ ì €ì¥(ë³µìˆ˜ ëª…ë ¹ì–´ ì¼ë•Œë§Œ ì €ì¥)
                             for (int i = 0; i < CmdStr.Length; i++)
                             {
                                 String CurrentCmd = CmdStr[i].ToString();
@@ -2793,7 +2793,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 int tColumns = m_Cols;
                 int tRows = m_Rows;
 
-                //2015-06-01 - ½ÅÀ±³² - ÄÃ·³»çÀÌÁî º¯°æ
+                //2015-06-01 - ì‹ ìœ¤ë‚¨ - ì»¬ëŸ¼ì‚¬ì´ì¦ˆ ë³€ê²½
                 //this.SetSize(tRows, tColumns);
                 this.SetSize(tRows, AppGlobal.s_ClientOption.TerminalColumnCount);
 
@@ -2809,7 +2809,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     }
                 }
 
-                // ¹®ÀÚ Ç¥½Ã
+                // ë¬¸ì í‘œì‹œ
                 for (int i = 0; i < tVisiblebuffer.Count; i++)
                 {
                     for (int tColumn = 0; tColumn < tColumns; tColumn++)
@@ -2819,7 +2819,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     }
                 }
 
-                // Cursor¶óÀÎ ÁÙ Ç¥½Ã
+                // Cursorë¼ì¸ ì¤„ í‘œì‹œ
                 if (m_LastVisibleLine == 0)
                 {
                     CaretOn();
@@ -2897,7 +2897,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 int tColumns = AppGlobal.s_ClientOption.TerminalColumnCount;
                 int tRows = m_Rows;
 
-                //2015-06-01 - ½ÅÀ±³² - ÄÃ·³»çÀÌÁî º¯°æ
+                //2015-06-01 - ì‹ ìœ¤ë‚¨ - ì»¬ëŸ¼ì‚¬ì´ì¦ˆ ë³€ê²½
                 //this.SetSize(tRows, tColumns);
                 this.SetSize(tRows, AppGlobal.s_ClientOption.TerminalColumnCount);
 
@@ -2954,12 +2954,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ½ºÅ©·Ñ °ªÀÔ´Ï´Ù.
+        /// ìŠ¤í¬ë¡¤ ê°’ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_ScrollValue = 0;
 
         /// <summary>
-        /// ½ºÅ©·ÑÁß »õ·Î¿î µ¥ÀÌÅÍ°¡ µé¾î ¿ÔÀ»°æ¿ì ¸¶Áö¸· Ãâ·ÂÀ» º¸¿©ÁØ´Ù.
+        /// ìŠ¤í¬ë¡¤ì¤‘ ìƒˆë¡œìš´ ë°ì´í„°ê°€ ë“¤ì–´ ì™”ì„ê²½ìš° ë§ˆì§€ë§‰ ì¶œë ¥ì„ ë³´ì—¬ì¤€ë‹¤.
         /// </summary>
         private void DisplayScrollLast(int aStartRow)
         {
@@ -2980,7 +2980,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ½ºÅ©·Ñ¹Ù °ªÀ» Á¶Àı ÇÕ´Ï´Ù.
+        /// ìŠ¤í¬ë¡¤ë°” ê°’ì„ ì¡°ì ˆ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SetScrollBarValues()
         {
@@ -2997,14 +2997,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                     m_LastVisibleLine = m_VertScrollBar.Value - m_VertScrollBar.Maximum;
                 }
-                // ÃÊ±âÈ­
+                // ì´ˆê¸°í™”
                 else
                 {
                     m_VertScrollBar.Visible = false;
                     m_VertScrollBar.Enabled = false;
                     m_VertScrollBar.Minimum = 0;
                     //m_VertScrollBar.Maximum = 0;
-                    m_VertScrollBar.Maximum = 1;    // 2019-01-18 Edit_LMW ¼öÁ¤ - º¹»çÀÌº¥Æ® µ¿ÀÛ½Ã m_VertScrollBar.Maximum°ªÀÌ 0ÀÌ¸é ÁÂÇ¥°ªÀÇ Row - 1·Î ÀÛµ¿µÇ¾î À­ÁÙÀÌ º¹»çµÇ´Â ¹®Á¦°¡ ÀÖ¾î ÀÓ½Ã·Î °­Á¦ÀûÀ¸·Î 1·Î ÇÒ´ç.
+                    m_VertScrollBar.Maximum = 1;    // 2019-01-18 Edit_LMW ìˆ˜ì • - ë³µì‚¬ì´ë²¤íŠ¸ ë™ì‘ì‹œ m_VertScrollBar.Maximumê°’ì´ 0ì´ë©´ ì¢Œí‘œê°’ì˜ Row - 1ë¡œ ì‘ë™ë˜ì–´ ìœ—ì¤„ì´ ë³µì‚¬ë˜ëŠ” ë¬¸ì œê°€ ìˆì–´ ì„ì‹œë¡œ ê°•ì œì ìœ¼ë¡œ 1ë¡œ í• ë‹¹.
                     m_VertScrollBar.Value = 0;
                     m_VertScrollBar.OldValue = 0;
 
@@ -3018,9 +3018,9 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
 
-        /// 2015-09-23 ÀÚµ¿ÀúÀå ¹× Á¶È¸±â´É Gunny
+        /// 2015-09-23 ìë™ì €ì¥ ë° ì¡°íšŒê¸°ëŠ¥ Gunny
         /// <summary>
-        /// ·Î±× ÆÄÀÏ ³»¿ë Ãß°¡.
+        /// ë¡œê·¸ íŒŒì¼ ë‚´ìš© ì¶”ê°€.
         /// </summary>
         /// <param name="str"></param>
         private void FileWrite(string str)
@@ -3036,7 +3036,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             FileStream fs = new FileStream(tFilePath, FileMode.Append, FileAccess.Write);
 
-            //FileModeÁß append´Â ÀÌ¾î¾²±â. ÆÄÀÏÀÌ ¾øÀ¸¸é ¸¸µç´Ù.
+            //FileModeì¤‘ appendëŠ” ì´ì–´ì“°ê¸°. íŒŒì¼ì´ ì—†ìœ¼ë©´ ë§Œë“ ë‹¤.
 
             StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
 
@@ -3052,7 +3052,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ¹ŞÀ½ Ã³¸® ÇÕ´Ï´Ù.
+        /// ë°›ìŒ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aResult"></param>
        private void OnReceivedData(string aResult)
@@ -3061,17 +3061,17 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             {
                 if (string.IsNullOrEmpty(aResult)) return;
 
-                // ÅÇ Ã³¸®¸¸ ÇÏ°í, UI/ÆÄ½Ì/¸®ÇÁ·¹½Ã´Â ¹èÄ¡ Å¸ÀÌ¸Ó¿¡¼­ Ã³¸®ÇÕ´Ï´Ù.
+                // íƒ­ ì²˜ë¦¬ë§Œ í•˜ê³ , UI/íŒŒì‹±/ë¦¬í”„ë ˆì‹œëŠ” ë°°ì¹˜ íƒ€ì´ë¨¸ì—ì„œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
                 aResult = aResult.Replace("\t", "    ");
 
-                // ¼ö½Å µ¥ÀÌÅÍ¸¦ Å¥¿¡ ÀûÀç (Invoke ³²¹ß ¹æÁö)
+                // ìˆ˜ì‹  ë°ì´í„°ë¥¼ íì— ì ì¬ (Invoke ë‚¨ë°œ ë°©ì§€)
                 _rxQueue.Enqueue(aResult);
             }
             catch { }
         }
 
         /// <summary>
-        /// ¼ö½Å µ¥ÀÌÅÍ¸¦ ÀÏÁ¤ ÁÖ±â·Î ¹­¾î¼­ ÆÄ½Ì/¸®ÇÁ·¹½Ã ÇÕ´Ï´Ù. (UI ¹ö¹÷ÀÓ °³¼±)
+        /// ìˆ˜ì‹  ë°ì´í„°ë¥¼ ì¼ì • ì£¼ê¸°ë¡œ ë¬¶ì–´ì„œ íŒŒì‹±/ë¦¬í”„ë ˆì‹œ í•©ë‹ˆë‹¤. (UI ë²„ë²…ì„ ê°œì„ )
         /// </summary>
         private void RxFlushTimer_Tick(object sender, EventArgs e)
         {
@@ -3079,7 +3079,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             {
                 if (_rxQueue.IsEmpty) return;
 
-                // ¼±ÅÃ¿µ¿ª Ãë¼Ò(ÃÊ±âÈ­) - ±âÁ¸ OnReceivedData¿¡¼­ ¸Å¹ø È£ÃâÇÏ´ø °ÍÀ» "Æ½´ç 1È¸"·Î Ãà¼Ò
+                // ì„ íƒì˜ì—­ ì·¨ì†Œ(ì´ˆê¸°í™”) - ê¸°ì¡´ OnReceivedDataì—ì„œ ë§¤ë²ˆ í˜¸ì¶œí•˜ë˜ ê²ƒì„ "í‹±ë‹¹ 1íšŒ"ë¡œ ì¶•ì†Œ
                 //Deselect();
 
                 int totalChars = 0;
@@ -3093,24 +3093,24 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                 if (sb.Length == 0) return;
 
-                // UI ½º·¹µå¿¡¼­ 1È¸ ÆÄ½Ì + 1È¸ ¸®ÇÁ·¹½Ã
+                // UI ìŠ¤ë ˆë“œì—ì„œ 1íšŒ íŒŒì‹± + 1íšŒ ë¦¬í”„ë ˆì‹œ
                 if (OnRxdTextEvent != null)
                     OnRxdTextEvent(sb.ToString());
 
                 if (OnRefreshEvent != null)
                     OnRefreshEvent();
 
-                // ? ¼ö½Å Ã³¸® ÈÄ È­¸é °»½Å º¸Àå (ÀÔ·Â/½ºÅ©·ÑÀÌ ¾ø¾îµµ °»½ÅµÇ°Ô)
-                //full redraw´Â dirty ±â¹İÀ¸·Î Ã³¸®ÇÕ´Ï´Ù. _fullRedraw = true;      // ´ÙÀ½ OnPaint¿¡¼­ È­¸é ÀüÃ¼ Àç±×¸®±â
-            //    _frameValid = false;     // ÇÁ·¹ÀÓ¹öÆÛ ¹«È¿È­
-            //    this.Invalidate();       // Áï½Ã Paint ¿äÃ»
+                // ? ìˆ˜ì‹  ì²˜ë¦¬ í›„ í™”ë©´ ê°±ì‹  ë³´ì¥ (ì…ë ¥/ìŠ¤í¬ë¡¤ì´ ì—†ì–´ë„ ê°±ì‹ ë˜ê²Œ)
+                //full redrawëŠ” dirty ê¸°ë°˜ìœ¼ë¡œ ì²˜ë¦¬í•©ë‹ˆë‹¤. _fullRedraw = true;      // ë‹¤ìŒ OnPaintì—ì„œ í™”ë©´ ì „ì²´ ì¬ê·¸ë¦¬ê¸°
+            //    _frameValid = false;     // í”„ë ˆì„ë²„í¼ ë¬´íš¨í™”
+            //    this.Invalidate();       // ì¦‰ì‹œ Paint ìš”ì²­
             }
             catch { }
         }
 
         
         /// <summary>
-        /// Gunny ÇöÀç ¸í·É¾î ¹ŞÀ½ 
+        /// Gunny í˜„ì¬ ëª…ë ¹ì–´ ë°›ìŒ 
         /// </summary>
         public String GetCmd()
         {
@@ -3141,8 +3141,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             return tTempString.TrimStart();
         }
 
-        //´å³İ ÇÏÀ§ ¹öÀü¿¡ JoinÀÌ ¾ø¾î ÀÓÀÇ·Î ¸¸µë
-        //ÇØ´ç ÇÔ¼ö´Â ' ' (°ø¹é) ¸¦ ¹®ÀÚ »çÀÌ¿¡ ³Ö±â À§ÇÑ ±â´ÉÀ¸·Î¸¸ »ç¿ë.
+        //ë‹·ë„· í•˜ìœ„ ë²„ì „ì— Joinì´ ì—†ì–´ ì„ì˜ë¡œ ë§Œë“¬
+        //í•´ë‹¹ í•¨ìˆ˜ëŠ” ' ' (ê³µë°±) ë¥¼ ë¬¸ì ì‚¬ì´ì— ë„£ê¸° ìœ„í•œ ê¸°ëŠ¥ìœ¼ë¡œë§Œ ì‚¬ìš©.
         public String StrJoin(String separator, String[] values)
         {
             StringBuilder resultStr = new StringBuilder();
@@ -3157,7 +3157,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Gunny [Á¦ÇÑ¸í·É¾î ÀÎÁö ¿©ºÎ ¸®ÅÏ] ÇöÀç ¸í·É¾î ¹ŞÀ½ 
+        /// Gunny [ì œí•œëª…ë ¹ì–´ ì¸ì§€ ì—¬ë¶€ ë¦¬í„´] í˜„ì¬ ëª…ë ¹ì–´ ë°›ìŒ 
         /// </summary>
         public bool IsLimitCmd(String lineCmd)
         {
@@ -3166,12 +3166,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Console)
                 return result;
 
-            //2015-10-30 Á¦ÇÑ ¸í·É¾î - »ç¿ëÀÚ ±ÇÇÑ Àû¿ë.
+            //2015-10-30 ì œí•œ ëª…ë ¹ì–´ - ì‚¬ìš©ì ê¶Œí•œ ì ìš©.
             
             if (!AppGlobal.s_LoginResult.UserInfo.LimitedCmdUser)
             return result;
-            //lineCmd¿¡ ½ºÆäÀÌ½º °ø¹éÀÌ ¿©·¯°³ÀÎ°æ¿ì
-            // EX) clear  ip ospf process -> Á¦ÇÑ Ã¼Å©¿¡ °É¸®Áö ¾ÊÀ½.
+            //lineCmdì— ìŠ¤í˜ì´ìŠ¤ ê³µë°±ì´ ì—¬ëŸ¬ê°œì¸ê²½ìš°
+            // EX) clear  ip ospf process -> ì œí•œ ì²´í¬ì— ê±¸ë¦¬ì§€ ì•ŠìŒ.
             // 
             String[] SpliteStr = lineCmd.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             String ResultCmd = StrJoin(" ", SpliteStr);
@@ -3188,7 +3188,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     {
                         result = true;
                         lineCmd = "";
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + cmd + "\" ´Â Á¦ÇÑ ¸í·É¾î ÀÔ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + cmd + "\" ëŠ” ì œí•œ ëª…ë ¹ì–´ ì…ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                  */
@@ -3201,12 +3201,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             {
                                 result = true;
                                 ResultCmd = "";
-                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + embagoInfo.Embargo + "\" ±İÁö ¸í·É¾î¸¦ Æ÷ÇÔ ÇÏ°í ÀÖ½À´Ï´Ù. \n\rÇØ´ç »ç¿ëÀÚ´Â ±İÁö ¸í·É¾î¸¦ »ç¿ë ÇÒ ¼ö ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + embagoInfo.Embargo + "\" ê¸ˆì§€ ëª…ë ¹ì–´ë¥¼ í¬í•¨ í•˜ê³  ìˆìŠµë‹ˆë‹¤. \n\rí•´ë‹¹ ì‚¬ìš©ìëŠ” ê¸ˆì§€ ëª…ë ¹ì–´ë¥¼ ì‚¬ìš© í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 return result;
                             }
                             else
                             {
-                                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + embagoInfo.Embargo + "\" Á¦ÇÑ ¸í·É¾î¸¦ Æ÷ÇÔ ÇÏ°í ÀÔ´Ï´Ù. \n\r»ç¿ë ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+                                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + embagoInfo.Embargo + "\" ì œí•œ ëª…ë ¹ì–´ë¥¼ í¬í•¨ í•˜ê³  ì…ë‹ˆë‹¤. \n\rì‚¬ìš© í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
                                 {
                                     result = true;
                                     ResultCmd = "";
@@ -3220,7 +3220,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Gunny [Á¦ÇÑ¸í·É¾î]¸¦ È®ÀÎ ÈÄ Á¦ÇÑ ¸í·É¾î°¡ ÀÖÀ¸¸é Á¦ÇÑ ¸í·É¾î¸¦ ¸®ÅÏ.
+        /// Gunny [ì œí•œëª…ë ¹ì–´]ë¥¼ í™•ì¸ í›„ ì œí•œ ëª…ë ¹ì–´ê°€ ìˆìœ¼ë©´ ì œí•œ ëª…ë ¹ì–´ë¥¼ ë¦¬í„´.
         /// </summary>
         public string IsLimitCmdByBatch(String lineCmd)
         {
@@ -3228,7 +3228,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             String resultCmd = "";
 
-            //2015-10-30 Á¦ÇÑ ¸í·É¾î - »ç¿ëÀÚ ±ÇÇÑ Àû¿ë.
+            //2015-10-30 ì œí•œ ëª…ë ¹ì–´ - ì‚¬ìš©ì ê¶Œí•œ ì ìš©.
             if (!AppGlobal.s_LoginResult.UserInfo.LimitedCmdUser)
             return resultCmd;
           
@@ -3244,7 +3244,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     {
                         lineCmd = "";
                         resultCmd = cmd;
-                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + cmd + "\" ´Â Á¦ÇÑ ¸í·É¾î ÀÔ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + cmd + "\" ëŠ” ì œí•œ ëª…ë ¹ì–´ ì…ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return resultCmd;
                     }
                 }
@@ -3258,7 +3258,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             {
                                 lineCmd = "";
                                 resultCmd = embagoInfo.Embargo;
-                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + embagoInfo.Embargo + "\" ´Â Á¦ÇÑ ¸í·É¾î ÀÔ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "\"" + embagoInfo.Embargo + "\" ëŠ” ì œí•œ ëª…ë ¹ì–´ ì…ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 return resultCmd;
                             }
                         }
@@ -3269,7 +3269,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ÄÁÆ®·Ñ ¸Ş½ÃÁö¸¦ Àü¼Û ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ ë©”ì‹œì§€ë¥¼ ì „ì†¡ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aSender"></param>
         /// <param name="aKeyMap"></param>
@@ -3296,7 +3296,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                 if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
                 {
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸
                     {
                         if (m_DaemonProcessRemoteObject == null) return;
 
@@ -3352,8 +3352,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸
                     {
 
                         if (m_DaemonProcessRemoteObject == null) return;
@@ -3455,7 +3455,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// [ - Á¦ÇÑ¸í·É¾î - Gunny ]´ÜÃà ¸í·É¾îÀÇ ³»¿ëÀ» °Ë¼ö ÇÕ´Ï´Ù.
+        /// [ - ì œí•œëª…ë ¹ì–´ - Gunny ]ë‹¨ì¶• ëª…ë ¹ì–´ì˜ ë‚´ìš©ì„ ê²€ìˆ˜ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aSender"></param>
         /// <param name="aText"></param>
@@ -3474,7 +3474,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ¸Ş½ÃÁö¸¦ Àü¼Û ÇÕ´Ï´Ù.
+        /// ë©”ì‹œì§€ë¥¼ ì „ì†¡ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aSender"></param>
         /// <param name="aText"></param>
@@ -3523,7 +3523,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     tCommandInfo.Command = aText;
                     RequestCommunicationData tRequestData = null;
 
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸
                     {
                         tCommandInfo.UserID = AppGlobal.s_LoginResult.UserID;
                         tRequestData = AppGlobal.MakeDefaultRequestData();
@@ -3553,7 +3553,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                     TelnetCommandInfo tCommandInfo = new TelnetCommandInfo();
                     tCommandInfo.DeviceInfo = m_DeviceInfo;
                     tCommandInfo.SessionID = m_ConnectedSessionID;
@@ -3562,7 +3562,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     tCommandInfo.Command = aText;
                     RequestCommunicationData tRequestData = null;
 
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸
                     {
                         tCommandInfo.UserID = AppGlobal.s_LoginResult.UserID;
                         tRequestData = AppGlobal.MakeDefaultRequestData();
@@ -3636,7 +3636,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             CaretRight();
         }
         /// <summary>
-        /// ½ÃÀÛ À§Ä¡¸¦ °¡Á® ¿À±â ÇÕ´Ï´Ù.
+        /// ì‹œì‘ ìœ„ì¹˜ë¥¼ ê°€ì ¸ ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aCurGraphics"></param>
         /// <param name="aX"></param>
@@ -3661,7 +3661,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Char Size¸¦ ±¸ÇÕ´Ï´Ù.
+        /// Char Sizeë¥¼ êµ¬í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aCurGraphics"></param>
         /// <returns></returns>
@@ -3687,7 +3687,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             return new Point(sz.Width, sz.Height);
         }
         /// <summary>
-        /// »ö»óÀ» Àû¿ë ÇÕ´Ï´Ù.
+        /// ìƒ‰ìƒì„ ì ìš© í•©ë‹ˆë‹¤.
         /// </summary>
         private void AssignColors(CharAttribStruct aCurAttribs, ref Color aCurFGColor, ref Color aCurBGColor)
         {
@@ -3877,7 +3877,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// È­¸é¿¡ ¹®ÀÚ¸¦ Ç¥½Ã ÇÕ´Ï´Ù.
+        /// í™”ë©´ì— ë¬¸ìë¥¼ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aCurGraphics"></param>
         /// <param name="aCurChar"></param>
@@ -4020,7 +4020,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             if ((this.m_Modes.Flags & Mode.s_LightBackground) > 0)
             {
 				// 2019-11-10 ???? (?? ?? ?? ?? )
-                if (m_DeviceInfo.DevicePartCode == 1 || /* Áı¼±½ºÀ§Ä¡ */
+                if (m_DeviceInfo.DevicePartCode == 1 || /* ì§‘ì„ ìŠ¤ìœ„ì¹˜ */
                     m_DeviceInfo.DevicePartCode == 6 || /* G-PON-OLT */
                     m_DeviceInfo.DevicePartCode == 31 /* NG-PON-OLT */ )
                 {
@@ -4033,7 +4033,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             else
             {
-                if (m_DeviceInfo.DevicePartCode == 1 || /* Áı¼±½ºÀ§Ä¡ */
+                if (m_DeviceInfo.DevicePartCode == 1 || /* ì§‘ì„ ìŠ¤ìœ„ì¹˜ */
                     m_DeviceInfo.DevicePartCode == 6 || /* G-PON-OLT */
                     m_DeviceInfo.DevicePartCode == 31 /* NG-PON-OLT */ )
                 {
@@ -4047,7 +4047,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// ¾Æ·¡ÂÊÀ» »èÁ¦ ÇÕ´Ï´Ù.
+        /// ì•„ë˜ìª½ì„ ì‚­ì œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aParam"></param>
         private void ClearDown(Int32 aParam)
@@ -4140,7 +4140,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// ¿À¸¥ÂÊÀ» »èÁ¦ ÇÕ´Ï´Ù.
+        /// ì˜¤ë¥¸ìª½ì„ ì‚­ì œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aParam"></param>
         private void ClearRight(Int32 aParam)
@@ -4180,12 +4180,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         private void ShowBuffer()
         {
-            // ÆÄ¼­°¡ m_CharGrid/m_AttribGrid¸¦ °»½ÅÇÑ µÚ È£Ãâ
-            // ¿©±â¼­´Â "È­¸éÀÌ ¹Ù²ï ÁÙ"À» dirty ·Î Ç¥½ÃÇÏ°í ÇÁ·¹ÀÓ¹öÆÛ¸¦ ¹«È¿È­ÇÑ µÚ ´Ù½Ã ±×¸®°Ô ÇÕ´Ï´Ù.
+            // íŒŒì„œê°€ m_CharGrid/m_AttribGridë¥¼ ê°±ì‹ í•œ ë’¤ í˜¸ì¶œ
+            // ì—¬ê¸°ì„œëŠ” "í™”ë©´ì´ ë°”ë€ ì¤„"ì„ dirty ë¡œ í‘œì‹œí•˜ê³  í”„ë ˆì„ë²„í¼ë¥¼ ë¬´íš¨í™”í•œ ë’¤ ë‹¤ì‹œ ê·¸ë¦¬ê²Œ í•©ë‹ˆë‹¤.
             //if (_useDirtyRedraw)
            // {
-                // (Á¤±³ÇÑ dirty ÃßÀûÀº PutChar/Clear/Scroll µî¿¡¼­ MarkDirtyRow/Range·Î Ã³¸®)
-                // ¾ÈÀüÇÏ°Ô ÀüÃ¼¸¦ dirty Ã³¸®ÇÏµÇ, WipeScreen(ÀüÃ¼ Áö¿ì±â) ¾øÀÌ ¹é¹öÆÛ À§¿¡ ´Ù½Ã ±×¸®°Ô ÇÕ´Ï´Ù.
+                // (ì •êµí•œ dirty ì¶”ì ì€ PutChar/Clear/Scroll ë“±ì—ì„œ MarkDirtyRow/Rangeë¡œ ì²˜ë¦¬)
+                // ì•ˆì „í•˜ê²Œ ì „ì²´ë¥¼ dirty ì²˜ë¦¬í•˜ë˜, WipeScreen(ì „ì²´ ì§€ìš°ê¸°) ì—†ì´ ë°±ë²„í¼ ìœ„ì— ë‹¤ì‹œ ê·¸ë¦¬ê²Œ í•©ë‹ˆë‹¤.
                 //MarkAllDirty();
             //}
             //else
@@ -4279,7 +4279,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// Çà ¹Ù²Ş Ã³¸® ÇÕ´Ï´Ù.
+        /// í–‰ ë°”ê¿ˆ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void CarriageReturn()
         {
@@ -4293,7 +4293,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ÅÇÀ» ¶ç¿ó´Ï´Ù.
+        /// íƒ­ì„ ë„ì›ë‹ˆë‹¤.
         /// </summary>
         private void Tab()
         {
@@ -4368,7 +4368,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 MarkDirtyRange(m_TopMargin, m_BottomMargin);
         }
         /// <summary>
-        /// ¶óÀÎÀ» Ãß°¡ ÇÕ´Ï´Ù.
+        /// ë¼ì¸ì„ ì¶”ê°€ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aCurParams"></param>
         private void InsertLine(Params aCurParams)
@@ -4404,7 +4404,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 MarkDirtyRange(m_TopMargin, m_BottomMargin);
         }
         /// <summary>
-        /// ¶óÀÎÀ» »èÁ¦ ÇÕ´Ï´Ù.
+        /// ë¼ì¸ì„ ì‚­ì œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aCurParams"></param>
         private void DeleteLine(Params aCurParams)
@@ -4439,7 +4439,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 MarkDirtyRange(m_TopMargin, m_BottomMargin);
         }
         /// <summary>
-        /// ÁÙ¹Ù²Ş Ã³¸® ÇÕ´Ï´Ù.
+        /// ì¤„ë°”ê¿ˆ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void LineFeed()
         {      
@@ -4527,7 +4527,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// Ä¿¼­ ²ô±â Ã³¸® ÀÔ´Ï´Ù.
+        /// ì»¤ì„œ ë„ê¸° ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         private void CaretOff()
         {
@@ -4539,7 +4539,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             this.m_Caret.IsOff = true;
         }
         /// <summary>
-        /// Ä¿¼­ Ç¥½Ã Ã³¸® ÀÔ´Ï´Ù.
+        /// ì»¤ì„œ í‘œì‹œ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         private void CaretOn()
         {
@@ -4550,7 +4550,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             m_Caret.IsOff = false;
         }
         /// <summary>
-        /// CaretÀ» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// Caretì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="CurGraphics"></param>
         private void ShowCaret(Graphics aCurGraphics)
@@ -4603,7 +4603,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Caret À§Ä¡¸¦ À§·Î ÀÌµ¿ÇÕ´Ï´Ù.
+        /// Caret ìœ„ì¹˜ë¥¼ ìœ„ë¡œ ì´ë™í•©ë‹ˆë‹¤.
         /// </summary>
         private void CaretUp()
         {
@@ -4618,7 +4618,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Caret À§Ä¡¸¦ ¾Æ·¡·Î ÀÌµ¿ÇÕ´Ï´Ù.
+        /// Caret ìœ„ì¹˜ë¥¼ ì•„ë˜ë¡œ ì´ë™í•©ë‹ˆë‹¤.
         /// </summary>
         private void CaretDown()
         {
@@ -4633,7 +4633,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         }
         /// <summary>
-        /// Caret À§Ä¡¸¦ ¿ŞÂÊÀ¸·Î ÀÌµ¿ÇÕ´Ï´Ù.
+        /// Caret ìœ„ì¹˜ë¥¼ ì™¼ìª½ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.
         /// </summary>
         private void CaretLeft()
         {
@@ -4645,14 +4645,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             else
             {
-                //2023-02-23 AutoWrapÀÌÈÄ ¹é½ºÆäÀÌ½º ¼öÇà½Ã À­ ¶óÀÎÀ¸·Î ÀÌµ¿ÀÌ ¾ÈµÇ¾î ÄÚµå Ãß°¡ 
+                //2023-02-23 AutoWrapì´í›„ ë°±ìŠ¤í˜ì´ìŠ¤ ìˆ˜í–‰ì‹œ ìœ— ë¼ì¸ìœ¼ë¡œ ì´ë™ì´ ì•ˆë˜ì–´ ì½”ë“œ ì¶”ê°€ 
                 this.m_Caret.Pos.X = this.m_Cols - 1;
                 this.m_Caret.Pos.Y -= 1;
 
-                //2025-01-15 H ¸ğµ¨ÀÇ show running config  --More-- Ãâ·Â ÈÄ ¸ØÃá»óÅÂ¿¡¼­ ¿£ÅÍ¶Ç´Â ½ºÆäÀÌ½º¸¦ ÀÌ¿ëÇÏ¿© ´ÙÀ½ ³»¿ëÀ» Ãâ·ÂÇÒ¶§
-                //Àåºñ¿¡¼­ ¹é½ºÆäÀÌ½º \b °¡ Àü´ŞµÇ¸ç, ÀÌ¸¦ Å¬¶óÀÌ¾ğÆ®¿¡¼­ ¹Ş¾Æ Ã³¸®ÇÏ¸é¼­
-                //Ä¿¼­ À§Ä¡¸¦°¡ º¯°æµÇ¸é¼­ °°Àº ³»¿ëÀÌ µÎ¹ø Ãâ·ÂµÇ´Â Çö»óÀ» À§ÇØ 
-                //ÀÓ½Ã·Î Å×½ºÆ®¸¦ À§ÇØ ÄÚµåÃß°¡
+                //2025-01-15 H ëª¨ë¸ì˜ show running config  --More-- ì¶œë ¥ í›„ ë©ˆì¶˜ìƒíƒœì—ì„œ ì—”í„°ë˜ëŠ” ìŠ¤í˜ì´ìŠ¤ë¥¼ ì´ìš©í•˜ì—¬ ë‹¤ìŒ ë‚´ìš©ì„ ì¶œë ¥í• ë•Œ
+                //ì¥ë¹„ì—ì„œ ë°±ìŠ¤í˜ì´ìŠ¤ \b ê°€ ì „ë‹¬ë˜ë©°, ì´ë¥¼ í´ë¼ì´ì–¸íŠ¸ì—ì„œ ë°›ì•„ ì²˜ë¦¬í•˜ë©´ì„œ
+                //ì»¤ì„œ ìœ„ì¹˜ë¥¼ê°€ ë³€ê²½ë˜ë©´ì„œ ê°™ì€ ë‚´ìš©ì´ ë‘ë²ˆ ì¶œë ¥ë˜ëŠ” í˜„ìƒì„ ìœ„í•´ 
+                //ì„ì‹œë¡œ í…ŒìŠ¤íŠ¸ë¥¼ ìœ„í•´ ì½”ë“œì¶”ê°€
                 this.m_ScrollbackBuffer.RemoveAt(this.m_ScrollbackBuffer.Count - 1);
                 //backrow = true;
             }
@@ -4660,8 +4660,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// BS(Backspace) Ã³¸®: Ä¿¼­¸¦ ¿ŞÂÊÀ¸·Î ÀÌµ¿½ÃÅ°°í ÇØ´ç ¼¿À» ºñ¿ö(erase) "ÀÜ»ó"À» ¹æÁöÇÕ´Ï´Ù.
-        /// ¸¹Àº Àåºñ°¡ BS¸¸ º¸³»´Â °æ¿ì°¡ ÀÖ¾î, È­¸é ¹öÆÛµµ ÇÔ²² Á¤¸®ÇÕ´Ï´Ù.
+        /// BS(Backspace) ì²˜ë¦¬: ì»¤ì„œë¥¼ ì™¼ìª½ìœ¼ë¡œ ì´ë™ì‹œí‚¤ê³  í•´ë‹¹ ì…€ì„ ë¹„ì›Œ(erase) "ì”ìƒ"ì„ ë°©ì§€í•©ë‹ˆë‹¤.
+        /// ë§ì€ ì¥ë¹„ê°€ BSë§Œ ë³´ë‚´ëŠ” ê²½ìš°ê°€ ìˆì–´, í™”ë©´ ë²„í¼ë„ í•¨ê»˜ ì •ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         private void BackspaceErase()
         {
@@ -4677,19 +4677,19 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             if (x < 0 || x >= this.m_Cols) return;
 
 
-            // ¹öÆÛ ¼¿ ºñ¿ì±â
+            // ë²„í¼ ì…€ ë¹„ìš°ê¸°
             this.m_CharGrid[y][x] = '\0';
             this.m_AttribGrid[y][x] = default(CharAttribStruct);
 
-            // ÇØ´ç ÇàÀ» ´Ù½Ã ±×¸®°Ô ÇØ¼­ ÀÌÀü ±ÛÀÚ°¡ ³²´Â Çö»ó(ghosting) Á¦°Å
+            // í•´ë‹¹ í–‰ì„ ë‹¤ì‹œ ê·¸ë¦¬ê²Œ í•´ì„œ ì´ì „ ê¸€ìê°€ ë‚¨ëŠ” í˜„ìƒ(ghosting) ì œê±°
             if (_useDirtyRedraw) MarkDirtyXRange(y, x, x);
-            // Áï½Ã ¹İ¿µ
+            // ì¦‰ì‹œ ë°˜ì˜
             //_frameValid = false;
             InvalidateSpan(y, x, x);
         }
         //bool backrow = false;
         /// <summary>
-        /// Caret À§Ä¡¸¦ ¿À¸¥ÂÊÀ¸·Î ÀÌµ¿ÇÕ´Ï´Ù.
+        /// Caret ìœ„ì¹˜ë¥¼ ì˜¤ë¥¸ìª½ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.
         /// </summary>
         private void CaretRight()
         {
@@ -4745,7 +4745,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Caret À§Ä¡¸¦ ¿Å±é´Ï´Ù.
+        /// Caret ìœ„ì¹˜ë¥¼ ì˜®ê¹ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aY"></param>
         /// <param name="aX"></param>
@@ -5029,7 +5029,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                     if (Param > 0)
                     {
-                        // 2015-06-01 - ½ÅÀ±³² - ÄÃ·³ »çÀÌÁî º¯°æ
+                        // 2015-06-01 - ì‹ ìœ¤ë‚¨ - ì»¬ëŸ¼ ì‚¬ì´ì¦ˆ ë³€ê²½
                         //this.SetSize(Param, this.m_Cols);
                         this.SetSize(Param, AppGlobal.s_ClientOption.TerminalColumnCount);
                     }
@@ -5209,7 +5209,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                     case 3: // set terminal to 132 column mode
                         //this.SetSize(this.m_Rows, 132);
-                        // 2015-06-01- ½ÅÀ±³² - ÄÃ·³ »çÀÌÁî º¯°æ
+                        // 2015-06-01- ì‹ ìœ¤ë‚¨ - ì»¬ëŸ¼ ì‚¬ì´ì¦ˆ ë³€ê²½
                         this.SetSize(this.m_Rows, AppGlobal.s_ClientOption.TerminalColumnCount);
                         break;
 
@@ -5273,7 +5273,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                     case 3: // set terminal to 80 column mode
                         //this.SetSize(this.m_Rows, 80);
-                        // 2015-06-01-½ÅÀ±³² - ÄÃ·³ »çÀÌÁî º¯°æ
+                        // 2015-06-01-ì‹ ìœ¤ë‚¨ - ì»¬ëŸ¼ ì‚¬ì´ì¦ˆ ë³€ê²½
                         this.SetSize(this.m_Rows, AppGlobal.s_ClientOption.TerminalColumnCount);
                         break;
 
@@ -5539,7 +5539,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¼ö½ÅÇÑ ¹®ÀÚ¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ìˆ˜ì‹ í•œ ë¬¸ìë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aCurrentChar"></param>
         private void ExecuteChar(Char aCurrentChar)
@@ -5617,7 +5617,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// ÅÍ¹Ì³Î Å©±â¸¦ ¼³Á¤ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ í¬ê¸°ë¥¼ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="Rows"></param>
         /// <param name="Columns"></param>
@@ -5650,7 +5650,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             {
                 this.m_AttribGrid[i] = new CharAttribStruct[aColumns];
             }
-            // Dirty-row redraw ÃÊ±âÈ­ (º¯°æµÈ ÁÙ¸¸ ´Ù½Ã ±×¸®±â)
+            // Dirty-row redraw ì´ˆê¸°í™” (ë³€ê²½ëœ ì¤„ë§Œ ë‹¤ì‹œ ê·¸ë¦¬ê¸°)
             _dirtyRows = new bool[aRows];
             _dirtyMinX = new int[aRows];
             _dirtyMaxX = new int[aRows];
@@ -5687,8 +5687,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             if (_dirtyMinX != null && _dirtyMaxX != null &&
                 y < _dirtyMinX.Length && y < _dirtyMaxX.Length)
             {
-                _dirtyMinX[y] = m_Cols;   // ÃÊ±â°ª: min = cols
-                _dirtyMaxX[y] = -1;       // ÃÊ±â°ª: max = -1
+                _dirtyMinX[y] = m_Cols;   // ì´ˆê¸°ê°’: min = cols
+                _dirtyMaxX[y] = -1;       // ì´ˆê¸°ê°’: max = -1
             }
         }
 
@@ -5751,7 +5751,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 if (_dirtyRowList != null) _dirtyRowList.Add(y);
             }
 			
-            // span º´ÇÕ
+            // span ë³‘í•©
             if (_dirtyMinX[y] > x1) _dirtyMinX[y] = x1;
             if (_dirtyMaxX[y] < x2) _dirtyMaxX[y] = x2;
         }
@@ -5792,7 +5792,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 _dirtyRowQueued[y] = true;
                 if (_dirtyRowList != null) _dirtyRowList.Add(y);
             }
-		    // Rect ±â¹İÀÌ¸é, row ÀüÃ¼·Î span ¼³Á¤	
+		    // Rect ê¸°ë°˜ì´ë©´, row ì „ì²´ë¡œ span ì„¤ì •	
             if (_dirtyMinX != null && _dirtyMaxX != null &&
                 y < _dirtyMinX.Length && y < _dirtyMaxX.Length)
             {
@@ -5809,18 +5809,18 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             y2 = Math.Min(_dirtyRows.Length - 1, y2);
 
             for (int y = y1; y <= y2; y++)
-                MarkDirtyRow(y); // row ÀüÃ¼·Î Àâ´Â °Ô ¾ÈÀü
+                MarkDirtyRow(y); // row ì „ì²´ë¡œ ì¡ëŠ” ê²Œ ì•ˆì „
         }
 
         private void MarkAllDirty()
         {
             if (_dirtyRows == null) return;
             for (int y = 0; y < _dirtyRows.Length; y++)
-                MarkDirtyRow(y); // row+span µ¿±âÈ­
+                MarkDirtyRow(y); // row+span ë™ê¸°í™”
         }
 
         /// <summary>
-        /// ÆùÆ® Á¤º¸¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// í°íŠ¸ ì •ë³´ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         private void GetFontInfo()
         {
@@ -5855,21 +5855,21 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// Rows¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// Rowsë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public int Rows
         {
             get { return this.m_Rows; }
         }
         /// <summary>
-        /// ColumnsÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// Columnsì„ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public int Columns
         {
             get { return this.m_Cols; }
         }
         /// <summary>
-        /// Á¢¼Ó Å¸ÀÔÀ» °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// ì ‘ì† íƒ€ì…ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public ConnectionTypes ConnectionType
         {
@@ -5877,7 +5877,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             set { this.m_ConnectionType = value; }
         }
         /// <summary>
-        /// Host NameÀ» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// Host Nameì„ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public string Hostname
         {
@@ -5885,7 +5885,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             set { this.m_Hostname = value; }
         }
         /// <summary>
-        /// Mode¸¦ °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Modeë¥¼ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public Mode Modes
         {
@@ -5893,12 +5893,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             set { m_Modes = value; }
         }
         /// <summary>
-        /// Device Info ÀÔ´Ï´Ù.
+        /// Device Info ì…ë‹ˆë‹¤.
         /// </summary>
         private DeviceInfo m_DeviceInfo;
 
         /// <summary>
-        /// Device Info °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Device Info ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public DeviceInfo DeviceInfo
         {
@@ -5909,11 +5909,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// Á¢¼ÓÇÒ µ¥¸ó Á¤º¸ ÀÔ´Ï´Ù.
+        /// ì ‘ì†í•  ë°ëª¬ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         private DaemonProcessInfo m_DaemonProcessInfo;
         /// <summary>
-        /// Á¢¼ÓÇÒ µ¥¸ó Á¤º¸ ¼Ó¼ºÀ» °¡Á®¿À°Å³ª ¼³Á¤ÇÕ´Ï´Ù.
+        /// ì ‘ì†í•  ë°ëª¬ ì •ë³´ ì†ì„±ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì •í•©ë‹ˆë‹¤.
         /// </summary>
         public DaemonProcessInfo DaemonProcessInfo
         {
@@ -5922,7 +5922,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Àåºñ ¿¬°áÀ» ½ÃÀÛ ÇÕ´Ï´Ù
+        /// ì¥ë¹„ ì—°ê²°ì„ ì‹œì‘ í•©ë‹ˆë‹¤
         /// </summary>
         //public void ConnectDevice()
         //{
@@ -5931,7 +5931,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //    DaemonProcessInfo tDaemonProcessInfo;
         //    try
         //    {
-        //        // 2013-04-26 - shinyn - Àåºñ¿¬°á¿äÃ» --> ¿¬°á°¡´ÉÇÑ µ¥¸óÀÖ´ÂÁö È®ÀÎ --> µ¥¸óÀ¸·Î ÅëÇØ Àåºñ ¿¬°á
+        //        // 2013-04-26 - shinyn - ì¥ë¹„ì—°ê²°ìš”ì²­ --> ì—°ê²°ê°€ëŠ¥í•œ ë°ëª¬ìˆëŠ”ì§€ í™•ì¸ --> ë°ëª¬ìœ¼ë¡œ í†µí•´ ì¥ë¹„ ì—°ê²°
         //        if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
         //        {
         //            if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered)
@@ -5943,7 +5943,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //                {
         //                    if (m_DaemonProcessInfo == null)
         //                    {
-        //                        AppGlobal.s_FileLogProcessor.PrintLog("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.");
+        //                        AppGlobal.s_FileLogProcessor.PrintLog("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.");
 
         //                        UseableDaemonRequestInfo tDaemonRequestInfo = new UseableDaemonRequestInfo(AppGlobal.s_LoginResult.ClientID, tDisconnectDaemonList);
         //                        RequestCommunicationData tRequestData = null;
@@ -5958,33 +5958,33 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //                        m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
 
 
-        //                        // 2013-03-07 - shinyn - »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ¾øÀ¸¸é ¸Ş½ÃÁö º¸ÀÌ°í, ·Î±×ÀúÀå
+        //                        // 2013-03-07 - shinyn - ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ì—†ìœ¼ë©´ ë©”ì‹œì§€ ë³´ì´ê³ , ë¡œê·¸ì €ì¥
         //                        if (m_Result == null)
         //                        {
-        //                            // 2013-04-26- shinyn- »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ÀÖ´ÂÁö ·Î±× Á¤º¸ º¸ÀÌµµ·Ï ÇÏ¿© ¼öÁ¤
-        //                            System.Diagnostics.Debug.WriteLine("»ç¿ë°¡´ÉÇÑ Daemon Á¤º¸°¡ ¾ø½À´Ï´Ù.");
-        //                            // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                            MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+        //                            // 2013-04-26- shinyn- ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ìˆëŠ”ì§€ ë¡œê·¸ ì •ë³´ ë³´ì´ë„ë¡ í•˜ì—¬ ìˆ˜ì •
+        //                            System.Diagnostics.Debug.WriteLine("ì‚¬ìš©ê°€ëŠ¥í•œ Daemon ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤.");
+        //                            // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //                            MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
         //                            break;
         //                        }
         //                        else if (m_Result.Error.Error != E_ErrorType.NoError || m_Result.ResultData == null)
         //                        {
-        //                            // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                            MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+        //                            // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //                            MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
         //                            break;
         //                        }
         //                        tDaemonProcessInfo = m_Result.ResultData as DaemonProcessInfo;
         //                        if (tDaemonProcessInfo == null)
         //                        {
         //                            TerminalStatus = E_TerminalStatus.Disconnected;
-        //                            // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                            MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+        //                            // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //                            MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
         //                            break;
         //                        }
         //                    }
@@ -6027,7 +6027,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //        }
         //        else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
         //        {
-        //            // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+        //            // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
         //            if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered)
         //            {
         //                m_ConnectionType = ConnectionTypes.RemoteTelnet;
@@ -6037,7 +6037,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //                {
         //                    if (m_DaemonProcessInfo == null)
         //                    {
-        //                        AppGlobal.s_FileLogProcessor.PrintLog("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.");
+        //                        AppGlobal.s_FileLogProcessor.PrintLog("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.");
 
         //                        UseableDaemonRequestInfo tDaemonRequestInfo = new UseableDaemonRequestInfo(AppGlobal.s_LoginResult.ClientID, tDisconnectDaemonList);
         //                        RequestCommunicationData tRequestData = null;
@@ -6052,20 +6052,20 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //                        m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
         //                        if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError || m_Result.ResultData == null)
         //                        {
-        //                            // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                            MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+        //                            // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //                            MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
         //                            break;
         //                        }
         //                        tDaemonProcessInfo = m_Result.ResultData as DaemonProcessInfo;
         //                        if (tDaemonProcessInfo == null)
         //                        {
         //                            TerminalStatus = E_TerminalStatus.Disconnected;
-        //                            // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                            MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+        //                            // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+        //                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //                            MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+        //                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
         //                            break;
         //                        }
         //                    }
@@ -6094,7 +6094,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //                tCommandInfo.Sender = this;
         //                tCommandInfo.DeviceInfo = m_DeviceInfo;
 
-        //                // 2013-01-28 - shinyn - SSHÀÎ°æ¿ì ¾ÆÀÌµğ¿Í ºñ¹Ğ¹øÈ£°¡ ÀÖ¾î¾ß ÇÏ¹Ç·Î ³Ö¾îÁÜ
+        //                // 2013-01-28 - shinyn - SSHì¸ê²½ìš° ì•„ì´ë””ì™€ ë¹„ë°€ë²ˆí˜¸ê°€ ìˆì–´ì•¼ í•˜ë¯€ë¡œ ë„£ì–´ì¤Œ
         //                if(AppGlobal.s_ClientOption.IsUseTerminalAutoLogin == true)
         //                {
         //                    tCommandInfo.DeviceInfo.TelnetID1 = m_DeviceInfo.TerminalConnectInfo.ID;
@@ -6118,9 +6118,9 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         //            if (!AppGlobal.s_SerialProcessor.ConnectDevice(this, m_DeviceInfo.TerminalConnectInfo.SerialConfig))
         //            {
         //                TerminalStatus = E_TerminalStatus.Disconnected;
-        //                // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-        //                //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " À» »ç¿ë ÇÒ ¼ö ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                MessageBox.Show(m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " À» »ç¿ë ÇÒ ¼ö ¾ø½À´Ï´Ù.");
+        //                // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+        //                //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " ì„ ì‚¬ìš© í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //                MessageBox.Show(m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " ì„ ì‚¬ìš© í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
         //                // return false;
         //            }
         //            else
@@ -6138,7 +6138,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         //}
 
-        // 2015-04-16 - ½ÅÀ±³² - ÅÍ¹Ì³Î °á°ú¸¦ ÆÄÀÏ¿¡ ÀúÀåÇÕ´Ï´Ù.
+        // 2015-04-16 - ì‹ ìœ¤ë‚¨ - í„°ë¯¸ë„ ê²°ê³¼ë¥¼ íŒŒì¼ì— ì €ì¥í•©ë‹ˆë‹¤.
         private LogWriter m_TerminalLog = null;
 
         private void StartTerminalLog(DeviceInfo aDeviceInfo)
@@ -6195,11 +6195,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             int ConnectionMode = AppGlobal.s_ConnectionMode;
 
-            //2023-06-13 VOIP AGW PORT 2001 Ä¡È¯ 
+            //2023-06-13 VOIP AGW PORT 2001 ì¹˜í™˜ 
             if (m_DeviceInfo.DevicePartCode == 13)
                 m_DeviceInfo.TerminalConnectInfo.TelnetPort = 2001;
 
-            // 2015-04-16 - ½ÅÀ±³² - Terminal·Î±×¸¦ »ı¼ºÇÕ´Ï´Ù.
+            // 2015-04-16 - ì‹ ìœ¤ë‚¨ - Terminalë¡œê·¸ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
             try
             {
                 StartTerminalLog(m_DeviceInfo);   
@@ -6210,10 +6210,10 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             try
             {
-                // 2013-04-26 - shinyn - Àåºñ¿¬°á¿äÃ» --> ¿¬°á°¡´ÉÇÑ µ¥¸óÀÖ´ÂÁö È®ÀÎ --> µ¥¸óÀ¸·Î ÅëÇØ Àåºñ ¿¬°á
+                // 2013-04-26 - shinyn - ì¥ë¹„ì—°ê²°ìš”ì²­ --> ì—°ê²°ê°€ëŠ¥í•œ ë°ëª¬ìˆëŠ”ì§€ í™•ì¸ --> ë°ëª¬ìœ¼ë¡œ í†µí•´ ì¥ë¹„ ì—°ê²°
                 if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
                 {
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü 
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸ 
                     {
 
                         m_ConnectionType = ConnectionTypes.RemoteTelnet;
@@ -6224,7 +6224,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                             if (m_DaemonProcessInfo == null || IsChangeMode)
                             {
-                                AppGlobal.s_FileLogProcessor.PrintLog("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.");
+                                AppGlobal.s_FileLogProcessor.PrintLog("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.");
 
                                 UseableDaemonRequestInfo tDaemonRequestInfo = new UseableDaemonRequestInfo(AppGlobal.s_LoginResult.ClientID, tDisconnectDaemonList);
                                 RequestCommunicationData tRequestData = null;
@@ -6240,31 +6240,31 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                                 AppGlobal.SendRequestData(this, tRequestData);
 
-                                // 2013-05-02 - shinyn - µ¥¸ó Á¤º¸ ¿äÃ» ÇÏ´Â °ÍÀ» ·Î±×¿¡ ÀúÀå
-                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ConnectDevice : »ç¿ë °¡´ÉÇÑ DaemonÁ¤º¸¸¦ ¿äÃ»Çß½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                                // 2013-05-02 - shinyn - ë°ëª¬ ì •ë³´ ìš”ì²­ í•˜ëŠ” ê²ƒì„ ë¡œê·¸ì— ì €ì¥
+                                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ConnectDevice : ì‚¬ìš© ê°€ëŠ¥í•œ Daemonì •ë³´ë¥¼ ìš”ì²­í–ˆìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
 
                                 m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
 
 
-                                // 2013-03-07 - shinyn - »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ¾øÀ¸¸é ¸Ş½ÃÁö º¸ÀÌ°í, ·Î±×ÀúÀå
+                                // 2013-03-07 - shinyn - ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ì—†ìœ¼ë©´ ë©”ì‹œì§€ ë³´ì´ê³ , ë¡œê·¸ì €ì¥
                                 if (m_Result == null)
                                 {
-                                    // 2013-04-26- shinyn- »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ÀÖ´ÂÁö ·Î±× Á¤º¸ º¸ÀÌµµ·Ï ÇÏ¿© ¼öÁ¤
-                                    // 2013-05-02 - shinyn - »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ÀÖ´ÂÁö ·Î±× Á¤º¸¿¡ Àåºñ ¾ÆÀÌÇÇ¸¦ º¸ÀÌµµ·Ï ¼öÁ¤
-                                    //System.Diagnostics.Debug.WriteLine("»ç¿ë°¡´ÉÇÑ Daemon Á¤º¸°¡ ¾ø½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                                    // 2013-04-26- shinyn- ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ìˆëŠ”ì§€ ë¡œê·¸ ì •ë³´ ë³´ì´ë„ë¡ í•˜ì—¬ ìˆ˜ì •
+                                    // 2013-05-02 - shinyn - ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ìˆëŠ”ì§€ ë¡œê·¸ ì •ë³´ì— ì¥ë¹„ ì•„ì´í”¼ë¥¼ ë³´ì´ë„ë¡ ìˆ˜ì •
+                                    //System.Diagnostics.Debug.WriteLine("ì‚¬ìš©ê°€ëŠ¥í•œ Daemon ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
 
-                                    // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
+                                    // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
                                     TerminalStatus = E_TerminalStatus.Disconnected;
-                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
                                     break;
                                 }
                                 else if (m_Result.Error.Error != E_ErrorType.NoError || m_Result.ResultData == null)
                                 {
-                                    // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-                                    // 2013-05-02 - shinyn - »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ÀÖ´ÂÁö ·Î±× Á¤º¸¿¡ Àåºñ ¾ÆÀÌÇÇ¸¦ º¸ÀÌµµ·Ï ¼öÁ¤
+                                    // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+                                    // 2013-05-02 - shinyn - ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ìˆëŠ”ì§€ ë¡œê·¸ ì •ë³´ì— ì¥ë¹„ ì•„ì´í”¼ë¥¼ ë³´ì´ë„ë¡ ìˆ˜ì •
                                     TerminalStatus = E_TerminalStatus.Disconnected;
-                                    //System.Diagnostics.Debug.WriteLine("»ç¿ë°¡´ÉÇÑ Daemon Á¤º¸°¡ ¾ø½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
-                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                                    //System.Diagnostics.Debug.WriteLine("ì‚¬ìš©ê°€ëŠ¥í•œ Daemon ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
+                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
                                     break;
                                 }
 
@@ -6272,10 +6272,10 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                                 if (tDaemonProcessInfo == null)
                                 {
                                     TerminalStatus = E_TerminalStatus.Disconnected;
-                                    // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-                                    // 2013-05-02 - shinyn - »ç¿ë°¡´ÉÇÑ DaemonÁ¤º¸°¡ ÀÖ´ÂÁö ·Î±× Á¤º¸¿¡ Àåºñ ¾ÆÀÌÇÇ¸¦ º¸ÀÌµµ·Ï ¼öÁ¤
-                                    //System.Diagnostics.Debug.WriteLine("»ç¿ë°¡´ÉÇÑ Daemon Á¤º¸°¡ ¾ø½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
-                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù. + IP : " + m_DeviceInfo.IPAddress);
+                                    // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+                                    // 2013-05-02 - shinyn - ì‚¬ìš©ê°€ëŠ¥í•œ Daemonì •ë³´ê°€ ìˆëŠ”ì§€ ë¡œê·¸ ì •ë³´ì— ì¥ë¹„ ì•„ì´í”¼ë¥¼ ë³´ì´ë„ë¡ ìˆ˜ì •
+                                    //System.Diagnostics.Debug.WriteLine("ì‚¬ìš©ê°€ëŠ¥í•œ Daemon ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
+                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. + IP : " + m_DeviceInfo.IPAddress);
                                     break;
                                 }
                             }
@@ -6297,7 +6297,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                                 if (ConnectionMode == 3)
                                 {
                                     TerminalStatus = E_TerminalStatus.Disconnected;
-                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "Daemon(ÅÍ³Î¸µ) ¶Ç´Â Àåºñ ¿¬°á¿¡ ½ÇÆĞ Çß½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "Daemon(í„°ë„ë§) ë˜ëŠ” ì¥ë¹„ ì—°ê²°ì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
                                     break;
                                 }
 
@@ -6330,8 +6330,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸
                     {
                         m_ConnectionType = ConnectionTypes.RemoteTelnet;
                         List<int> tDisconnectDaemonList = new List<int>();
@@ -6340,7 +6340,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         {
                             if (m_DaemonProcessInfo == null)
                             {
-                                AppGlobal.s_FileLogProcessor.PrintLog("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.");
+                                AppGlobal.s_FileLogProcessor.PrintLog("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.");
 
                                 UseableDaemonRequestInfo tDaemonRequestInfo = new UseableDaemonRequestInfo(AppGlobal.s_LoginResult.ClientID, tDisconnectDaemonList);
                                 RequestCommunicationData tRequestData = null;
@@ -6355,21 +6355,21 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                                 m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
                                 if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError || m_Result.ResultData == null)
                                 {
-                                    // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-                                    //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                    MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                                    // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+                                    //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
 									TerminalStatus = E_TerminalStatus.Disconnected;
-                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                                     break;
                                 }
                                 tDaemonProcessInfo = m_Result.ResultData as DaemonProcessInfo;
                                 if (tDaemonProcessInfo == null)
                                 {
                                     TerminalStatus = E_TerminalStatus.Disconnected;
-                                    // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-                                    //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                    MessageBox.Show("»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "»ç¿ë °¡´ÉÇÑ Daemon Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                                    // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+                                    //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    MessageBox.Show("ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+                                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ì‚¬ìš© ê°€ëŠ¥í•œ Daemon ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                                     break;
                                 }
                             }
@@ -6398,7 +6398,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         tCommandInfo.Sender = this;
                         tCommandInfo.DeviceInfo = m_DeviceInfo;
 
-                        // 2013-01-28 - shinyn - SSHÀÎ°æ¿ì ¾ÆÀÌµğ¿Í ºñ¹Ğ¹øÈ£°¡ ÀÖ¾î¾ß ÇÏ¹Ç·Î ³Ö¾îÁÜ
+                        // 2013-01-28 - shinyn - SSHì¸ê²½ìš° ì•„ì´ë””ì™€ ë¹„ë°€ë²ˆí˜¸ê°€ ìˆì–´ì•¼ í•˜ë¯€ë¡œ ë„£ì–´ì¤Œ
                         if (AppGlobal.s_ClientOption.IsUseTerminalAutoLogin == true)
                         {
                             tCommandInfo.DeviceInfo.TelnetID1 = m_DeviceInfo.TerminalConnectInfo.ID;
@@ -6422,9 +6422,9 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     if (!AppGlobal.s_SerialProcessor.ConnectDevice(this, m_DeviceInfo.TerminalConnectInfo.SerialConfig))
                     {
                         TerminalStatus = E_TerminalStatus.Disconnected;
-                        // 2013-04-26- shinyn- Å©·Î½º ½º·¹µå ¿¡·¯³ª´Â ºÎºĞ ¼öÁ¤
-                        //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " À» »ç¿ë ÇÒ ¼ö ¾ø½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        MessageBox.Show(m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " À» »ç¿ë ÇÒ ¼ö ¾ø½À´Ï´Ù.");
+                        // 2013-04-26- shinyn- í¬ë¡œìŠ¤ ìŠ¤ë ˆë“œ ì—ëŸ¬ë‚˜ëŠ” ë¶€ë¶„ ìˆ˜ì •
+                        //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " ì„ ì‚¬ìš© í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName + " ì„ ì‚¬ìš© í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
                         // return false;
                     }
                     else
@@ -6432,7 +6432,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         TerminalStatus = E_TerminalStatus.Connection;
 						// 2019-11-10 ???? (OneTerminal ??? ?? ??UI ??)
                         if (ProgreBarHandlerEvent!= null)
-                            ProgreBarHandlerEvent("µğ¹ÙÀÌ½º¿¡ ¿¬°á µÇ¾ú½À´Ï´Ù.", eProgressItemType.Standard, false);
+                            ProgreBarHandlerEvent("ë””ë°”ì´ìŠ¤ì— ì—°ê²° ë˜ì—ˆìŠµë‹ˆë‹¤.", eProgressItemType.Standard, false);
                         m_IsConnected = true;
                     }
                 }
@@ -6447,7 +6447,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         private int m_TelnetDaemonID = -1;
         /// <summary>
-        /// ÇÒ´çµÈ µ¥¸ó¿¡ Á¢¼ÓÀ» ÇÕ´Ï´Ù.
+        /// í• ë‹¹ëœ ë°ëª¬ì— ì ‘ì†ì„ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aDaemonProcessInfo"></param>
         /// <returns></returns>
@@ -6463,7 +6463,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             {
                 m_DaemonProcessRemoteObject = AppGlobal.s_DaemonProcessList[aDaemonProcessInfo.DaemonID];
 
-                // 2013-07-26 - ÀÌ¹Ì ¿¬°áµÈ µ¥¸óÀ» °¡Á®¿ÔÀ»°æ¿ì »óÅÂ Ã¼Å©¸¦ ÇÏ¿© Àç¿¬°á ÇÏµµ·Ï ÇÑ´Ù.
+                // 2013-07-26 - ì´ë¯¸ ì—°ê²°ëœ ë°ëª¬ì„ ê°€ì ¸ì™”ì„ê²½ìš° ìƒíƒœ ì²´í¬ë¥¼ í•˜ì—¬ ì¬ì—°ê²° í•˜ë„ë¡ í•œë‹¤.
                 //  m_DaemonProcessRemoteObject.OnDisconnectDaemon += new DefaultHandler(m_DaemonProcessRemoteObject_OnDisconnectDaemon);
             }
             else
@@ -6509,7 +6509,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                 if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
                 {
-                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, m_DeviceInfo.IPAddress + " Àåºñ¿¡ Á¢¼Ó ÇÒ ¼ö ¾ø½À´Ï´Ù. ÅÍ³Î¸µ ¿äÃ» ½ÇÆĞ");
+                    AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, m_DeviceInfo.IPAddress + " ì¥ë¹„ì— ì ‘ì† í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. í„°ë„ë§ ìš”ì²­ ì‹¤íŒ¨");
                     if (m_Result != null)
                         AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, m_DeviceInfo.IPAddress + " ErrorString = " + m_Result.Error.ErrorString );
                     return false;
@@ -6547,12 +6547,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             m_MRE.WaitOne(AppGlobal.s_RequestTimeOut);
             if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, tCommandInfo.DeviceInfo.IPAddress + " Àåºñ¿¡ Á¢¼Ó ÇÒ ¼ö ¾ø½À´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, tCommandInfo.DeviceInfo.IPAddress + " ì¥ë¹„ì— ì ‘ì† í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
                 if (ConnectionMode != 3)
                 {
                     if (AppGlobal.IsRpcsDevice(m_DeviceInfo.ModelID))
                     {
-                        if (MessageBox.Show("À¯¼± Á¢¼ÓÀÌ ½ÇÆĞ ÇÏ¿´½À´Ï´Ù. ¹«¼± Á¢¼Ó ÇÏ½Ã°Ú½À´Ï±î? \r\nRPCS(¹«¼±) Àåºñ Á¢¼Ó½Ã LTE¸Á °ú±İÀÌ ¹ß»ıÇÕ´Ï´Ù.\r\nÁ¢¼Ó ÇÏ½Ã°Ú½À´Ï±î?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        if (MessageBox.Show("ìœ ì„  ì ‘ì†ì´ ì‹¤íŒ¨ í•˜ì˜€ìŠµë‹ˆë‹¤. ë¬´ì„  ì ‘ì† í•˜ì‹œê² ìŠµë‹ˆê¹Œ? \r\nRPCS(ë¬´ì„ ) ì¥ë¹„ ì ‘ì†ì‹œ LTEë§ ê³¼ê¸ˆì´ ë°œìƒí•©ë‹ˆë‹¤.\r\nì ‘ì† í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
                         {
                             IsChangeMode = true;
                             //ConnectionMode = 3;
@@ -6573,7 +6573,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         if (tTelnetCommandResultInfo.ReslutType == E_TelnetReslutType.DisConnected)
                         {
 
-                            if (MessageBox.Show("À¯¼± Á¢¼ÓÀÌ ½ÇÆĞ ÇÏ¿´½À´Ï´Ù. ¹«¼± Á¢¼Ó ÇÏ½Ã°Ú½À´Ï±î? \r\nRPCS(¹«¼±) Àåºñ Á¢¼Ó½Ã LTE¸Á °ú±İÀÌ ¹ß»ıÇÕ´Ï´Ù.\r\nÁ¢¼Ó ÇÏ½Ã°Ú½À´Ï±î?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                            if (MessageBox.Show("ìœ ì„  ì ‘ì†ì´ ì‹¤íŒ¨ í•˜ì˜€ìŠµë‹ˆë‹¤. ë¬´ì„  ì ‘ì† í•˜ì‹œê² ìŠµë‹ˆê¹Œ? \r\nRPCS(ë¬´ì„ ) ì¥ë¹„ ì ‘ì†ì‹œ LTEë§ ê³¼ê¸ˆì´ ë°œìƒí•©ë‹ˆë‹¤.\r\nì ‘ì† í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
                             {
                                 IsChangeMode = true;
                                 //ConnectionMode = 3;
@@ -6591,7 +6591,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// µ¥¸óÀÌ¶û ¿¬°á Á¾·á µÇ¾úÀ»¶§ Ã³¸® ÀÔ´Ï´Ù.
+        /// ë°ëª¬ì´ë‘ ì—°ê²° ì¢…ë£Œ ë˜ì—ˆì„ë•Œ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         void m_DaemonProcessRemoteObject_OnDisconnectDaemon()
         {
@@ -6602,7 +6602,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// Á¢¼Ó ¼¼¼Ç ID ÀÔ´Ï´Ù.
+        /// ì ‘ì† ì„¸ì…˜ ID ì…ë‹ˆë‹¤.
         /// </summary>
         private int m_ConnectedSessionID = 0;
 
@@ -6614,13 +6614,13 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// °á°ú¸¦ Ç¥½Ã ÇÕ´Ï´Ù.
+        /// ê²°ê³¼ë¥¼ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aResult"></param>
         public override void DisplayResult(ResultCommunicationData aResult)
         {
 
-            //°á°úÇ¥½Ã
+            //ê²°ê³¼í‘œì‹œ
             //if (aResult == null) return;
 
             if (this.InvokeRequired)
@@ -6629,7 +6629,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 return;
             }
 
-            DisplayScrollLast(m_ScrollbackBuffer.Count - (m_Rows -1));// ½ºÅ©·Ñ ¾÷´Ù¿î½Ã ÀÔ·Â°ª Ã¹ ¹®ÀÚ ´©¶ôµÇ´Â Çö»ó 
+            DisplayScrollLast(m_ScrollbackBuffer.Count - (m_Rows -1));// ìŠ¤í¬ë¡¤ ì—…ë‹¤ìš´ì‹œ ì…ë ¥ê°’ ì²« ë¬¸ì ëˆ„ë½ë˜ëŠ” í˜„ìƒ 
             TelnetCommandResultInfo tTelnetResultInfo = (TelnetCommandResultInfo)aResult;
             if (tTelnetResultInfo.SessionID != 0)
             {
@@ -6648,7 +6648,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         TerminalStatus = E_TerminalStatus.Connection;
 						// 2019-11-10 ???? (OneTerminal ??? ?? ??UI ??)
                         if (ProgreBarHandlerEvent != null)
-                            ProgreBarHandlerEvent("µğ¹ÙÀÌ½º¿¡ ¿¬°á µÇ¾ú½À´Ï´Ù.", eProgressItemType.Standard, false);
+                            ProgreBarHandlerEvent("ë””ë°”ì´ìŠ¤ì— ì—°ê²° ë˜ì—ˆìŠµë‹ˆë‹¤.", eProgressItemType.Standard, false);
                     }
 
                 }
@@ -6661,7 +6661,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             else
             {
-                // ¹ŞÀº ¹®ÀÚ¿­ÀÌ ¸¹ÀÌ ¿À´Â °æ¿ì ¸ØÃç¹ö¸®´Â ¿À·ù ¼öÁ¤
+                // ë°›ì€ ë¬¸ìì—´ì´ ë§ì´ ì˜¤ëŠ” ê²½ìš° ë©ˆì¶°ë²„ë¦¬ëŠ” ì˜¤ë¥˜ ìˆ˜ì •
                 // Thread.Sleep(20);
                 
                 OnReceivedData(aResult.ResultData.ToString());
@@ -6676,18 +6676,18 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
 
                 //System.Diagnostics.Debug.WriteLine("ResultString : " + aResult.ResultData.ToString());                
-                // 2015-04-16 - ½ÅÀ±³² - ÅÍ¹Ì³Î ·Î±×¸¦ ÀúÀåÇÕ´Ï´Ù.
+                // 2015-04-16 - ì‹ ìœ¤ë‚¨ - í„°ë¯¸ë„ ë¡œê·¸ë¥¼ ì €ì¥í•©ë‹ˆë‹¤.
                 
-                // Gunny ·Î±× º¯°æ½Ã ÂüÁ¶ -
+                // Gunny ë¡œê·¸ ë³€ê²½ì‹œ ì°¸ì¡° -
                 if (m_TerminalLog != null)
                 {
                    m_TerminalLog.Log(aResult.ResultData.ToString());
                 }
 
-                // 2013-08-08 - shinyn -  More String ¿Â°æ¿ì SPACE½ºÅ©¸³Æ® ½ÇÇà
-                // ¸ğµ¨º°·Î -- More -- Ã³¸®ÇÏ´Â ¸®½ºÆ® ¹Ş¾Æ¼­ Ã³¸®ÇÏ±â.
+                // 2013-08-08 - shinyn -  More String ì˜¨ê²½ìš° SPACEìŠ¤í¬ë¦½íŠ¸ ì‹¤í–‰
+                // ëª¨ë¸ë³„ë¡œ -- More -- ì²˜ë¦¬í•˜ëŠ” ë¦¬ìŠ¤íŠ¸ ë°›ì•„ì„œ ì²˜ë¦¬í•˜ê¸°.
 
-                // Å¬¶óÀÌ¾ğÆ® ¿É¼Ç¿¡ MoreString ÀÚµ¿½ºÅ©·Ñ »ç¿ëÀÎ°æ¿ì¿¡¸¸ ½ÇÇà
+                // í´ë¼ì´ì–¸íŠ¸ ì˜µì…˜ì— MoreString ìë™ìŠ¤í¬ë¡¤ ì‚¬ìš©ì¸ê²½ìš°ì—ë§Œ ì‹¤í–‰
                 if (AppGlobal.s_ClientOption.IsUseTerminalAutoMoreString == true)
                 {
                     string tMoreString = "";
@@ -6700,7 +6700,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     }
                     else
                     {
-                        // ¸ğµ¨¸®½ºÆ®¿¡ ¸ğµ¨ÀÌ ÀÖ´Â°æ¿ì
+                        // ëª¨ë¸ë¦¬ìŠ¤íŠ¸ì— ëª¨ë¸ì´ ìˆëŠ”ê²½ìš°
                         if (AppGlobal.s_ModelInfoList.Contains(m_DeviceInfo.ModelID))
                         {
                             ModelInfo tModelInfo = AppGlobal.s_ModelInfoList[m_DeviceInfo.ModelID];
@@ -6710,7 +6710,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         }
                     }
 
-                    // More¹®ÀÚ¿Í MoreMark°¡ ÀÖ¾î¾ß¸¸ ÀÚµ¿½ºÅ©·ÑµÇµµ·Ï ÇÑ´Ù.
+                    // Moreë¬¸ìì™€ MoreMarkê°€ ìˆì–´ì•¼ë§Œ ìë™ìŠ¤í¬ë¡¤ë˜ë„ë¡ í•œë‹¤.
                     if (tMoreString != "" && tMoreMark != "")
                     {
 
@@ -6765,7 +6765,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 {
                     
                     //if (aResult.ResultData.ToString().Length > 1)
-                    //2016-01-20 ¼­¿µÀÀ ÀÚµ¿ ÀúÀå ±â´É Ã¼Å©ÇÏ´Â ºÎºĞ º¯°æ (¿£ÅÍ¸¦ Ã¼Å©ÇÏ¿© ¿£ÅÍ°ªÀÌ ÀÖÀ» °æ¿ì¿¡¸¸ ÀÚµ¿ ÀúÀå)
+                    //2016-01-20 ì„œì˜ì‘ ìë™ ì €ì¥ ê¸°ëŠ¥ ì²´í¬í•˜ëŠ” ë¶€ë¶„ ë³€ê²½ (ì—”í„°ë¥¼ ì²´í¬í•˜ì—¬ ì—”í„°ê°’ì´ ìˆì„ ê²½ìš°ì—ë§Œ ìë™ ì €ì¥)
                     int nEnterCheck = aResult.ResultData.ToString().IndexOf("\n");
 
                     if(nEnterCheck >= 0)
@@ -6808,7 +6808,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                }
         }
         /// <summary>
-        /// »óÅÂ¿¡ µû¸¥ ¾ÆÀÌÄÜÀ» º¯°æ ÇÕ´Ï´Ù.
+        /// ìƒíƒœì— ë”°ë¥¸ ì•„ì´ì½˜ì„ ë³€ê²½ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ChangeStatusIcon()
         {
@@ -6849,7 +6849,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         }
                         else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                         {
-                            // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                            // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                             //if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered)
                             //{
                             if (m_DaemonProcessRemoteObject != null && m_DaemonProcessRemoteObject.IsDaemonConnected)
@@ -6876,18 +6876,18 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             }
                             //}
                         }
-                        SaveDeviceLog("¿¬°á Á¾·á Çß½À´Ï´Ù.");
+                        SaveDeviceLog("ì—°ê²° ì¢…ë£Œ í–ˆìŠµë‹ˆë‹¤.");
                         if(ProgreBarHandlerEvent != null)
-                            ProgreBarHandlerEvent("µğ¹ÙÀÌ½º¿¡ ¿¬°á Á¾·á µÇ¾ú½À´Ï´Ù.", eProgressItemType.Standard, true);
+                            ProgreBarHandlerEvent("ë””ë°”ì´ìŠ¤ì— ì—°ê²° ì¢…ë£Œ ë˜ì—ˆìŠµë‹ˆë‹¤.", eProgressItemType.Standard, true);
 
-                        // 2014-10-14 - ½ÅÀ±³² - ÅÍ¹Ì³ÎÃ¢ ´İÀ» °æ¿ì ÅÍ¹Ì³Î¸®½ºÆ®¿¡¼­ »èÁ¦ÇÏµµ·Ï Ã³¸®ÇÕ´Ï´Ù.
+                        // 2014-10-14 - ì‹ ìœ¤ë‚¨ - í„°ë¯¸ë„ì°½ ë‹«ì„ ê²½ìš° í„°ë¯¸ë„ë¦¬ìŠ¤íŠ¸ì—ì„œ ì‚­ì œí•˜ë„ë¡ ì²˜ë¦¬í•©ë‹ˆë‹¤.
                         if (AppGlobal.m_TerminalPanel != null)
                         {
                             AppGlobal.m_TerminalPanel.tEmulator_OnTerminalStatusChange(this, E_TerminalStatus.Disconnected);
                         }
                         
 
-                        // 2014-07-03 - ½ÅÀ±³² - ¿øÅÍ¹Ì³Î¿¡¼­ ¿¬°á²÷±â¸é, Á¾·áÇÏµµ·Ï ¼öÁ¤
+                        // 2014-07-03 - ì‹ ìœ¤ë‚¨ - ì›í„°ë¯¸ë„ì—ì„œ ì—°ê²°ëŠê¸°ë©´, ì¢…ë£Œí•˜ë„ë¡ ìˆ˜ì •
                         if (m_TerminalMode == E_TerminalMode.QuickClient &&
                             AppGlobal.s_ClientOption.IsUseTerminalClose == true)
                         {
@@ -6914,7 +6914,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             if (AppGlobal.s_ClientOption.IsUseTerminalClose == true)
                             {
                                 //SuperTabControlPanel tabPrent = ((SuperTabControlPanel)this.Parent);
-                                // 2014-08-19 - ½ÅÀ±³² - Á¾·á Å¬¸¯½Ã¿¡´Â »óÀ§ Parent¸¦ Á¾·áÇÏ¸é Client±îÁö Á¾·áµÇ¹Ç·Î Á¾·áµÇÁö ¾Êµµ·Ï ÇÑ´Ù.
+                                // 2014-08-19 - ì‹ ìœ¤ë‚¨ - ì¢…ë£Œ í´ë¦­ì‹œì—ëŠ” ìƒìœ„ Parentë¥¼ ì¢…ë£Œí•˜ë©´ Clientê¹Œì§€ ì¢…ë£Œë˜ë¯€ë¡œ ì¢…ë£Œë˜ì§€ ì•Šë„ë¡ í•œë‹¤.
                                 if (this.Tag != "TabItemClose")
                                 {
                                     //AppGlobal.m_TerminalPanel.EmulatorList.RemoveAt(
@@ -6955,7 +6955,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         }
                         break;
                     case E_TerminalStatus.Connection:
-                        SaveDeviceLog("¿¬°á Çß½À´Ï´Ù.");
+                        SaveDeviceLog("ì—°ê²° í–ˆìŠµë‹ˆë‹¤.");
                         mnuStopScript.Enabled = false;
                         if (Parent == null) return;
                         if (m_TerminalMode != E_TerminalMode.RACTClient) return;
@@ -6966,7 +6966,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         m_IsConnected = true;
                         break;
                     case E_TerminalStatus.RunScript:
-                        SaveDeviceLog("½ºÅ©¸³Æ® ½ÇÇà ÇÕ´Ï´Ù.");
+                        SaveDeviceLog("ìŠ¤í¬ë¦½íŠ¸ ì‹¤í–‰ í•©ë‹ˆë‹¤.");
                         mnuStopScript.Enabled = true;
                         if (Parent == null) return;
                         if (m_TerminalMode != E_TerminalMode.RACTClient) return;
@@ -6976,7 +6976,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         }
                         break;
                     case E_TerminalStatus.Recording:
-                        SaveDeviceLog("½ºÅ©¸³Æ® ÀúÀå ÇÕ´Ï´Ù.");
+                        SaveDeviceLog("ìŠ¤í¬ë¦½íŠ¸ ì €ì¥ í•©ë‹ˆë‹¤.");
                         if (Parent == null) return;
                         if (m_TerminalMode != E_TerminalMode.RACTClient) return;
                         if (this.Parent is SuperTabControlPanel)
@@ -7042,7 +7042,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
             {
-                // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                 AppGlobal.s_FileLogProcessor.PrintLog(string.Concat("[Telnet] ", m_DeviceInfo.IPAddress, ":", m_DeviceInfo.TerminalConnectInfo.TelnetPort, " ", aLog));
             }
             else
@@ -7052,7 +7052,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// CaretÀ» Ç¥½Ã ÇÕ´Ï´Ù.
+        /// Caretì„ í‘œì‹œ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -7075,12 +7075,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Á¢¼Ó Á¾·á ÇÕ´Ï´Ù.
+        /// ì ‘ì† ì¢…ë£Œ í•©ë‹ˆë‹¤.
         /// </summary>
         public void Disconnect()
         {
 
-            // 2015-04-16 - ½ÅÀ±³² - Terminal·Î±×¸¦ »èÁ¦ÇÕ´Ï´Ù.
+            // 2015-04-16 - ì‹ ìœ¤ë‚¨ - Terminalë¡œê·¸ë¥¼ ì‚­ì œí•©ë‹ˆë‹¤.
             try
             {
                 if (m_TerminalLog != null)
@@ -7101,7 +7101,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     case E_TerminalStatus.Recording:
                         if (!AppGlobal.s_IsProgramShutdown)
                         {
-                            if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "½ºÅ©¸³Æ® ·¹ÄÚµùÀ» Ãë¼Ò ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                            if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ìŠ¤í¬ë¦½íŠ¸ ë ˆì½”ë”©ì„ ì·¨ì†Œ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                             {
                                 return;
                             }
@@ -7110,7 +7110,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     case E_TerminalStatus.RunScript:
                         if (!AppGlobal.s_IsProgramShutdown)
                         {
-                            if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "½ÇÇàÁßÀÎ ½ºÅ©¸³Æ® Ãë¼Ò ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                            if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì‹¤í–‰ì¤‘ì¸ ìŠ¤í¬ë¦½íŠ¸ ì·¨ì†Œ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                             {
                                 return;
                             }
@@ -7122,7 +7122,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                 if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
                 {
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸
                     {
                         DisconnectDaemonTelnetSession();
                     }
@@ -7133,7 +7133,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                     if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )//&& m_DeviceInfo.IsRegistered)
                     {
                         DisconnectDaemonTelnetSession();
@@ -7160,7 +7160,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// ·ÎÄÃ ÅÚ³İ ÇÁ·Î¼¼¼­¸¦ Á¾·á ÇÕ´Ï´Ù.
+        /// ë¡œì»¬ í…”ë„· í”„ë¡œì„¸ì„œë¥¼ ì¢…ë£Œ í•©ë‹ˆë‹¤.
         /// </summary>
         private void DisconnectLocalTelnetSession()
         {
@@ -7178,7 +7178,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             AppGlobal.s_TelnetProcessor.ExecuteCommand(tRequestData);
         }
         /// <summary>
-        /// µ¥¸ó¿¡ ¿¬°áµÈ ¼¼¼ÇÀ» Á¾·á ÇÕ´Ï´Ù.
+        /// ë°ëª¬ì— ì—°ê²°ëœ ì„¸ì…˜ì„ ì¢…ë£Œ í•©ë‹ˆë‹¤.
         /// </summary>
         private void DisconnectDaemonTelnetSession()
         {
@@ -7230,24 +7230,24 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ¿É¼Ç Á¤º¸¸¦ Àû¿ë ÇÕ´Ï´Ù.
+        /// ì˜µì…˜ ì •ë³´ë¥¼ ì ìš© í•©ë‹ˆë‹¤.
         /// </summary>
         internal void ApplyOption()
         {
 			// 2019-11-10 ???? (?? ?? ?? ?? ?? ??)
-            if (m_DeviceInfo.DevicePartCode == 1 || /* Áı¼±½ºÀ§Ä¡ */
+            if (m_DeviceInfo.DevicePartCode == 1 || /* ì§‘ì„ ìŠ¤ìœ„ì¹˜ */
                 m_DeviceInfo.DevicePartCode == 6 || /* G-PON-OLT */
                 m_DeviceInfo.DevicePartCode == 31 /* NG-PON-OLT */ )
             {
                 m_FGColor = AppGlobal.s_ClientOption.HighlightFontColor;
                 this.BackColor = AppGlobal.s_ClientOption.HighlightBackGroundColor;
                 string tTempFont = AppGlobal.s_ClientOption.HighlightFontName;
-                if (tTempFont.Equals("±¼¸²")
-                    || tTempFont.Equals("µ¸¿ò")
-                    || tTempFont.Equals("±Ã¼­")
-                    || tTempFont.Equals("¹ÙÅÁ"))
+                if (tTempFont.Equals("êµ´ë¦¼")
+                    || tTempFont.Equals("ë‹ì›€")
+                    || tTempFont.Equals("ê¶ì„œ")
+                    || tTempFont.Equals("ë°”íƒ•"))
                 {
-                    tTempFont += "Ã¼";
+                    tTempFont += "ì²´";
                 }
 
                 this.Font = new Font(tTempFont, AppGlobal.s_ClientOption.HighlightFontSize, AppGlobal.s_ClientOption.HighlightFontStyle, GraphicsUnit.Point, ((byte)(0)));
@@ -7257,17 +7257,17 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 m_FGColor = AppGlobal.s_ClientOption.TerminalFontColor;
                 this.BackColor = AppGlobal.s_ClientOption.TerminalBackGroundColor;
                 string tTempFont = AppGlobal.s_ClientOption.TerminalFontName;
-                if (tTempFont.Equals("±¼¸²")
-                    || tTempFont.Equals("µ¸¿ò")
-                    || tTempFont.Equals("±Ã¼­")
-                    || tTempFont.Equals("¹ÙÅÁ"))
+                if (tTempFont.Equals("êµ´ë¦¼")
+                    || tTempFont.Equals("ë‹ì›€")
+                    || tTempFont.Equals("ê¶ì„œ")
+                    || tTempFont.Equals("ë°”íƒ•"))
                 {
-                    tTempFont += "Ã¼";
+                    tTempFont += "ì²´";
                 }
 
                 this.Font = new Font(tTempFont, AppGlobal.s_ClientOption.TerminalFontSize, AppGlobal.s_ClientOption.TerminalFontStyle, GraphicsUnit.Point, ((byte)(0)));
             }
-            //2014-08-19 - ½ÅÀ±³² -  nullÀÎ°æ¿ì¿¡´Â FontInfo¸¦ °¡Á®¿À¸é ¿À·ù ¹ß»ıÇÏ¿© ¾ø¾Ø´Ù.
+            //2014-08-19 - ì‹ ìœ¤ë‚¨ -  nullì¸ê²½ìš°ì—ëŠ” FontInfoë¥¼ ê°€ì ¸ì˜¤ë©´ ì˜¤ë¥˜ ë°œìƒí•˜ì—¬ ì—†ì•¤ë‹¤.
             if (this.components != null)
             {
                 GetFontInfo();
@@ -7284,7 +7284,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ½ºÅ©¸³Æ® ÀÛ¾÷À» Ã³¸® ÇÕ´Ï´Ù. 
+        /// ìŠ¤í¬ë¦½íŠ¸ ì‘ì—…ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤. 
         /// </summary>
         /// <param name="aScriptWorkType"></param>
         internal void ScriptWork(E_ScriptWorkType aScriptWorkType)
@@ -7328,11 +7328,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         }
         /// <summary>
-        /// ÇÁ·ÒÇÁÆ® ÀÔ´Ï´Ù.
+        /// í”„ë¡¬í”„íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private string m_Prompt = "";
         /// <summary>
-        /// ¸í·ÉÀ» ÀúÀå ÇÕ´Ï´Ù.
+        /// ëª…ë ¹ì„ ì €ì¥ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SaveCommandLog(bool isLimitCmd)
         {
@@ -7363,7 +7363,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ºÙ¿©³Ö±âÇÑ ¸í·ÉÀ» ÀúÀå ÇÕ´Ï´Ù.
+        /// ë¶™ì—¬ë„£ê¸°í•œ ëª…ë ¹ì„ ì €ì¥ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SavePasteCommandLog(bool isLimitCmd, String Cmd)
         {
@@ -7378,7 +7378,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ·Î±× Á¤º¸ ÀÔ´Ï´Ù.
+        /// ë¡œê·¸ ì •ë³´ ì…ë‹ˆë‹¤.
         /// </summary>
         DBExecuteCommandLogInfo m_CommandLogInfo;
         internal void CheckPrompt()
@@ -7401,7 +7401,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             if (tTempString.Length == 0) return;
             
 
-            //2016-04-01 ¼­¿µÀÀ ¸í·É ÇÁ·ÒÇÁÆ®¿¡ ½ºÆäÀÌ½º°¡ ¾ø´Â °æ¿ì¿¡ Á¤»ó µ¿ÀÛÀÌ ¾ÈµÇ¾î¼­ ½ºÆäÀÌ½º¸¦ °­Á¦·Î ³Ö¾îÁÖ´Â ºÎºĞ Á¦°Å
+            //2016-04-01 ì„œì˜ì‘ ëª…ë ¹ í”„ë¡¬í”„íŠ¸ì— ìŠ¤í˜ì´ìŠ¤ê°€ ì—†ëŠ” ê²½ìš°ì— ì •ìƒ ë™ì‘ì´ ì•ˆë˜ì–´ì„œ ìŠ¤í˜ì´ìŠ¤ë¥¼ ê°•ì œë¡œ ë„£ì–´ì£¼ëŠ” ë¶€ë¶„ ì œê±°
             //m_Prompt = tTempString.TrimEnd()+" ";
             m_Prompt = tTempString.TrimEnd();
 
@@ -7410,7 +7410,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         }
         /// <summary>
-        /// ¼ö½Å ´ë±â ½ºÅ©¸³Æ®¸¦ ÀúÀå ÇÕ´Ï´Ù.
+        /// ìˆ˜ì‹  ëŒ€ê¸° ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì €ì¥ í•©ë‹ˆë‹¤.
         /// </summary>
         internal void SaveWaitScript()
         {
@@ -7440,14 +7440,14 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             m_IsSaveWaitScript = true;
         }
         /// <summary>
-        /// More ¹®ÀÚ¿­ ÀÔ´Ï´Ù.
+        /// More ë¬¸ìì—´ ì…ë‹ˆë‹¤.
         /// </summary>
         private string[] m_MoreStringList = new string[] { "--More--", "--more--", "(q)uit", "-- more --", "-- More --" };
 
 
 
         /// <summary>
-        /// ½ºÅ©¸³Æ®¸¦ ½ÇÇà ÇÕ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì‹¤í–‰ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aScript"></param>
         internal void RunScript(Script aScript)
@@ -7467,7 +7467,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             if (m_TerminalStatus == E_TerminalStatus.RunScript)
             {
-                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇöÀç '" + m_ScriptManager.Script.Name + "' ½ºÅ©¸³Æ®°¡ ½ÇÇà ÁßÀÔ´Ï´Ù.\n°­Á¦ Á¾·á ÈÄ ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í˜„ì¬ '" + m_ScriptManager.Script.Name + "' ìŠ¤í¬ë¦½íŠ¸ê°€ ì‹¤í–‰ ì¤‘ì…ë‹ˆë‹¤.\nê°•ì œ ì¢…ë£Œ í›„ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                 {
                     return;
                 }
@@ -7475,7 +7475,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             if (m_TerminalStatus == E_TerminalStatus.Recording)
             {
-                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇöÀç ½ºÅ©¸³Æ® ±â·Ï ½ÇÇà ÁßÀÔ´Ï´Ù.\n°­Á¦ Á¾·á ÈÄ ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í˜„ì¬ ìŠ¤í¬ë¦½íŠ¸ ê¸°ë¡ ì‹¤í–‰ ì¤‘ì…ë‹ˆë‹¤.\nê°•ì œ ì¢…ë£Œ í›„ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                 {
                     return;
                 }
@@ -7488,9 +7488,9 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             m_ScriptManager.Run();
         }
 
-        //20170818 - NoSeungPil - RCCS ·Î±×ÀÎÀÇ °æ¿ì Á¾·á½Ã °­Á¦·Î ctrl + d Àü¼Û
+        //20170818 - NoSeungPil - RCCS ë¡œê·¸ì¸ì˜ ê²½ìš° ì¢…ë£Œì‹œ ê°•ì œë¡œ ctrl + d ì „ì†¡
         /// <summary>
-        /// ½ºÅ©¸³Æ®¸¦ ½ÇÇà ÇÕ´Ï´Ù.
+        /// ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì‹¤í–‰ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aScript"></param>
         public void RunScriptRCCS(Script aScript)
@@ -7510,7 +7510,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             if (m_TerminalStatus == E_TerminalStatus.RunScript)
             {
-                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇöÀç '" + m_ScriptManager.Script.Name + "' ½ºÅ©¸³Æ®°¡ ½ÇÇà ÁßÀÔ´Ï´Ù.\n°­Á¦ Á¾·á ÈÄ ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í˜„ì¬ '" + m_ScriptManager.Script.Name + "' ìŠ¤í¬ë¦½íŠ¸ê°€ ì‹¤í–‰ ì¤‘ì…ë‹ˆë‹¤.\nê°•ì œ ì¢…ë£Œ í›„ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                 {
                     return;
                 }
@@ -7518,7 +7518,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
             if (m_TerminalStatus == E_TerminalStatus.Recording)
             {
-                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ÇöÀç ½ºÅ©¸³Æ® ±â·Ï ½ÇÇà ÁßÀÔ´Ï´Ù.\n°­Á¦ Á¾·á ÈÄ ½ÇÇàÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í˜„ì¬ ìŠ¤í¬ë¦½íŠ¸ ê¸°ë¡ ì‹¤í–‰ ì¤‘ì…ë‹ˆë‹¤.\nê°•ì œ ì¢…ë£Œ í›„ ì‹¤í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                 {
                     return;
                 }
@@ -7533,7 +7533,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ÅÍ¹Ì³Î »óÅÂ °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ ìƒíƒœ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public E_TerminalStatus TerminalStatus
         {
@@ -7552,11 +7552,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
         }
         /// <summary>
-        /// ÀÚµ¿ ·Î±×ÀÎ ¸í·É¼¼Æ® ÀÔ´Ï´Ù.
+        /// ìë™ ë¡œê·¸ì¸ ëª…ë ¹ì„¸íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private FACT_DefaultConnectionCommandSet m_ConnectionCommandSet;
         /// <summary>
-        /// ÀÚµ¿ ·Î±×ÀÎ ¸í·É¼¼Æ®¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ìë™ ë¡œê·¸ì¸ ëª…ë ¹ì„¸íŠ¸ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public FACT_DefaultConnectionCommandSet ConnectioncommandSet
         {
@@ -7564,12 +7564,12 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ·Î±×ÀÎ ÁßÀÎÁö ÆÄ¾Ç
+        /// ë¡œê·¸ì¸ ì¤‘ì¸ì§€ íŒŒì•…
         /// </summary>
         private bool m_NowLogin;
 
         /// <summary>
-        /// ·Î±×ÀÎ ÁßÀÎÁö ÆÄ¾Ç
+        /// ë¡œê·¸ì¸ ì¤‘ì¸ì§€ íŒŒì•…
         /// </summary>
         public bool NowLogin
         {
@@ -7579,7 +7579,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ÀÚµ¿ ·Î±×ÀÎ Ã³¸® ½ÃÀÛ ÇÕ´Ï´Ù.
+        /// ìë™ ë¡œê·¸ì¸ ì²˜ë¦¬ ì‹œì‘ í•©ë‹ˆë‹¤.
         /// </summary>
         private void StartLoginProcess()
         {
@@ -7587,19 +7587,19 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             {
                 if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.TELNET)
                 {
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered && m_ConnectionCommandSet == null) //ÀÚµ¿ ·Î±×ÀÎ µ¿ÀÛ¿¡¼­´Â µî·Ï¿©ºÎ À¯Áö
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered && m_ConnectionCommandSet == null) //ìë™ ë¡œê·¸ì¸ ë™ì‘ì—ì„œëŠ” ë“±ë¡ì—¬ë¶€ ìœ ì§€
                     {
-                        AppGlobal.s_FileLogProcessor.PrintLog("±âº» Á¢¼Ó Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.");
+                        AppGlobal.s_FileLogProcessor.PrintLog("ê¸°ë³¸ ì ‘ì† ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.");
 
                         RequestCommunicationData tRequestData = null;
 
                         tRequestData = AppGlobal.MakeDefaultRequestData();
                         tRequestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
-                        //2013-05-02- shinyn - ¼öµ¿ÀåºñÀÎ °æ¿ì ±âº»Á¢¼Ó Á¤º¸´Â DeviceInfo¿¡ ÀÖÀ¸¹Ç·Î DeviceInfo¸¦ º¸³»°í ±âº»Á¢¼Ó Á¤º¸¸¦ ·ÎµåÇÑ´Ù.
+                        //2013-05-02- shinyn - ìˆ˜ë™ì¥ë¹„ì¸ ê²½ìš° ê¸°ë³¸ì ‘ì† ì •ë³´ëŠ” DeviceInfoì— ìˆìœ¼ë¯€ë¡œ DeviceInfoë¥¼ ë³´ë‚´ê³  ê¸°ë³¸ì ‘ì† ì •ë³´ë¥¼ ë¡œë“œí•œë‹¤.
                         //tRequestData.RequestData = m_DeviceInfo.DeviceID;
                         tRequestData.RequestData = m_DeviceInfo;
 
-                        //2015-09-18 hanjiyeon Ãß°¡ - 1023 port Á¢¼Ó ½Ã ±âº»¸í·É¾î ·Îµå ÄÚµå ¼öÁ¤.
+                        //2015-09-18 hanjiyeon ì¶”ê°€ - 1023 port ì ‘ì† ì‹œ ê¸°ë³¸ëª…ë ¹ì–´ ë¡œë“œ ì½”ë“œ ìˆ˜ì •.
                         if (m_DeviceInfo.TerminalConnectInfo.TelnetPort == 1023)
                         {
                             tRequestData.UserData = "TL1";
@@ -7613,11 +7613,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                         if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
                         {
-                            // 2013-05-02 - shinyn - ±âº»Á¢¼Ó ¸í·É ·Îµå ½ÇÆĞ½Ã Àåºñ ¾ÆÀÌÇÇ ·Î±×¿¡ ÀúÀå
-                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "±âº» Á¢¼Ó ¸í·É ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            // 2013-05-02 - shinyn - ê¸°ë³¸ì ‘ì† ëª…ë ¹ ë¡œë“œ ì‹¤íŒ¨ì‹œ ì¥ë¹„ ì•„ì´í”¼ ë¡œê·¸ì— ì €ì¥
+                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             //TerminalStatus = E_TerminalStatus.Disconnected;
-                            //AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "StartLoginProcess : ±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                            //AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "StartLoginProcess : ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
                             TerminalStatus = E_TerminalStatus.Disconnected;
                             return;
                         }
@@ -7625,15 +7625,15 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         m_ConnectionCommandSet = m_Result.ResultData as FACT_DefaultConnectionCommandSet;
 
 
-                        // 2013-03-07 - shinyn - ¼öµ¿Àåºñµî·ÏÀÎ °æ¿ì ±âº»Á¢¼Ó ¸í·ÉÀº ÀÚÃ¼ÀûÀ¸·Î ¸¸µé¾î¼­ ½ºÅ©¸³Æ® ½ÇÇàÇÏµµ·Ï ÇÑ´Ù.
+                        // 2013-03-07 - shinyn - ìˆ˜ë™ì¥ë¹„ë“±ë¡ì¸ ê²½ìš° ê¸°ë³¸ì ‘ì† ëª…ë ¹ì€ ìì²´ì ìœ¼ë¡œ ë§Œë“¤ì–´ì„œ ìŠ¤í¬ë¦½íŠ¸ ì‹¤í–‰í•˜ë„ë¡ í•œë‹¤.
 
 
                         if (m_ConnectionCommandSet == null && m_ConnectionCommandSet.CommandList.Count == 0)
                         {
-                            // 2013-05-02 - shinyn - ±âº»Á¢¼Ó ¸í·É ·Îµå ½ÇÆĞ½Ã Àåºñ ¾ÆÀÌÇÇ ·Î±×¿¡ ÀúÀå
-                            // AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            // AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "StartLoginProcess : ±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù. IP : " + m_DeviceInfo.IPAddress);
+                            // 2013-05-02 - shinyn - ê¸°ë³¸ì ‘ì† ëª…ë ¹ ë¡œë“œ ì‹¤íŒ¨ì‹œ ì¥ë¹„ ì•„ì´í”¼ ë¡œê·¸ì— ì €ì¥
+                            // AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            // AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "StartLoginProcess : ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤. IP : " + m_DeviceInfo.IPAddress);
                         }
                         else
                         {
@@ -7645,7 +7645,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                             Script tLoginCommandScript = null;
 
-                            //2015-09-18 hanjiyeon Ãß°¡ - 1023 port Á¢¼Ó ½Ã Á¢¼Ó ¸Ş¼Òµå Ãß°¡ ¹× ºĞ±â Ã³¸®.
+                            //2015-09-18 hanjiyeon ì¶”ê°€ - 1023 port ì ‘ì† ì‹œ ì ‘ì† ë©”ì†Œë“œ ì¶”ê°€ ë° ë¶„ê¸° ì²˜ë¦¬.
                             if (m_DeviceInfo.TerminalConnectInfo.TelnetPort == 1023)
                             {
                                 tLoginCommandScript = ScriptGenerator.MakeDefaultConnectionCommand_TL1(m_ConnectionCommandSet, m_DeviceInfo);
@@ -7661,16 +7661,16 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
                 else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                 {
-                    // 2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ºĞ±âÃ³¸® Ãß°¡
-                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered && m_ConnectionCommandSet == null) //ÀÚµ¿ ·Î±×ÀÎ µ¿ÀÛ¿¡¼­´Â µî·Ï¿©ºÎ À¯Áö
+                    // 2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
+                    if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online && m_DeviceInfo.IsRegistered && m_ConnectionCommandSet == null) //ìë™ ë¡œê·¸ì¸ ë™ì‘ì—ì„œëŠ” ë“±ë¡ì—¬ë¶€ ìœ ì§€
                     {
-                        AppGlobal.s_FileLogProcessor.PrintLog("±âº» Á¢¼Ó Á¤º¸¸¦ ·ÎµåÇÕ´Ï´Ù.");
+                        AppGlobal.s_FileLogProcessor.PrintLog("ê¸°ë³¸ ì ‘ì† ì •ë³´ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.");
 
                         RequestCommunicationData tRequestData = null;
 
                         tRequestData = AppGlobal.MakeDefaultRequestData();
                         tRequestData.CommType = E_CommunicationType.RequestDefaultConnectionCommand;
-                        //2013-05-02- shinyn - ¼öµ¿ÀåºñÀÎ °æ¿ì ±âº»Á¢¼Ó Á¤º¸´Â DeviceInfo¿¡ ÀÖÀ¸¹Ç·Î DeviceInfo¸¦ º¸³»°í ±âº»Á¢¼Ó Á¤º¸¸¦ ·ÎµåÇÑ´Ù.
+                        //2013-05-02- shinyn - ìˆ˜ë™ì¥ë¹„ì¸ ê²½ìš° ê¸°ë³¸ì ‘ì† ì •ë³´ëŠ” DeviceInfoì— ìˆìœ¼ë¯€ë¡œ DeviceInfoë¥¼ ë³´ë‚´ê³  ê¸°ë³¸ì ‘ì† ì •ë³´ë¥¼ ë¡œë“œí•œë‹¤.
                         //tRequestData.RequestData = m_DeviceInfo.DeviceID;
                         tRequestData.RequestData = m_DeviceInfo;
                         m_Result = null;
@@ -7681,8 +7681,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                         if (m_Result == null || m_Result.Error.Error != E_ErrorType.NoError)
                         {
-                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "±âº» Á¢¼Ó ¸í·É ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                             TerminalStatus = E_TerminalStatus.Disconnected;
                             return;
                         }
@@ -7691,8 +7691,8 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
                         if (m_ConnectionCommandSet == null && m_ConnectionCommandSet.CommandList.Count == 0)
                         {
-                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "StartLoginProcess : ±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "StartLoginProcess : ±âº» Á¢¼Ó ¸í·É Á¤º¸ ·Îµå¿¡ ½ÇÆĞ Çß½À´Ï´Ù.");
+                            //AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "StartLoginProcess : ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            AppGlobal.s_FileLogProcessor.PrintLog(E_FileLogType.Warning, "StartLoginProcess : ê¸°ë³¸ ì ‘ì† ëª…ë ¹ ì •ë³´ ë¡œë“œì— ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.");
                         }
                         else
                         {
@@ -7702,7 +7702,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                             }
                             Script tLoginCommandScript = ScriptGenerator.MakeDefaultConnectionCommand(m_ConnectionCommandSet, m_DeviceInfo);
                             tLoginCommandScript.ScriptType = E_ScriptType.WaitScript;
-                            //2013-03-06 - shinyn - SSHÅÚ³İ±â´ÉÀÎ °æ¿ì ·Î±×ÀÎ ½ºÅ©¸³Æ®´Â ½ÇÇàÇÏÁö ¾Êµµ·ÏÇÑ´Ù.
+                            //2013-03-06 - shinyn - SSHí…”ë„·ê¸°ëŠ¥ì¸ ê²½ìš° ë¡œê·¸ì¸ ìŠ¤í¬ë¦½íŠ¸ëŠ” ì‹¤í–‰í•˜ì§€ ì•Šë„ë¡í•œë‹¤.
                             //RunScript(tLoginCommandScript);
                         }
                     }
@@ -7710,21 +7710,21 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             }
             catch (Exception e)
             {
-                AppGlobal.s_FileLogProcessor.PrintLog("±âº» Á¢¼Ó Á¤º¸¸¦ ·Îµå ÇÒ ¼ö ¾ø½À´Ï´Ù. Á¤º¸°¡ ¾ø°Å³ª ÀÏ½ÃÀûÀÎ ½ÇÆĞ ÀÔ´Ï´Ù.");
+                AppGlobal.s_FileLogProcessor.PrintLog("ê¸°ë³¸ ì ‘ì† ì •ë³´ë¥¼ ë¡œë“œ í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì •ë³´ê°€ ì—†ê±°ë‚˜ ì¼ì‹œì ì¸ ì‹¤íŒ¨ ì…ë‹ˆë‹¤.");
             }
             
         }
 
 
         /// <summary>
-        /// »ç¿ëÁßÀÎ Comport¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ì‚¬ìš©ì¤‘ì¸ Comportë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public string ComPort
         {
             get { return m_DeviceInfo.TerminalConnectInfo.SerialConfig.PortName; }
         }
         /// <summary>
-        /// ½Ã¸®¾ó °á°ú¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ì‹œë¦¬ì–¼ ê²°ê³¼ë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aResult"></param>
         public void DisplayResult(SerialCommandResultInfo aResult)
@@ -7747,7 +7747,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Serial Config °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// Serial Config ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public SerialConfig SerialConfig
         {
@@ -7757,7 +7757,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ÅÍ¹Ì³Î ¿¬°á Å¸ÀÔ °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ ì—°ê²° íƒ€ì… ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public E_ConnectionProtocol ConnectionProtocolType
         {
@@ -7766,7 +7766,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// °á°ú¸¦ Ã³¸® ÇÕ´Ï´Ù.
+        /// ê²°ê³¼ë¥¼ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aSessionID"></param>
         /// <param name="aResult"></param>
@@ -7778,7 +7778,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 TerminalStatus = E_TerminalStatus.Connection;
 				// 2019-11-10 ???? (OneTerminal ??? ?? ??UI ??)
                 if (ProgreBarHandlerEvent != null)
-                    ProgreBarHandlerEvent("µğ¹ÙÀÌ½º¿¡ ¿¬°á µÇ¾ú½À´Ï´Ù.", eProgressItemType.Standard, false);
+                    ProgreBarHandlerEvent("ë””ë°”ì´ìŠ¤ì— ì—°ê²° ë˜ì—ˆìŠµë‹ˆë‹¤.", eProgressItemType.Standard, false);
                 m_IsConnected = true;
             }
 
@@ -7786,7 +7786,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             m_ScriptManager.CheckWait(aResult);
         }
         /// <summary>
-        /// Àåºñ Á¢¼Ó ¿©ºÎ °¡Á®¿À°Å³ª ¼³Á¤ ÇÕ´Ï´Ù.
+        /// ì¥ë¹„ ì ‘ì† ì—¬ë¶€ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì • í•©ë‹ˆë‹¤.
         /// </summary>
         public bool IsConnected
         {
@@ -7794,7 +7794,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
             set { m_IsConnected = value; }
         }
 
-        #region ITelnetEmulator ¸â¹ö
+        #region ITelnetEmulator ë©¤ë²„
 
         public void DisplayResult(TelnetCommandResultInfo aResult)
         {
@@ -7817,7 +7817,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     TerminalStatus = E_TerminalStatus.Connection;
 					// 2019-11-10 ???? (OneTerminal ??? ?? ??UI ??)
                     if (ProgreBarHandlerEvent!= null)
-                            ProgreBarHandlerEvent("µğ¹ÙÀÌ½º¿¡ ¿¬°á µÇ¾ú½À´Ï´Ù.", eProgressItemType.Standard, false);
+                            ProgreBarHandlerEvent("ë””ë°”ì´ìŠ¤ì— ì—°ê²° ë˜ì—ˆìŠµë‹ˆë‹¤.", eProgressItemType.Standard, false);
                     m_IsConnected = true;
                 }
 
@@ -7829,7 +7829,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         #endregion
         /// <summary>
-        /// Å¬¶óÀÌ¾ğÆ® ¸ğµå º¯°æÀ» Ã³¸® ÇÕ´Ï´Ù.
+        /// í´ë¼ì´ì–¸íŠ¸ ëª¨ë“œ ë³€ê²½ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         internal void ChangeClientMode()
         {
@@ -7844,7 +7844,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ÆíÁı Ã³¸® ÇÕ´Ï´Ù.
+        /// í¸ì§‘ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aEditType"></param>
         internal void ExecTerminalScreen(E_TerminalScreenTextEditType aEditType)
@@ -7885,7 +7885,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
         }
         /// <summary>
-        /// Ã£±âÃ¢ ´İ±â Ã³¸®ÇÕ´Ï´Ù.
+        /// ì°¾ê¸°ì°½ ë‹«ê¸° ì²˜ë¦¬í•©ë‹ˆë‹¤.
         /// </summary>
         public void FindForm_Close()
         {
@@ -7903,7 +7903,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
 
 
         /// <summary>
-        /// ToolTip ¼Ó¼ºÀ» °¡Á®¿À°Å³ª ¼³Á¤ÇÕ´Ï´Ù.
+        /// ToolTip ì†ì„±ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì •í•©ë‹ˆë‹¤.
         /// </summary>
         public string ToolTip
         {
@@ -7918,7 +7918,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     }
                     else if (m_DeviceInfo.TerminalConnectInfo.ConnectionProtocol == E_ConnectionProtocol.SSHTelnet)
                     {
-                        // 2013-03-06 - shinyn - SSHÅÚ³İÀÎ°æ¿ì ºĞ±âÃ³¸® Ãß°¡
+                        // 2013-03-06 - shinyn - SSHí…”ë„·ì¸ê²½ìš° ë¶„ê¸°ì²˜ë¦¬ ì¶”ê°€
                         return m_DeviceInfo.IPAddress.Trim();
                     }
                     else
@@ -7952,7 +7952,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 if (tOpenDialog.ShowDialog(AppGlobal.s_ClientMainForm) == DialogResult.OK)
                 {
 
-                    // 2015-04-16 - ½ÅÀ±³² - ÀúÀåµÈ ÅÍ¹Ì³Î ·Î±×¸¦ ÀúÀåÇÕ´Ï´Ù.
+                    // 2015-04-16 - ì‹ ìœ¤ë‚¨ - ì €ì¥ëœ í„°ë¯¸ë„ ë¡œê·¸ë¥¼ ì €ì¥í•©ë‹ˆë‹¤.
                     string tString = "";
 
                     if (m_TerminalLog != null)
@@ -7988,7 +7988,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         File.AppendAllText(tOpenDialog.FileName, m_TextAtCursor + Environment.NewLine);
                     }
 
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "È­¸éÀ» ÆÄÀÏÀ» ÀúÀå Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í™”ë©´ì„ íŒŒì¼ì„ ì €ì¥ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     /*
                     string tString = "";
                     File.AppendAllText(tOpenDialog.FileName, "");
@@ -8015,19 +8015,19 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     }
 
                     File.AppendAllText(tOpenDialog.FileName, m_TextAtCursor + Environment.NewLine);
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "È­¸éÀ» ÆÄÀÏÀ» ÀúÀå Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í™”ë©´ì„ íŒŒì¼ì„ ì €ì¥ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     */
                 }
                 
             }
             catch
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "È­¸éÀ» ÆÄÀÏ ÀúÀå ½ÇÆĞ Çß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "í™”ë©´ì„ íŒŒì¼ ì €ì¥ ì‹¤íŒ¨ í–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
         /// <summary>
-        /// ÅÍ¹Ì³Î ½ÇÇà ¸ğµå ¼Ó¼ºÀ» °¡Á®¿À°Å³ª ¼³Á¤ÇÕ´Ï´Ù.
+        /// í„°ë¯¸ë„ ì‹¤í–‰ ëª¨ë“œ ì†ì„±ì„ ê°€ì ¸ì˜¤ê±°ë‚˜ ì„¤ì •í•©ë‹ˆë‹¤.
         /// </summary>
         public E_TerminalMode TerminalMode
         {
@@ -8111,7 +8111,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// µÎ int°ªÀ» ¼­·ÎÀÇ °ªÀ¸·Î º¯°æÇÕ´Ï´Ù.
+        /// ë‘ intê°’ì„ ì„œë¡œì˜ ê°’ìœ¼ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.
         /// </summary>
         /// <param name="mouseY"></param>
         public void _Swap(ref int a, ref int b)
@@ -8122,7 +8122,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¸¶¿ì½º YÀ§Ä¡¿¡ ÇØ´çÇÏ´Â m_ScrollbackBufferÀÇ index¸¦ °è»êÇÑ´Ù. 
+        /// ë§ˆìš°ìŠ¤ Yìœ„ì¹˜ì— í•´ë‹¹í•˜ëŠ” m_ScrollbackBufferì˜ indexë¥¼ ê³„ì‚°í•œë‹¤. 
         /// </summary>
         /// <param name="mouseY"></param>
         int _MousePointToRow(int mouseY)
@@ -8134,7 +8134,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 nRows += m_VertScrollBar.Value;
             }
 
-            // Boundary À¯È¿¼º Ã¼Å©
+            // Boundary ìœ íš¨ì„± ì²´í¬
             if (nRows < 0) nRows = 0;
             else if (nRows > m_ScrollbackBuffer.Count - 1) nRows = m_ScrollbackBuffer.Count - 1;
 
@@ -8142,11 +8142,11 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¼±ÅÃ¿µ¿ª Ç¥½Ã(Inverse)°ª ¼³Á¤
+        /// ì„ íƒì˜ì—­ í‘œì‹œ(Inverse)ê°’ ì„¤ì •
         /// </summary>
         protected void UpdateAttribGridInverse()
         {
-            // ÃÊ±âÈ­
+            // ì´ˆê¸°í™”
             for (int iRow = 0; iRow < m_AttribGrid.Length; iRow++)
             {
                 if (m_AttribGrid[iRow] == null) continue;
@@ -8156,7 +8156,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                 }
             }
 
-            // ¼±ÅÃ¿µ¿ªÀÌ ÀÖÀ¸¸é
+            // ì„ íƒì˜ì—­ì´ ìˆìœ¼ë©´
             if (!IsSelectMode()) return;
 
             int tBegRow = m_BeginRow, tEndRow = m_EndRow;
@@ -8173,7 +8173,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                     _Swap(ref tBegCol, ref tEndCol);
             }
 
-            // OutOfIndexBoundary ¿¹¿Ü °æ¿ìÃ³¸®
+            // OutOfIndexBoundary ì˜ˆì™¸ ê²½ìš°ì²˜ë¦¬
             if (tBegRow < 0) tBegRow = 0;
             if (tEndRow > m_ScrollbackBuffer.Count - 1) tEndRow = m_ScrollbackBuffer.Count - 1;
 
@@ -8214,7 +8214,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¼±ÅÃ¿µ¿ª Ãë¼Ò(ÃÊ±âÈ­)
+        /// ì„ íƒì˜ì—­ ì·¨ì†Œ(ì´ˆê¸°í™”)
         /// </summary>
         protected void Deselect()
         {
@@ -8230,7 +8230,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// ¼±ÅÃ¿µ¿ª(Drag)ÀÌ ÀÖ´ÂÁö ¶Ç´Â ¼±ÅÃÁßÀÎÁö »óÅÂ Ã¼Å©
+        /// ì„ íƒì˜ì—­(Drag)ì´ ìˆëŠ”ì§€ ë˜ëŠ” ì„ íƒì¤‘ì¸ì§€ ìƒíƒœ ì²´í¬
         /// </summary>
         /// <param name="mouseY"></param>
         protected bool IsSelectMode()
@@ -8250,7 +8250,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
         }
 
         /// <summary>
-        /// Command ¸¦ Àü¼Û ÇÕ´Ï´Ù.
+        /// Command ë¥¼ ì „ì†¡ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SendTelnetCommand()
         {
@@ -8290,7 +8290,7 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         //    tCommandInfo.CmdSendDelay = AppGlobal.s_ClientOption.SendDelay;
                         //RequestCommunicationData tRequestData = null;
 
-                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )// && m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü 
+                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online )// && m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸ 
                         {
 
                             tCommandInfo.UserID = AppGlobal.s_LoginResult.UserID;
@@ -8325,9 +8325,9 @@ this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | Con
                         //    tCommandInfo.CmdSendDelay = AppGlobal.s_ClientOption.SendDelay;
                         //RequestCommunicationData tRequestData = null;
 
-                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)// && m_DeviceInfo.IsRegistered) ¸ğµç Àåºñ¸¦ µ¥¸óÀ» ÅëÇÑ Åë½ÅÀ¸·Î º¯°æ, µî·ÏµÈ Àåºñ ¿©ºÎ Ã¼Å© Á¦¿Ü 
+                        if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)// && m_DeviceInfo.IsRegistered) ëª¨ë“  ì¥ë¹„ë¥¼ ë°ëª¬ì„ í†µí•œ í†µì‹ ìœ¼ë¡œ ë³€ê²½, ë“±ë¡ëœ ì¥ë¹„ ì—¬ë¶€ ì²´í¬ ì œì™¸ 
                         {
-                            //»ç¿ë À¯¹« È®ÀÎ ¾ÈµÊ
+                            //ì‚¬ìš© ìœ ë¬´ í™•ì¸ ì•ˆë¨
                             tCommandInfo.UserID = AppGlobal.s_LoginResult.UserID;
                             tRequestData = AppGlobal.MakeDefaultRequestData();
                             tRequestData.CommType = E_CommunicationType.RequestCommandProcess;

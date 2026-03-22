@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,15 +11,15 @@ namespace RACTClient
     public partial class TerminalReName : BaseForm
     {
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public TerminalReName():this("")
         {
         }
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="aName">ÅÇ ÀÌ¸§ ÀÔ´Ï´Ù.</param>
+        /// <param name="aName">íƒ­ ì´ë¦„ ì…ë‹ˆë‹¤.</param>
         public TerminalReName(string aName)
         {
             InitializeComponent();
@@ -28,11 +28,11 @@ namespace RACTClient
 
         public void InitializeContro()
         {
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "È®ÀÎ");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "í™•ì¸");
         }
         /// <summary>
-        /// ÀÌ¸§À» °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ì´ë¦„ì„ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public string GetNewTabName
         {
@@ -44,7 +44,7 @@ namespace RACTClient
             {
                 if (txtName.Text.Trim().Length == 0)
                 {
-                    AppGlobal.ShowMessageBox(this, "»õ·Î¿î ÅÇ ÀÌ¸§À» ÀÔ·ÂÇÏ¼¼¿ä.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(this, "ìƒˆë¡œìš´ íƒ­ ì´ë¦„ì„ ì…ë ¥í•˜ì„¸ìš”.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtName.Focus();
                     return;
                 }

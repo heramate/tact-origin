@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RACTCommon.Messaging\RACTCommon.Messaging.csproj" />
+    <!-- RACTTerminal 참조 제거됨 -->
   </ItemGroup>
 
   <ItemGroup>

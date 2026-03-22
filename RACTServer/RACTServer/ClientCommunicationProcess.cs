@@ -59,6 +59,7 @@ namespace RACTServer
 
         private void HealthCheckProcess()
         {
+            /*
             while (GlobalClass.m_IsRun)
             {
                 try
@@ -76,6 +77,7 @@ namespace RACTServer
                 catch (Exception ex) { GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString()); }
                 Thread.Sleep(1000);
             }
+            */
         }
 
         public bool Start()

@@ -1,4 +1,4 @@
-
+﻿
 namespace RACTClient
 {
     partial class MCLoadingCircleClass

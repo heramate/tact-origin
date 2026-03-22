@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,7 +22,7 @@ namespace RACTClient
             AppGlobal.InitializeButtonStyle(btnSearch);
             AppGlobal.InitializeGridStyle(fgSearchList);
 
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
 
             dtpStartDate.Value = DateTime.Now.AddDays(-7);
             dtpStartTime.Value = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd 00:00:00"));
@@ -63,7 +63,7 @@ namespace RACTClient
         {
             if (m_Result == null)
             {
-                AppGlobal.ShowMessageBox(this, "¾Ë ¼ö ¾ø´Â ¿¡·¯°¡ ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, "ì•Œ ìˆ˜ ì—†ëŠ” ì—ëŸ¬ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (m_Result.Error.Error != E_ErrorType.NoError)
@@ -157,7 +157,7 @@ namespace RACTClient
         {
             if (m_Result == null)
             {
-                AppGlobal.ShowMessageBox(this, "¾Ë ¼ö ¾ø´Â ¿¡·¯°¡ ¹ß»ıÇß½À´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AppGlobal.ShowMessageBox(this, "ì•Œ ìˆ˜ ì—†ëŠ” ì—ëŸ¬ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (m_Result.Error.Error != E_ErrorType.NoError)
@@ -169,11 +169,11 @@ namespace RACTClient
             DisplayCommandConnectioHistory((TelnetCommandHistoryInfoCollection)m_Result.ResultData);
         }
         /// <summary>
-        /// ÆË¾÷ Ã¢ ÀÔ´Ï´Ù.
+        /// íŒì—… ì°½ ì…ë‹ˆë‹¤.
         /// </summary>
         private MKDropDown m_DetailsInfo;
         /// <summary>
-        /// ¸í·É ¸®½ºÆ® ÀÔ´Ï´Ù.
+        /// ëª…ë ¹ ë¦¬ìŠ¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         private ucCommandHistory m_CommandHistory;
 

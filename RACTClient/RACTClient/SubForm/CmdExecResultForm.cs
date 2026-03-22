@@ -70,7 +70,7 @@ namespace RACTClient
         }
 
 
-        private void FileRead(string filePath)
+                private void FileRead(string filePath)
         {
 
             FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Read);
@@ -81,69 +81,47 @@ namespace RACTClient
             {
                 st.BaseStream.Seek(0, SeekOrigin.Begin);
 
-                bool isAppendText = false;
-                string cmd = "";
                 sbResult.Length = 0;
-
                 resultCmd = new Dictionary<string, string>();
+                allResult.Length = 0;
+
+                List<string> rawLines = new List<string>();
                 while (st.Peek() > -1)
                 {
-
-                    string temp = st.ReadLine();
-                    temp = temp.Replace("\0", "");
-
-                    if (temp.Contains("|&|"))
-                    {
-                        if (cmd != "")
-                        {
-                            cmd = cmd.Replace("|&|", "");
-                            cmd = cmd.Replace("||", "");
-                            int i = 0;
-                            string tempCmd = cmd;
-                            while (resultCmd.ContainsKey(tempCmd))
-                            {
-                                tempCmd = cmd + "(" + i + ")";
-                                i++;
-                            }
-
-                            resultCmd.Add(tempCmd, "< 명령어 : " + tempCmd + " > \r\n" +sbResult.ToString());
-
-
-                            cmd = "";
-                        }
-                        cmd = temp;
-                        isAppendText = true;
-                        sbResult = new StringBuilder();
-                    }
-                    else
-                    {
-                        if (isAppendText && temp != "")
-                        {
-                            sbResult.Append(temp + "\n");
-                        }
-                    }
-
-                    allResult.Append(temp + "\n");
-
+                    rawLines.Add((st.ReadLine() ?? string.Empty).Replace("\0", string.Empty));
                 }
-                if (cmd != "")
+
+                List<string> normalizedLines = NormalizeLogLines(rawLines);
+                string currentCommand = string.Empty;
+                sbResult = new StringBuilder();
+
+                foreach (string line in normalizedLines)
                 {
-                    cmd = cmd.Replace("|&|", "");
-                    cmd = cmd.Replace("||", "");
-                    int i = 0;
-                    string tempCmd = cmd;
-
-                    while (resultCmd.ContainsKey(tempCmd))
+                    if (IsCommandMarker(line))
                     {
-                        tempCmd = cmd + "(" + i + ")";
-                        i++;
-                    }
-                    allResult = allResult.Replace("|&|", "\n< 명령어 : ");
-                    allResult = allResult.Replace("||", " > \r\n");
+                        if (!string.IsNullOrWhiteSpace(currentCommand))
+                        {
+                            AddCommandResult(currentCommand, sbResult.ToString());
+                        }
 
-                    resultCmd.Add(tempCmd, "< 명령어 : " + tempCmd + " > \r\n" + sbResult.ToString());
+                        currentCommand = ExtractCommandFromMarker(line);
+                        sbResult.Clear();
+                        allResult.AppendLine("< 명령어 : " + currentCommand + " > ");
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(currentCommand) && !string.IsNullOrEmpty(line))
+                    {
+                        sbResult.AppendLine(line);
+                    }
+
+                    allResult.AppendLine(line);
                 }
 
+                if (!string.IsNullOrWhiteSpace(currentCommand))
+                {
+                    AddCommandResult(currentCommand, sbResult.ToString());
+                }
 
                 rtxtResult.Text = allResult.ToString();
 
@@ -167,7 +145,145 @@ namespace RACTClient
 
         }
 
-        //2015-10-30 명령어 bold 처리
+        private List<string> NormalizeLogLines(IEnumerable<string> rawLines)
+        {
+            List<string> normalized = new List<string>();
+            string pendingCommandMarker = null;
+
+            foreach (string rawLine in rawLines)
+            {
+                string line = rawLine ?? string.Empty;
+
+                if (pendingCommandMarker != null)
+                {
+                    if (line.Trim().Equals("||"))
+                    {
+                        normalized.Add(pendingCommandMarker + "||");
+                        pendingCommandMarker = null;
+                        continue;
+                    }
+
+                    normalized.Add(pendingCommandMarker);
+                    pendingCommandMarker = null;
+                }
+
+                if (line.Contains("|&|") && !line.Contains("||"))
+                {
+                    pendingCommandMarker = line;
+                    continue;
+                }
+
+                normalized.Add(line);
+            }
+
+            if (pendingCommandMarker != null)
+            {
+                normalized.Add(pendingCommandMarker + "||");
+            }
+
+            return normalized;
+        }
+
+        private bool IsCommandMarker(string line)
+        {
+            return !string.IsNullOrWhiteSpace(line) && line.Contains("|&|");
+        }
+
+        private string ExtractCommandFromMarker(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return string.Empty;
+            }
+
+            int markerStart = line.IndexOf("|&|", StringComparison.Ordinal);
+            if (markerStart >= 0)
+            {
+                line = line.Substring(markerStart + 3);
+            }
+
+            int markerEnd = line.IndexOf("||", StringComparison.Ordinal);
+            if (markerEnd >= 0)
+            {
+                line = line.Substring(0, markerEnd);
+            }
+
+            return line.Replace("\r", string.Empty)
+                       .Replace("\n", string.Empty)
+                       .Trim();
+        }
+
+        private void AddCommandResult(string command, string rawResult)
+        {
+            string cleanedCommand = ExtractCommandFromMarker("|&|" + command + "||");
+            string cleanedResult = NormalizeCommandResult(cleanedCommand, rawResult);
+            string displayCommand = cleanedCommand;
+            int duplicateIndex = 0;
+
+            while (resultCmd.ContainsKey(displayCommand))
+            {
+                displayCommand = cleanedCommand + "(" + duplicateIndex + ")";
+                duplicateIndex++;
+            }
+
+            resultCmd.Add(displayCommand, "< 명령어 : " + displayCommand + " > \r\n" + cleanedResult);
+        }
+
+        private string NormalizeCommandResult(string command, string rawResult)
+        {
+            var lines = rawResult.Replace("\r\n", "\n")
+                                 .Replace('\r', '\n')
+                                 .Split(new[] { '\n' }, StringSplitOptions.None)
+                                 .ToList();
+
+            while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[0]))
+            {
+                lines.RemoveAt(0);
+            }
+
+            while (lines.Count > 0 && IsEchoLine(lines[0], command))
+            {
+                lines.RemoveAt(0);
+
+                while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[0]))
+                {
+                    lines.RemoveAt(0);
+                }
+            }
+
+            return string.Join("\r\n", lines);
+        }
+
+        private bool IsEchoLine(string line, string command)
+        {
+            string trimmedLine = (line ?? string.Empty).Trim();
+            string trimmedCommand = (command ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmedLine) || string.IsNullOrWhiteSpace(trimmedCommand))
+            {
+                return false;
+            }
+
+            if (trimmedLine.Equals(trimmedCommand, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (!trimmedLine.EndsWith(trimmedCommand, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            string prefix = trimmedLine.Substring(0, trimmedLine.Length - trimmedCommand.Length).TrimEnd();
+            if (string.IsNullOrEmpty(prefix))
+            {
+                return false;
+            }
+
+            char lastChar = prefix[prefix.Length - 1];
+            return lastChar == '#' || lastChar == '>' || lastChar == '$' || lastChar == '%';
+        }
+
         /// <summary>
         /// 명령어 라인을 Bold 처리합니다.
         /// </summary>

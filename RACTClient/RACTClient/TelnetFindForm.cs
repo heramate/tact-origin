@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,20 +9,20 @@ using System.Windows.Forms;
 namespace RACTClient
 {
     /// <summary>
-    /// ÅÚ³İ Ã£±â¿¡ »ç¿ëÇÒ ÇÚµé·¯ ÀÔ´Ï´Ù.
+    /// í…”ë„· ì°¾ê¸°ì— ì‚¬ìš©í•  í•¸ë“¤ëŸ¬ ì…ë‹ˆë‹¤.
     /// </summary>
-    /// <param name="aString">Ã£À» ³»¿ë ÀÔ´Ï´Ù.</param>
+    /// <param name="aString">ì°¾ì„ ë‚´ìš© ì…ë‹ˆë‹¤.</param>
     public delegate void TelnetStringFindHandler(string aString);
 
     public partial class TelnetFindForm : BaseForm
     {
         /// <summary>
-        /// ÅÚ³İ Ã£±â ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// í…”ë„· ì°¾ê¸° ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event TelnetStringFindHandler OnTelnetStringFind;
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         public TelnetFindForm()
         {
@@ -32,17 +32,17 @@ namespace RACTClient
         }
        
         /// <summary>
-        /// ÄÁÆ®·ÑÀ» ÃÊ±âÈ­ ÇÕ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤ì„ ì´ˆê¸°í™” í•©ë‹ˆë‹¤.
         /// </summary>
         private void InitializeControl()
         {
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "´ÙÀ½ Ã£±â");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "ë‹¤ìŒ ì°¾ê¸°");
            
         }
 
         /// <summary>
-        /// ¹öÆ° Ã³¸® ÀÔ´Ï´Ù.
+        /// ë²„íŠ¼ ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aButtonType"></param>
         protected override void ButtonProcess(E_ButtonType aButtonType)

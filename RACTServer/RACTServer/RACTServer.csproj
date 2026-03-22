@@ -22,8 +22,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\RACTCommon\RACTCommon.Messaging\RACTCommon.Messaging.csproj" />
-    <ProjectReference Include="..\..\RACTCommon\RACTDaemonProcess\RACTDaemonProcess.csproj" />
     <ProjectReference Include="..\..\RACTCommon\RACTServerCommon\RACTServerCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 고성능 통신 엔진 검증을 위해 터미널/데몬 관련 파일 일시 제외 -->
+    <Compile Remove="DaemonProcessManager.cs" />
+    <Compile Remove="ServiceManagerCommunicationProcess.cs" />
   </ItemGroup>
 
   <ItemGroup>

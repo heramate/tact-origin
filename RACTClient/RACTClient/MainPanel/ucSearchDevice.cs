@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
-using System.Windows.Forms;
+﻿using C1.Win.C1FlexGrid;
+using RACTClient.Utilities;
 using RACTCommonClass;
-using C1.Win.C1FlexGrid;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace RACTClient
 {
@@ -163,7 +161,10 @@ namespace RACTClient
             tSearchInfo.UserID = AppGlobal.s_LoginResult.UserID;
 
             tRequestData = AppGlobal.MakeDefaultRequestData();
-            tRequestData.CommType = E_CommunicationType.RequestFACTSearchDevice;
+            // 20260225 ShinMyungsu User장비접근권한 망구분을 클라이언트에서 처리
+            tRequestData.CommType = E_CommunicationType.RequestSearchDeviceAuth;    //20260227 ShinMyungsu (E_CommunicationType.RequestSearchDeviceAuth 추가)
+            //tRequestData.CommType = E_CommunicationType.RequestOneTerminalSearchDevice;
+            //======================================================================
 
             tRequestData.RequestData = tSearchInfo;
 
@@ -178,14 +179,11 @@ namespace RACTClient
         public override void ResultReceiver(ResultCommunicationData vResult)
         {
             base.ResultReceiver(vResult);
+            this.RunResultHandlerOnUi(HandleResultOnUi);
+        }
 
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new HandlerArgument1<ResultCommunicationData>(ResultReceiver), vResult);
-                return;
-            }
-
-
+        private void HandleResultOnUi()
+        {
             // 2013-05-02-shinyn - 결과값이 널인 경우 로그에 저장한다.
             if (m_Result == null || m_Result.ResultData == null)
             {
@@ -234,10 +232,37 @@ namespace RACTClient
 
 
             this.Enabled = true;
-            if (aDeviceList.Count == 0)
+
+            // 20260225 ShinMyungsu User장비접근권한   aDeviceList.Count == 0 이 체크가 안되서 수정
+            if (aDeviceList.Count == 1)
             {
-                grdDeviceList.Rows.Count = 1;
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "검색 조건과 일치하는 장비가 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DeviceInfo deviceInfo = (DeviceInfo)aDeviceList.InnerList[0];
+
+                if (deviceInfo.DeviceID == 0 && deviceInfo.IPAddress == "")
+                {
+                    grdDeviceList.Rows.Count = 1;
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "검색 조건과 일치하는 장비가 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppGlobal.ShowLoadingProgress(false);
+                    return;
+                }
+            }
+
+            // 20260223 ShinMyungsu User장비접근 접근권한이 없으면 팝업창 
+            // 20260225 ShinMyungsu User장비접근 망구분을 클라이언트에서 체크
+            if (AppGlobal.s_LoginResult.UserInfo.MangTypes.Count > 0)
+            {
+                if (aDeviceList.Count == 1)
+                {
+                    DeviceInfo deviceInfo = (DeviceInfo)aDeviceList.InnerList[0];
+
+                    if (!AppGlobal.s_LoginResult.UserInfo.MangTypes.Contains(deviceInfo.MangTypeCd))
+                    {
+                        grdDeviceList.Rows.Count = 1;
+                        AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "해당 장비에 접근권한이 없습니다.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        AppGlobal.ShowLoadingProgress(false);
+                        return;
+                    }
+                }
             }
 
             int tRowIndex = 1;
@@ -246,9 +271,8 @@ namespace RACTClient
                 grdDeviceList.Redraw = false;
                 grdDeviceList.Rows.Count = 1;
 
-
-
-                grdDeviceList.Rows.Count = aDeviceList.Count + 1;
+                // 20260225 ShinMyungsu USER 장비접근권한  망구분을 체크해야 되서 체크로직에서 Row를 추가한다
+                //grdDeviceList.Rows.Count = aDeviceList.Count + 1;
 
                 // 2013-12-30 - yn shin - 검색 완료후 장비가 하나이면, 표시안되는 버그 수정
                 if (aDeviceList.Count == 1)
@@ -267,22 +291,47 @@ namespace RACTClient
                     }
                 }
 
-
-                foreach (DeviceInfo tDeviceInfo in aDeviceList)
+                // 20260225 ShinMyungsu User장비접근 클라이언트에서 망구분 체크 
+                if (AppGlobal.s_LoginResult.UserInfo.MangTypes.Count > 0)
                 {
-                    // 검색한 결과가 있을 때에만 조회
-                    if (tDeviceInfo.DeviceID > 0)
+                    foreach (DeviceInfo tDeviceInfo in aDeviceList)
                     {
-                        AddRow(tRowIndex, tDeviceInfo);
-                        if (tDeviceInfo.InputFlag == E_FlagType.User)
+                        // 검색한 결과가 있을 때에만 조회
+                        if (tDeviceInfo.DeviceID > 0)
                         {
-                            grdDeviceList.Rows[tRowIndex].StyleNew.ForeColor = Color.FromArgb(255, 113, 50);
+                            if (AppGlobal.s_LoginResult.UserInfo.MangTypes.Contains(tDeviceInfo.MangTypeCd))
+                            {
+                                grdDeviceList.Rows.Count = tRowIndex + 1;
+
+                                AddRow(tRowIndex, tDeviceInfo);
+                                if (tDeviceInfo.InputFlag == E_FlagType.User)
+                                {
+                                    grdDeviceList.Rows[tRowIndex].StyleNew.ForeColor = Color.FromArgb(255, 113, 50);
+                                }
+                                tRowIndex++;
+                            }
                         }
-                        tRowIndex++;
                     }
                 }
+                else
+                {
+                    foreach (DeviceInfo tDeviceInfo in aDeviceList)
+                    {
+                        // 검색한 결과가 있을 때에만 조회
+                        if (tDeviceInfo.DeviceID > 0)
+                        {
+                            grdDeviceList.Rows.Count = tRowIndex + 1;
 
-
+                            AddRow(tRowIndex, tDeviceInfo);
+                            if (tDeviceInfo.InputFlag == E_FlagType.User)
+                            {
+                                grdDeviceList.Rows[tRowIndex].StyleNew.ForeColor = Color.FromArgb(255, 113, 50);
+                            }
+                            tRowIndex++;
+                        }
+                    }
+                }
+                //=================================================================================================================
                 //grdDeviceList.RowSel = 1;
             }
             catch (Exception ex)
@@ -349,7 +398,7 @@ namespace RACTClient
                     }
                     else
                     {
-                        ctmPopup.SubItems["mnuTL1Connect"].Visible = false;                        
+                        ctmPopup.SubItems["mnuTL1Connect"].Visible = false;
                     }
                     //- new code
 
@@ -366,7 +415,7 @@ namespace RACTClient
                         ctmPopup.SubItems["mnuCatm1Connect"].Visible = false;
                     }
 
-                    ctmPopup.Popup(MousePosition);                    
+                    ctmPopup.Popup(MousePosition);
                 }
             }
         }
@@ -417,7 +466,7 @@ namespace RACTClient
 
             for (int i = 0; i < grdDeviceList.Rows.Selected.Count; i++)
             {
-                DeviceInfo tDI = ((DeviceInfo)grdDeviceList.Rows.Selected[i].UserData).DeepClone();                
+                DeviceInfo tDI = ((DeviceInfo)grdDeviceList.Rows.Selected[i].UserData).DeepClone();
                 tDI.TerminalConnectInfo.TelnetPort = 1023;
                 m_SelectedDeviceList.Add(tDI);
             }
@@ -517,7 +566,7 @@ namespace RACTClient
             {
                 return;
             }
-			AppGlobal.s_ConnectionMode = 2;
+            AppGlobal.s_ConnectionMode = 2;
             StartSendThread(new ThreadStart(ConnectDevice_Rpcs));
         }
 
@@ -551,7 +600,7 @@ namespace RACTClient
             AppGlobal.SendRequestData(this, tRequestData);
             m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
         }
-        
+
         private void mnuCatm1Connect_Click(object sender, EventArgs e)
         {
             if (grdDeviceList.Rows.Selected == null || grdDeviceList.Rows.Selected.Count == 0)
@@ -599,6 +648,6 @@ namespace RACTClient
             AppGlobal.SendRequestData(this, tRequestData);
             m_MRE.WaitOne(AppGlobal.s_RequestTimeOut * 10);
         }
-        
+
     }
 }

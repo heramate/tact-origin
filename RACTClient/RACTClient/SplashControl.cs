@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -16,11 +16,11 @@ namespace RACTClient
     {
 
         /// <summary>
-        /// Á¾·á ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì¢…ë£Œ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event DefaultHandler OnExit;
         /// <summary>
-        /// ·Î±×ÀÎ Ã³¸® ½º·¡µå ÀÔ´Ï´Ù.
+        /// ë¡œê·¸ì¸ ì²˜ë¦¬ ìŠ¤ë˜ë“œ ì…ë‹ˆë‹¤.
         /// </summary>
         private Thread m_LoginThread = null;     
 
@@ -110,19 +110,19 @@ namespace RACTClient
             {
                 if (txtServerIP.Text.Length == 0)
                 {
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "¼­¹ö IP¸¦ ÀÔ·Â ÇÏ¼¼¿ä", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì„œë²„ IPë¥¼ ì…ë ¥ í•˜ì„¸ìš”", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (txtID.Text.Length == 0)
                 {
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ID¸¦ ÀÔ·Â ÇÏ¼¼¿ä", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "IDë¥¼ ì…ë ¥ í•˜ì„¸ìš”", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (txtPW.Text.Length == 0)
                 {
-                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "PW¸¦ ÀÔ·Â ÇÏ¼¼¿ä", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "PWë¥¼ ì…ë ¥ í•˜ì„¸ìš”", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
             }
@@ -143,7 +143,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ·Î±×ÀÎÀ» Ã³¸®ÇÏ´Â ºÎºĞÀÔ´Ï´Ù.
+        /// ë¡œê·¸ì¸ì„ ì²˜ë¦¬í•˜ëŠ” ë¶€ë¶„ì…ë‹ˆë‹¤.
         /// </summary>			
         public void StartLogin()
         {
@@ -175,7 +175,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ·Î±×ÀÎ Á¤º¸¸¦ ÀúÀå ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ì¸ ì •ë³´ë¥¼ ì €ì¥ í•©ë‹ˆë‹¤.
         /// </summary>
         private void SaveLoginInfo()
         {
@@ -221,7 +221,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ·Î±×ÀÎÀ» Ã³¸® ÇÕ´Ï´Ù.
+        /// ë¡œê·¸ì¸ì„ ì²˜ë¦¬ í•©ë‹ˆë‹¤.
         /// </summary>
         private void ProcessLogin()
         {
@@ -229,9 +229,9 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ÇÁ·Î±×·¥ ÃÊ±âÈ­ Á¤º¸¸¦ Ç¥½ÃÇÕ´Ï´Ù.
+        /// í”„ë¡œê·¸ë¨ ì´ˆê¸°í™” ì •ë³´ë¥¼ í‘œì‹œí•©ë‹ˆë‹¤.
         /// </summary>
-        /// <param name="vString">Ç¥½ÃÇÒ Á¤º¸ ÀÔ´Ï´Ù.</param>
+        /// <param name="vString">í‘œì‹œí•  ì •ë³´ ì…ë‹ˆë‹¤.</param>
         public void ShowInitInfo(string aString)
         {
             this.Invoke(new HandlerArgument1<string>(DisplayInitInfo), new object[] { aString });
@@ -241,14 +241,14 @@ namespace RACTClient
         {
             if (AppGlobal.s_IsModeChangeConnect)
             {
-                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "¼­¹ö¿¡ Á¢¼Ó ÇÒ ¼ö ¾ø½À´Ï´Ù.\n ±âÁ¸ ¸ğµå¸¦ À¯Áö ÇÕ´Ï´Ù.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì„œë²„ì— ì ‘ì† í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n ê¸°ì¡´ ëª¨ë“œë¥¼ ìœ ì§€ í•©ë‹ˆë‹¤.", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 if(OnExit != null) OnExit();
                 return;
             }
             else
             {
-                //ÄÜ¼Ö ¸ğµå Á¢¼Ó ÇØ¾ßÇÔ
-                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "¼­¹ö¿¡ Á¢¼Ó ÇÒ ¼ö ¾ø½À´Ï´Ù.\nÄÜ¼Ö ¸ğµå·Î ½ÇÇà ÇÏ½Ã°Ú½À´Ï±î?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                //ì½˜ì†” ëª¨ë“œ ì ‘ì† í•´ì•¼í•¨
+                if (AppGlobal.ShowMessageBox(AppGlobal.s_ClientMainForm, "ì„œë²„ì— ì ‘ì† í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\nì½˜ì†” ëª¨ë“œë¡œ ì‹¤í–‰ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                 {
                     ChangeVisable(true);
                     txtID.Enabled = true;
@@ -306,7 +306,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// ¼­¹ö IP¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// ì„œë²„ IPë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public string ServerIP
         {
@@ -315,7 +315,7 @@ namespace RACTClient
         }
 
         /// <summary>
-        /// User ID ¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// User ID ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public string UserID
         {
@@ -323,7 +323,7 @@ namespace RACTClient
             set { txtID.Text = value; }
         }
         /// <summary>
-        /// User PW ¸¦ °¡Á®¿À±â ÇÕ´Ï´Ù.
+        /// User PW ë¥¼ ê°€ì ¸ì˜¤ê¸° í•©ë‹ˆë‹¤.
         /// </summary>
         public string UserPW
         {

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
@@ -9,27 +9,27 @@ namespace RACTClient
     public class Keyboard
     {
         /// <summary>
-        /// Å°º¸µå ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// í‚¤ë³´ë“œ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event KeyboardEventHandler OnKeyboardEvent;
         /// <summary>
-        /// ÄÁÆ®·ÑÅ° ÀÌº¥Æ® ÀÔ´Ï´Ù.
+        /// ì»¨íŠ¸ë¡¤í‚¤ ì´ë²¤íŠ¸ ì…ë‹ˆë‹¤.
         /// </summary>
         public event ControlKeyboardEventHandler OnControlKeyBoardEvent;
         /// <summary>
-        /// ¸¶Áö¸· Å° ´­·¶´ÂÁö ¿©ºÎ ÀÔ´Ï´Ù.
+        /// ë§ˆì§€ë§‰ í‚¤ ëˆŒë €ëŠ”ì§€ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_LastKeyDownSent = false;
         /// <summary>
-        /// Alt Å° ´©¸§ ¿©ºÎ ÀÔ´Ï´Ù.
+        /// Alt í‚¤ ëˆ„ë¦„ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_AltIsDown = false;
         /// <summary>
-        /// Shift Å° ´©¸§ ¿©ºÎ ÀÔ´Ï´Ù.
+        /// Shift í‚¤ ëˆ„ë¦„ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_ShiftIsDown = false;
         /// <summary>
-        /// Ctrl Å° ´©¸§ ¿©ºÎ ÀÔ´Ï´Ù.
+        /// Ctrl í‚¤ ëˆ„ë¦„ ì—¬ë¶€ ì…ë‹ˆë‹¤.
         /// </summary>
         private bool m_CtrlIsDown = false;
 
@@ -39,16 +39,16 @@ namespace RACTClient
             set { m_CtrlIsDown = value; }
         }
         /// <summary>
-        /// ºÎ¸ğ ÀÔ´Ï´Ù.
+        /// ë¶€ëª¨ ì…ë‹ˆë‹¤.
         /// </summary>
         private MCTerminalEmulator m_Parent;
         /// <summary>
-        /// Key Map ÀÔ´Ï´Ù.
+        /// Key Map ì…ë‹ˆë‹¤.
         /// </summary>
         private KeyMap KeyMap = new KeyMap();
 
         /// <summary>
-        /// ±âº» »ı¼ºÀÚ ÀÔ´Ï´Ù.
+        /// ê¸°ë³¸ ìƒì„±ì ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="aParent"></param>
         public Keyboard(MCTerminalEmulator aParent)
@@ -56,7 +56,7 @@ namespace RACTClient
             this.m_Parent = aParent;
         }
         /// <summary>
-        /// Å°º¸µå Down Ã³¸® ÀÔ´Ï´Ù.
+        /// í‚¤ë³´ë“œ Down ì²˜ë¦¬ ì…ë‹ˆë‹¤.
         /// </summary>
         /// <param name="KeyMess"></param>
         public void KeyDown(System.Windows.Forms.Message aKeyMessage)
@@ -199,7 +199,7 @@ namespace RACTClient
             }
         }
         /// <summary>
-        /// TabÀ» Àü¼Û ÇÕ´Ï´Ù.
+        /// Tabì„ ì „ì†¡ í•©ë‹ˆë‹¤.
         /// </summary>
         public void SendTab()
         {

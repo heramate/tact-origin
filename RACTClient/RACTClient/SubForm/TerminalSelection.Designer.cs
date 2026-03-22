@@ -45,7 +45,7 @@
             this.lstTerminal.ColorBoxSize = new System.Drawing.Size(12, 8);
             this.lstTerminal.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lstTerminal.ImageList = null;
-            this.lstTerminal.ItemHeight = 16;
+            this.lstTerminal.ItemHeight = 20;
             this.lstTerminal.Location = new System.Drawing.Point(0, 0);
             this.lstTerminal.Name = "lstTerminal";
             this.lstTerminal.SelectedIndex = -1;

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -15,14 +15,14 @@ namespace RACTClient
             InitializeComponent();
         }
 
-        #region IOptionPanal ¸â¹ö
+        #region IOptionPanal ë©¤ë²„
 
         public void InitializeControl()
         {
             rdoPopup.Checked = AppGlobal.s_ClientOption.TerminalWindowsPopupType == E_DefaultTerminalPopupType.Popup;
             rdoTab.Checked = AppGlobal.s_ClientOption.TerminalWindowsPopupType == E_DefaultTerminalPopupType.Tab;
 
-            // 2013-01-17 - shinyn - ¸Ş¸ğÀå ½ÇÇà ÆË¾÷ ÇüÅÂ °¡Á®¿À±â Ãß°¡
+            // 2013-01-17 - shinyn - ë©”ëª¨ì¥ ì‹¤í–‰ íŒì—… í˜•íƒœ ê°€ì ¸ì˜¤ê¸° ì¶”ê°€
             rdoPopup2.Checked = AppGlobal.s_ClientOption.NotePadWindowsPopupType == E_DefaultNotePadPopupType.Popup;
             rdoTab2.Checked = AppGlobal.s_ClientOption.NotePadWindowsPopupType == E_DefaultNotePadPopupType.Tab;
 
@@ -39,7 +39,7 @@ namespace RACTClient
             try
             {
                 AppGlobal.s_ClientOption.TerminalWindowsPopupType = rdoPopup.Checked ? E_DefaultTerminalPopupType.Popup : E_DefaultTerminalPopupType.Tab;
-                // 2013-01-17 - shinyn - ¸Ş¸ğÀå ½ÇÇà ÆË¾÷ ÇüÅÂ ÀúÀå Ãß°¡
+                // 2013-01-17 - shinyn - ë©”ëª¨ì¥ ì‹¤í–‰ íŒì—… í˜•íƒœ ì €ì¥ ì¶”ê°€
                 AppGlobal.s_ClientOption.NotePadWindowsPopupType = rdoPopup2.Checked ? E_DefaultNotePadPopupType.Popup : E_DefaultNotePadPopupType.Tab;
                 AppGlobal.s_ClientOption.PopupSizeHeight = (int)nudWidth.Value;
                 AppGlobal.s_ClientOption.PopupSizeWidth = (int)nudHeight.Value;

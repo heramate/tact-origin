@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,8 +17,8 @@ namespace RACTClient
 
         public void InitializeControl()
         {
-            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "´İ±â");
-            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "È®ÀÎ");
+            AddButton(E_ButtonType.Close, E_ButtonSide.Right, "ë‹«ê¸°");
+            AddButton(E_ButtonType.OK, E_ButtonSide.Right, "í™•ì¸");
 
             if (AppGlobal.s_RACTClientMode == E_RACTClientMode.Online)
             {
@@ -47,10 +47,10 @@ namespace RACTClient
                     string tMessageString = "";
                     if (ClientMode == E_RACTClientMode.Console)
                     {
-                        tMessageString = "Daemon°ú ¿¬°áµÈ Telnet SessionÀº Á¾·á µË´Ï´Ù.\n";
+                        tMessageString = "Daemonê³¼ ì—°ê²°ëœ Telnet Sessionì€ ì¢…ë£Œ ë©ë‹ˆë‹¤.\n";
                     }
 
-                    tMessageString += ClientMode.ToString() + " ¸ğµå·Î º¯°æ ÇÏ½Ã°Ú½À´Ï±î?";
+                    tMessageString += ClientMode.ToString() + " ëª¨ë“œë¡œ ë³€ê²½ í•˜ì‹œê² ìŠµë‹ˆê¹Œ?";
 
 
                     if (AppGlobal.ShowMessageBox(this, tMessageString, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)

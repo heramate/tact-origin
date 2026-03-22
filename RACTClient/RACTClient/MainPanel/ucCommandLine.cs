@@ -1,14 +1,9 @@
-﻿using System;
+﻿using DevComponents.DotNetBar;
+using RACTClient.Utilities;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
-using DevComponents.DotNetBar;
-using RACTCommonClass;
-using MKLibrary.MKData;
-using MKLibrary.Controls;
 
 namespace RACTClient
 {
@@ -22,7 +17,7 @@ namespace RACTClient
         /// 팝업 창 입니다.
         /// </summary>
         private MKDropDown m_DetailsInfo;
-        
+
 
         public ucCommandLine()
         {
@@ -46,7 +41,7 @@ namespace RACTClient
 
         void lstTerminal_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-           // ChangeSendTerminalCount();
+            // ChangeSendTerminalCount();
         }
 
         private void btnEdit_Click(object sender, EventArgs e)
@@ -54,12 +49,25 @@ namespace RACTClient
 
             if (m_TerminalList.lstTerminal.Items.Count == 0) return;
 
+            int tVisibleItemCount = Math.Min(m_TerminalList.lstTerminal.Items.Count, 12);
+            int tPopupWidth = btnEdit.Width;
+            for (int i = 0; i < m_TerminalList.lstTerminal.Items.Count; i++)
+            {
+                int tItemWidth = TextRenderer.MeasureText(m_TerminalList.lstTerminal.Items[i].Text, m_TerminalList.lstTerminal.Font).Width + 48;
+                tPopupWidth = Math.Max(tPopupWidth, tItemWidth);
+            }
+            int tPopupHeight = ((tVisibleItemCount + 1) * m_TerminalList.lstTerminal.ItemHeight) + SystemInformation.HorizontalScrollBarHeight + 4;
+            Size tPopupSize = new Size(tPopupWidth, tPopupHeight);
+
+            m_TerminalList.Size = tPopupSize;
+            m_DetailsInfo.Size = tPopupSize;
+
             Point tPoint = new Point(Control.MousePosition.X, Control.MousePosition.Y);
             m_DetailsInfo.Show(tPoint, ToolStripDropDownDirection.Default);
         }
 
 
-     
+
 
 
         /// <summary>
@@ -68,14 +76,20 @@ namespace RACTClient
         /// <param name="aTerMinalName"></param>
         private void AddTerminal(string aTerMinalName)
         {
-            m_TerminalList.lstTerminal.Items.Add(aTerMinalName);
+            // 1. Count를 사용하여 리스트 항목 개수만큼 반복
+            int itemCount = m_TerminalList.lstTerminal.Items.Count;
+            for (int i = 0; i < itemCount; i++)
+            {
+                // 2. 인덱서로 접근하여 텍스트 비교
+                // lstTerminal.Items[i]가 ListViewItem 타입인지, 혹은 별도 객체인지 확인이 필요합니다.
+                // 일반적인 ListView라면 아래처럼 접근 가능합니다.
+                if (m_TerminalList.lstTerminal.Items[i].Text.Equals(aTerMinalName))
+                {
+                    return; // 중복 발견 시 메서드 종료
+                }
+            }
 
-            //tCheckBox.Name = aTerMinalName;
-            //tCheckBox.Text = aTerMinalName;
-            //tCheckBox.Checked = false;
-            //tCheckBox.CheckedChanged += new CheckBoxChangeEventHandler(tCheckBox_CheckedChanged);
-            //this.ctmPopup.SubItems.AddRange(new DevComponents.DotNetBar.BaseItem[] {
-            //tCheckBox});
+            m_TerminalList.lstTerminal.Items.Add(aTerMinalName);
         }
         /// <summary>
         /// 전송할 터미널을 삭제 합니다.
@@ -111,7 +125,7 @@ namespace RACTClient
             m_CheckList.Clear();
             for (int i = m_TerminalList.lstTerminal.Items.Count - 1; i >= 0; i--)
             {
-                if(m_TerminalList.lstTerminal.GetItemChecked(i))
+                if (m_TerminalList.lstTerminal.GetItemChecked(i))
                 {
                     m_CheckList.Add(m_TerminalList.lstTerminal.Items[i].Text);
                     tCount++;
@@ -134,10 +148,10 @@ namespace RACTClient
             }
             mcSmallTerminal1.SetReceiveList(m_CheckList);
 
-            
+
         }
 
-        
+
         private void btnAll_Click(object sender, EventArgs e)
         {
             try
@@ -179,6 +193,11 @@ namespace RACTClient
 
         internal void TerminalChange(E_TerminalStatus aWorkType, string aTerminalName)
         {
+            if (!this.EnsureUiThread(() => TerminalChange(aWorkType, aTerminalName)))
+            {
+                return;
+            }
+
             try
             {
                 switch (aWorkType)
@@ -196,7 +215,7 @@ namespace RACTClient
                         {
                             if (m_TerminalList.lstTerminal.Items[i].Text.Equals(aTerminalName))
                             {
-                                TmepFlag = false;                             
+                                TmepFlag = false;
                             }
                         }
 
