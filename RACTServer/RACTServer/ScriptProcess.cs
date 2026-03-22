@@ -7,115 +7,63 @@ using Dapper;
 
 namespace RACTServer
 {
+    /// <summary>
+    /// .NET 10 기반 고성능 스크립트 처리 프로세스 (Repository 패턴 적용)
+    /// </summary>
     public class ScriptProcess
     {
-        /// <summary>
-        /// 요청을 비동기로 처리 합니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         internal static async Task RequestProcessAsync(RequestCommunicationData aClientRequest)
         {
-            ScriptGroupRequestInfo tRequesetInfo = aClientRequest.RequestData as ScriptGroupRequestInfo;
-
-            switch (tRequesetInfo.WorkType)
-            {
-                case E_WorkType.Search:
-                    await SearchScriptGroupAsync(aClientRequest);
-                    break;
-                default:
-                    await ModifyScriptGroupAsync(aClientRequest);
-                    break;
-            }
+            var tRequesetInfo = (ScriptGroupRequestInfo)aClientRequest.RequestData;
+            if (tRequesetInfo.WorkType == E_WorkType.Search) await SearchScriptGroupAsync(aClientRequest);
+            else await ModifyScriptGroupAsync(aClientRequest);
         }
 
-        /// <summary>
-        /// 스크립트 그룹을 비동기로 수정 합니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         private static async Task ModifyScriptGroupAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                var tRequestCommandInfo = (ScriptGroupRequestInfo)aClientRequest.RequestData;
-                var tInfo = tRequestCommandInfo.ScriptGroupInfo;
-
-                using (var conn = GlobalClass.GetSqlConnection())
-                {
-                    string tQuery = "EXEC SP_RACT_Modify_ScriptGroup @WorkType, @ID, @UserID, @Name, @Description";
-                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
-                    {
-                        WorkType = (int)tRequestCommandInfo.WorkType,
-                        ID = tInfo.ID,
-                        UserID = tRequestCommandInfo.UserID,
-                        Name = tInfo.Name,
-                        Description = tInfo.Description
-                    });
-
-                    if (result != null)
-                    {
-                        tInfo.ID = Convert.ToInt32(((IDictionary<string, object>)result)["ID"]);
-                    }
-                }
-
-                tResultData.ResultData = tInfo;
+                var tRequest = (ScriptGroupRequestInfo)aClientRequest.RequestData;
+                tRequest.ScriptGroupInfo.ID = await GlobalClass.ScriptRepo.ModifyScriptGroupAsync(tRequest.WorkType, tRequest.UserID, tRequest.ScriptGroupInfo);
+                tResultData.ResultData = tRequest.ScriptGroupInfo;
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
-                tResultData.Error.Error = E_ErrorType.UnKnownError;
-                tResultData.Error.ErrorString = ex.Message;
+                tResultData.Error = new ErrorInfo(E_ErrorType.UnKnownError, ex.Message);
                 GlobalClass.SendResultClient(tResultData);
             }
         }
 
-        /// <summary>
-        /// 스크립트 그룹 목록을 비동기로 가져오기 합니다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         private static async Task SearchScriptGroupAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                var tRequestCommandInfo = (ScriptGroupRequestInfo)aClientRequest.RequestData;
+                var tRequest = (ScriptGroupRequestInfo)aClientRequest.RequestData;
+                var (groups, scripts) = await GlobalClass.ScriptRepo.GetScriptsAsync(tRequest.UserID);
 
-                using (var conn = GlobalClass.GetSqlConnection())
+                var scriptGroupList = new ScriptGroupInfoCollection();
+                foreach (var g in groups) scriptGroupList.Add(g);
+
+                foreach (var s in scripts)
                 {
-                    await conn.OpenAsync();
-                    using (var multi = await conn.QueryMultipleAsync("EXEC SP_RACT_Get_Script @UserID", new { UserID = tRequestCommandInfo.UserID }))
+                    int groupId = (int)s.GroupID;
+                    if (scriptGroupList.Contains(groupId))
                     {
-                        var groups = (await multi.ReadAsync<ScriptGroupInfo>()).ToList();
-                        var scripts = (await multi.ReadAsync<dynamic>()).ToList();
-
-                        var scriptGroupList = new ScriptGroupInfoCollection();
-                        foreach (var g in groups) scriptGroupList.Add(g);
-
-                        foreach (var s in scripts)
-                        {
-                            int groupId = (int)s.GroupID;
-                            if (scriptGroupList.Contains(groupId))
-                            {
-                                var script = new Script
-                                {
-                                    ID = (int)s.Id,
-                                    Name = s.Name?.ToString(),
-                                    GroupID = groupId,
-                                    Description = s.Description?.ToString(),
-                                    RawScript = s.Script?.ToString()
-                                };
-                                scriptGroupList[groupId].ScriptList.Add(script);
-                            }
-                        }
-                        tResultData.ResultData = scriptGroupList;
+                        scriptGroupList[groupId].ScriptList.Add(new Script {
+                            ID = (int)s.Id, Name = s.Name?.ToString(), GroupID = groupId,
+                            Description = s.Description?.ToString(), RawScript = s.Script?.ToString()
+                        });
                     }
                 }
+                tResultData.ResultData = scriptGroupList;
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
-                tResultData.Error.Error = E_ErrorType.UnKnownError;
-                tResultData.Error.ErrorString = ex.Message;
+                tResultData.Error = new ErrorInfo(E_ErrorType.UnKnownError, ex.Message);
                 GlobalClass.SendResultClient(tResultData);
             }
         }
@@ -125,147 +73,84 @@ namespace RACTServer
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                var tRequestCommandInfo = (ScriptRequestInfo)aClientRequest.RequestData;
-                var tInfo = tRequestCommandInfo.ScriptInfo;
-
-                using (var conn = GlobalClass.GetSqlConnection())
-                {
-                    string tQuery = "EXEC SP_RACT_Modify_ScriptInfo @WorkType, @ID, @GroupID, @UserID, @Name, @Description, @RawScript";
-                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
-                    {
-                        WorkType = (int)tRequestCommandInfo.WorkType,
-                        ID = tInfo.ID,
-                        GroupID = tInfo.GroupID,
-                        UserID = tRequestCommandInfo.UserID,
-                        Name = tInfo.Name,
-                        Description = tInfo.Description,
-                        RawScript = tInfo.RawScript
-                    });
-
-                    if (result != null)
-                    {
-                        tInfo.ID = Convert.ToInt32(((IDictionary<string, object>)result)["ID"]);
-                    }
-                }
-
-                tResultData.ResultData = tInfo;
+                var tRequest = (ScriptRequestInfo)aClientRequest.RequestData;
+                tRequest.ScriptInfo.ID = await GlobalClass.ScriptRepo.ModifyScriptInfoAsync(tRequest.WorkType, tRequest.UserID, tRequest.ScriptInfo);
+                tResultData.ResultData = tRequest.ScriptInfo;
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
-                tResultData.Error.Error = E_ErrorType.UnKnownError;
-                tResultData.Error.ErrorString = ex.Message;
+                tResultData.Error = new ErrorInfo(E_ErrorType.UnKnownError, ex.Message);
                 GlobalClass.SendResultClient(tResultData);
             }
         }
 
-        /// <summary>
-        /// Cfg복원명령을 비동기로 가져온다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         internal static async Task RequestCfgRestoreCommandAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                var tRequestCommandInfo = (CfgRestoreCommandRequestInfo)aClientRequest.RequestData;
-                var tCfgSaveInfos = new CfgSaveInfoCollection();
+                var tRequest = (CfgRestoreCommandRequestInfo)aClientRequest.RequestData;
+                using var conn = GlobalClass.GetSqlConnection();
+                var saveInfos = (await conn.QueryAsync<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequest.IPAddress })).ToList();
 
-                using (var conn = GlobalClass.GetSqlConnection())
+                if (saveInfos.Count == 0)
                 {
-                    await conn.OpenAsync();
-                    var tempSaveInfos = (await conn.QueryAsync<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequestCommandInfo.IPAddress })).ToList();
-
-                    if (tempSaveInfos.Count == 0)
-                    {
-                        var tCfgSaveInfo = new CfgSaveInfo();
-                        tCfgSaveInfo.CfgRestoreCommands.Add(new CfgRestoreCommand());
-                        tCfgSaveInfos.Add(tCfgSaveInfo);
-                    }
-                    else
-                    {
-                        var commands = (await conn.QueryAsync<CfgRestoreCommand>("EXEC SP_RACT_GET_COMMANDS @ModelID, @PartID", 
-                                                                   new { ModelID = tRequestCommandInfo.ModelID, PartID = (int)tRequestCommandInfo.CommandPart })).ToList();
-
-                        foreach (var saveInfo in tempSaveInfos)
-                        {
-                            foreach (var cmdInfo in commands)
-                            {
-                                saveInfo.CfgRestoreCommands.Add(new CfgRestoreCommand
-                                {
-                                    CmdSeq = cmdInfo.CmdSeq,
-                                    Cmd = cmdInfo.Cmd,
-                                    T_Prompt = cmdInfo.T_Prompt
-                                });
-                            }
-                            tCfgSaveInfos.Add(saveInfo);
-                        }
-                    }
+                    var info = new CfgSaveInfo();
+                    info.CfgRestoreCommands.Add(new CfgRestoreCommand());
+                    tResultData.ResultData = new CfgSaveInfoCollection { info };
                 }
-
-                tResultData.ResultData = tCfgSaveInfos;
+                else
+                {
+                    var cmds = (await conn.QueryAsync<CfgRestoreCommand>("EXEC SP_RACT_GET_COMMANDS @ModelID, @PartID", new { ModelID = tRequest.ModelID, PartID = (int)tRequest.CommandPart })).ToList();
+                    var collection = new CfgSaveInfoCollection();
+                    foreach (var s in saveInfos) { foreach (var c in cmds) s.CfgRestoreCommands.Add(c); collection.Add(s); }
+                    tResultData.ResultData = collection;
+                }
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
-                tResultData.Error.Error = E_ErrorType.UnKnownError;
-                tResultData.Error.ErrorString = ex.Message;
+                tResultData.Error = new ErrorInfo(E_ErrorType.UnKnownError, ex.Message);
                 GlobalClass.SendResultClient(tResultData);
             }
         }
 
-        /// <summary>
-        /// 여러대의 Cfg복원명령리스트를 비동기로 가져온다.
-        /// </summary>
-        /// <param name="aClientRequest"></param>
         internal static async Task RequestDevicesCfgRestoreCommandAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
             {
-                var tRequestCommandInfos = (CfgRestoreCommandRequestInfoCollection)aClientRequest.RequestData;
-                var tDeviceCfgSaveInfos = new DeviceCfgSaveInfoCollection();
+                var requests = (CfgRestoreCommandRequestInfoCollection)aClientRequest.RequestData;
+                var deviceConfigs = new DeviceCfgSaveInfoCollection();
+                using var conn = GlobalClass.GetSqlConnection();
 
-                using (var conn = GlobalClass.GetSqlConnection())
+                foreach (CfgRestoreCommandRequestInfo req in requests)
                 {
-                    await conn.OpenAsync();
-                    foreach (CfgRestoreCommandRequestInfo tRequestCommandInfo in tRequestCommandInfos)
+                    var devCfg = new DeviceCfgSaveInfo { IPAddress = req.IPAddress };
+                    var saves = (await conn.QueryAsync<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = req.IPAddress })).ToList();
+
+                    if (saves.Count > 0)
                     {
-                        var tDeviceCfgSaveInfo = new DeviceCfgSaveInfo { IPAddress = tRequestCommandInfo.IPAddress };
-                        var tCfgSaveInfos = new CfgSaveInfoCollection();
-
-                        var saveRows = (await conn.QueryAsync<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequestCommandInfo.IPAddress })).ToList();
-
-                        if (saveRows.Count > 0)
+                        foreach (var s in saves)
                         {
-                            foreach (var tCfgSaveInfo in saveRows)
-                            {
-                                if (GlobalClass.m_ModelInfoCollection.Contains(tRequestCommandInfo.ModelID))
-                                {
-                                    tCfgSaveInfo.CfgRestoreCommands = GlobalClass.m_ModelInfoCollection[tRequestCommandInfo.ModelID].CfgRestoreCommands;
-                                }
-                                tCfgSaveInfos.Add(tCfgSaveInfo);
-                            }
+                            if (GlobalClass.m_ModelInfoCollection.Contains(req.ModelID)) s.CfgRestoreCommands = GlobalClass.m_ModelInfoCollection[req.ModelID].CfgRestoreCommands;
+                            devCfg.CfgSaveInfoCollection.Add(s);
                         }
-                        else
-                        {
-                            var tCfgSaveInfo = new CfgSaveInfo();
-                            tCfgSaveInfo.CfgRestoreCommands.Add(new CfgRestoreCommand());
-                            tCfgSaveInfos.Add(tCfgSaveInfo);
-                        }
-
-                        tDeviceCfgSaveInfo.CfgSaveInfoCollection = tCfgSaveInfos;
-                        tDeviceCfgSaveInfos.Add(tDeviceCfgSaveInfo);
                     }
+                    else
+                    {
+                        var s = new CfgSaveInfo(); s.CfgRestoreCommands.Add(new CfgRestoreCommand());
+                        devCfg.CfgSaveInfoCollection.Add(s);
+                    }
+                    deviceConfigs.Add(devCfg);
                 }
-
-                tResultData.ResultData = tDeviceCfgSaveInfos;
+                tResultData.ResultData = deviceConfigs;
                 GlobalClass.SendResultClient(tResultData);
             }
             catch (Exception ex)
             {
-                tResultData.Error.Error = E_ErrorType.UnKnownError;
-                tResultData.Error.ErrorString = ex.Message;
+                tResultData.Error = new ErrorInfo(E_ErrorType.UnKnownError, ex.Message);
                 GlobalClass.SendResultClient(tResultData);
             }
         }
