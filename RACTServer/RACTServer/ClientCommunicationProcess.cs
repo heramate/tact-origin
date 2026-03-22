@@ -16,6 +16,7 @@ namespace RACTServer
     public class ClientCommunicationProcess
     {
         private MKRemote m_RemoteGateway;
+        private Data.Pipeline.PipelineListener _pipelineListener;
         private UserInfoCollection m_UserInfoList = new UserInfoCollection();
         private BlockingCollection<RequestCommunicationData> m_RequestQueue;
         private ClientResponseProcess m_ClientResponseProcess = null;
@@ -47,6 +48,8 @@ namespace RACTServer
         internal void Stop()
         {
             _cts.Cancel();
+            _pipelineListener?.Stop();
+
             if (m_RemoteGateway != null) { m_RemoteGateway.Dispose(); m_RemoteGateway = null; }
             m_ClientResponseProcess.Stop();
             if (m_RequestQueue != null) m_RequestQueue.CompleteAdding();
@@ -98,17 +101,22 @@ namespace RACTServer
                 tRemoteMethod.SetRequestHandler(RequestReceiver);
                 tRemoteMethod.SetResultHandler(ResultSender);
                 m_RemoteGateway.ServerObject = tRemoteMethod;
-                return true;
-            }
-            catch (Exception ex) { GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString()); return false; }
-        }
 
-        private void RequestReceiver(byte[] aRequestData)
-        {
-            if (aRequestData == null) return;
-            var tRequest = (RequestCommunicationData)ObjectConverter.GetObject(aRequestData);
-            if (tRequest != null && !m_RequestQueue.IsAddingCompleted) m_RequestQueue.Add(tRequest);
-        }
+                // 고성능 Pipeline 채널 병행 가동 (기존 포트 + 1)
+                _pipelineListener = new Data.Pipeline.PipelineListener(GlobalClass.m_SystemInfo.ServerIP, GlobalClass.m_SystemInfo.ServerPort + 1, RequestReceiver);
+                _pipelineListener.Start();
+
+                return true;
+                }
+                catch (Exception ex) { GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString()); return false; }
+                }
+
+                private void RequestReceiver(byte[] aRequestData)
+                {
+                if (aRequestData == null) return;
+                var tRequest = (RequestCommunicationData)ObjectConverter.GetObject(aRequestData);
+                if (tRequest != null && !m_RequestQueue.IsAddingCompleted) m_RequestQueue.Add(tRequest);
+                }
 
         private async Task ProcessClientRequestAsync(CancellationToken cancellationToken)
         {
