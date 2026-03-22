@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO.Ports;
+using System.Threading.Tasks;
 using RACTCommonClass;
 using Dapper;
 
@@ -9,7 +10,7 @@ namespace RACTServer
 {
     public class GroupProcess
     {
-        private static void ModifyGroupInfo(RequestCommunicationData aClientRequest)
+        private static async Task ModifyGroupInfoAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -20,7 +21,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "EXEC SP_RACT_Modify_GroupInfo @WorkType, @UserID, @ID, @Name, @Description, @TOP_ID, @UP_ID";
-                    var result = conn.QueryFirstOrDefault(tQuery, new
+                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
                     {
                         WorkType = (int)tGroupRequestInfo.WorkType,
                         UserID = tGroupRequestInfo.UserID,
@@ -48,10 +49,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 그룹 정보를 전송할 메서드입니다.
+        /// 그룹 정보를 전송할 비동기 메서드입니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        private static void GroupInfoReceiver(RequestCommunicationData aClientRequest)
+        private static async Task GroupInfoReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -60,11 +61,11 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    using (var multi = conn.QueryMultiple("EXEC SP_RACT_Get_GROUPINFO @UserID", new { UserID = tGroupRequestInfo.UserID }))
+                    await conn.OpenAsync();
+                    using (var multi = await conn.QueryMultipleAsync("EXEC SP_RACT_Get_GROUPINFO @UserID", new { UserID = tGroupRequestInfo.UserID }))
                     {
-                        var groups = multi.Read<dynamic>().ToList();
-                        var devices = multi.Read<dynamic>().ToList();
+                        var groups = (await multi.ReadAsync<dynamic>()).ToList();
+                        var devices = (await multi.ReadAsync<dynamic>()).ToList();
 
                         var groupInfoCollection = new GroupInfoCollection();
                         foreach (var g in groups)
@@ -141,7 +142,7 @@ namespace RACTServer
                             };
                             tDeviceInfo.TerminalConnectInfo.IPAddress = tDeviceInfo.IPAddress;
                             tDeviceInfo.TerminalConnectInfo.TelnetPort = dict["TelnetPort"] != DBNull.Value ? Convert.ToInt32(dict["TelnetPort"]) : 0;
-                            tDeviceInfo.TerminalConnectInfo.ConnectionProtocol = dict["Protocol"] != DBNull.Value ? (E_ConnectionProtocol)Convert.ToInt32(dict["Protocol"]) : E_ConnectionProtocol.Telnet;
+                            tDeviceInfo.TerminalConnectInfo.ConnectionProtocol = dict["Protocol"] != DBNull.Value ? (E_ConnectionProtocol)Convert.ToInt32(dict["Protocol"]) : E_ConnectionProtocol.TELNET;
                             tDeviceInfo.TerminalConnectInfo.SerialConfig.BaudRate = dict["BaudRate"] != DBNull.Value ? Convert.ToInt32(dict["BaudRate"]) : 9600;
                             tDeviceInfo.TerminalConnectInfo.SerialConfig.DataBits = dict["DataBits"] != DBNull.Value ? Convert.ToInt32(dict["DataBits"]) : 8;
                             tDeviceInfo.TerminalConnectInfo.SerialConfig.Handshake = dict["HandShake"] != DBNull.Value ? (Handshake)Convert.ToInt32(dict["HandShake"]) : Handshake.None;
@@ -165,30 +166,30 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 요청을 처리 합니다.
+        /// 요청을 비동기로 처리 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        internal static void RequestProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestProcessAsync(RequestCommunicationData aClientRequest)
         {
             GroupRequestInfo tRequesetInfo = aClientRequest.RequestData as GroupRequestInfo;
 
             switch (tRequesetInfo.WorkType)
             {
                 case E_WorkType.Search:
-                    GroupInfoReceiver(aClientRequest);
+                    await GroupInfoReceiverAsync(aClientRequest);
                     break;
                 default:
-                    ModifyGroupInfo(aClientRequest);
+                    await ModifyGroupInfoAsync(aClientRequest);
                     break;
             }
         }
 
-        internal static void RequestRactUserListProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestRactUserListProcessAsync(RequestCommunicationData aClientRequest)
         {
-            RactUserListReceiver(aClientRequest);
+            await RactUserListReceiverAsync(aClientRequest);
         }
 
-        private static void RactUserListReceiver(RequestCommunicationData aClientRequest)
+        private static async Task RactUserListReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -197,8 +198,8 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    var results = conn.Query<UserInfo>("EXEC SP_RACT_GET_USER_LIST @SearchType,@SearchValue,@DeleteUserID", 
-                        new { SearchType = tRequestInfo[0], SearchValue = tRequestInfo[1], DeleteUserID = Convert.ToInt32(tRequestInfo[2]) }).ToList();
+                    var results = (await conn.QueryAsync<UserInfo>("EXEC SP_RACT_GET_USER_LIST @SearchType,@SearchValue,@DeleteUserID", 
+                        new { SearchType = tRequestInfo[0], SearchValue = tRequestInfo[1], DeleteUserID = Convert.ToInt32(tRequestInfo[2]) })).ToList();
                     
                     var tUserInfos = new UserInfoCollection();
                     foreach (var u in results) tUserInfos.Add(u);
@@ -215,12 +216,12 @@ namespace RACTServer
             }
         }
 
-        internal static void RequestAddShareDeviceProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestAddShareDeviceProcessAsync(RequestCommunicationData aClientRequest)
         {
-            AddShareDeviceInfoReceiver(aClientRequest);
+            await AddShareDeviceInfoReceiverAsync(aClientRequest);
         }
 
-        private static void AddShareDeviceInfoReceiver(RequestCommunicationData aClientRequest)
+        private static async Task AddShareDeviceInfoReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -229,8 +230,8 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    var result = conn.QueryFirstOrDefault("EXEC SP_RACT_Modify_GroupInfo @WorkType, @UserID, @ID, @Name, @Description, '', ''", 
+                    await conn.OpenAsync();
+                    var result = await conn.QueryFirstOrDefaultAsync("EXEC SP_RACT_Modify_GroupInfo @WorkType, @UserID, @ID, @Name, @Description, '', ''", 
                         new { WorkType = (int)E_WorkType.Add, UserID = tRequestInfo.UserID, ID = (string)null, Name = tRequestInfo.Name, Description = tRequestInfo.Description });
 
                     if (result != null)
@@ -244,7 +245,7 @@ namespace RACTServer
                         {
                             if (aDeviceInfo.DeviceType == E_DeviceType.NeGroup)
                             {
-                                conn.Execute("EXEC SP_RACT_MODIFY_DEVICEINFO @WorkType,@GroupID,@UserID,@DeviceID,@Protocol,@DeviceType,@TelnetPort,@PortName,@BaudRate,@DataBits,@Parity,@StopBits,@Handshake,'','','','','','','','','','','','','',@MoreString,@MoreMark", 
+                                await conn.ExecuteAsync("EXEC SP_RACT_MODIFY_DEVICEINFO @WorkType,@GroupID,@UserID,@DeviceID,@Protocol,@DeviceType,@TelnetPort,@PortName,@BaudRate,@DataBits,@Parity,@StopBits,@Handshake,'','','','','','','','','','','','','',@MoreString,@MoreMark", 
                                     new { WorkType = (int)E_WorkType.Add, GroupID = tRequestInfo.ID, UserID = tRequestInfo.UserID, DeviceID = aDeviceInfo.DeviceID, 
                                           Protocol = (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol, DeviceType = (int)aDeviceInfo.DeviceType, 
                                           TelnetPort = aDeviceInfo.TerminalConnectInfo.TelnetPort, PortName = aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName, 
@@ -254,7 +255,7 @@ namespace RACTServer
                             }
                             else
                             {
-                                conn.Execute("EXEC SP_RACT_MODIFY_DEVICEINFO @WorkType,@GroupID,@UserID,@DeviceID,@Protocol,@DeviceType,@TelnetPort,@PortName,@BaudRate,@DataBits,@Parity,@StopBits,@Handshake,@ModelName,@IPAddress,@TelnetID1,@TelnetPwd1,@TelnetID2,@TelnetPwd2,@Name,@TpoName,@WAIT,@USERID,@PWD,@USERID2,@PWD2,@MoreString,@MoreMark", 
+                                await conn.ExecuteAsync("EXEC SP_RACT_MODIFY_DEVICEINFO @WorkType,@GroupID,@UserID,@DeviceID,@Protocol,@DeviceType,@TelnetPort,@PortName,@BaudRate,@DataBits,@Parity,@StopBits,@Handshake,@ModelName,@IPAddress,@TelnetID1,@TelnetPwd1,@TelnetID2,@TelnetPwd2,@Name,@TpoName,@WAIT,@USERID,@PWD,@USERID2,@PWD2,@MoreString,@MoreMark", 
                                     new { WorkType = (int)E_WorkType.Add, GroupID = tRequestInfo.ID, UserID = tRequestInfo.UserID, DeviceID = aDeviceInfo.DeviceID, 
                                           Protocol = (int)aDeviceInfo.TerminalConnectInfo.ConnectionProtocol, DeviceType = (int)aDeviceInfo.DeviceType, 
                                           TelnetPort = aDeviceInfo.TerminalConnectInfo.TelnetPort, PortName = aDeviceInfo.TerminalConnectInfo.SerialConfig.PortName, 
@@ -285,7 +286,7 @@ namespace RACTServer
             }
         }
 
-        internal static FACTGroupInfo GetFactGroup(UserInfo aUserInfo)
+        internal static async Task<FACTGroupInfo> GetFactGroupAsync(UserInfo aUserInfo)
         {
             FACTGroupInfo tUserFACTGroupInfo = new FACTGroupInfo();
             try
@@ -295,8 +296,8 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    var results = conn.Query(query);
+                    await conn.OpenAsync();
+                    var results = await conn.QueryAsync(query);
                     
                     string tOldCenterCode = "", tOldBranchCode = "", tOldORG1Code = "";
                     FACTGroupInfo tCenterGroupInfo = null, tBranchGroupInfo = null, tORG1GroupInfo = null;
@@ -335,30 +336,30 @@ namespace RACTServer
                 }
             }
             catch (Exception) { }
-            FactCountDevice(tUserFACTGroupInfo, aUserInfo);
+            await FactCountDeviceAsync(tUserFACTGroupInfo, aUserInfo);
             return tUserFACTGroupInfo;
         }
 
-        private static void FactCountDevice(FACTGroupInfo aGroupInfo, UserInfo aUserInfo)
+        private static async Task FactCountDeviceAsync(FACTGroupInfo aGroupInfo, UserInfo aUserInfo)
         {
             try
             {
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    FactCountDeviceRecursive(aGroupInfo, aUserInfo, conn);
+                    await conn.OpenAsync();
+                    await FactCountDeviceRecursiveAsync(aGroupInfo, aUserInfo, conn);
                 }
             }
             catch (Exception) { }
         }
 
-        private static void FactCountDeviceRecursive(FACTGroupInfo aGroupInfo, UserInfo aUserInfo, System.Data.SqlClient.SqlConnection conn)
+        private static async Task FactCountDeviceRecursiveAsync(FACTGroupInfo aGroupInfo, UserInfo aUserInfo, System.Data.SqlClient.SqlConnection conn)
         {
             if (aGroupInfo.SubGroups != null && aGroupInfo.SubGroups.Count > 0)
             {
                 foreach (FACTGroupInfo tGroupInfo in aGroupInfo.SubGroups)
                 {
-                    FactCountDeviceRecursive(tGroupInfo, aUserInfo, conn);
+                    await FactCountDeviceRecursiveAsync(tGroupInfo, aUserInfo, conn);
                 }
             }
 
@@ -366,27 +367,13 @@ namespace RACTServer
 
             try
             {
-                var result = conn.QueryFirstOrDefault("EXEC SP_ORG_DEVICE_Count @CenterCode", new { CenterCode = aGroupInfo.CenterCode });
+                var result = await conn.QueryFirstOrDefaultAsync("EXEC SP_ORG_DEVICE_Count @CenterCode", new { CenterCode = aGroupInfo.CenterCode });
                 if (result != null)
                 {
                     aGroupInfo.DeviceCount = Convert.ToInt32(((IDictionary<string, object>)result)["devicecount"]);
                 }
             }
             catch (Exception) { }
-        }
-    }
-}
-r.HasRows)
-                        {
-                            reader.Read();
-                            aGroupInfo.DeviceCount = reader["devicecount"] != DBNull.Value ? Convert.ToInt32(reader["devicecount"]) : 0;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-            }
         }
     }
 }

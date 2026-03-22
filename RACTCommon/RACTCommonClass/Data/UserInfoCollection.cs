@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using ACPS.CommonConfigCompareClass;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -70,13 +72,14 @@ namespace RACTCommonClass
 
         private readonly ConcurrentDictionary<int, UserInfo> m_ClientMap = new ConcurrentDictionary<int, UserInfo>();
 
-        public override void Add(UserInfo item)
+        public override int Add(UserInfo item)
         {
             if (item != null)
             {
                 m_ClientMap[item.ClientID] = item;
-                base.Add(item);
+                return base.Add(item);
             }
+            return -1;
         }
 
         public override void Remove(UserInfo item)
@@ -89,7 +92,7 @@ namespace RACTCommonClass
             }
         }
 
-        public override void Clear()
+        public new void Clear()
         {
             m_ClientMap.Clear();
             base.Clear();
@@ -121,8 +124,6 @@ namespace RACTCommonClass
             }
         }
 
-
-        #endregion //[property part]
 
         #region [public member part]
         /// <summary>

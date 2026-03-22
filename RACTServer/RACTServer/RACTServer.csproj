@@ -74,6 +74,7 @@
     <Reference Include="MKXML">
       <HintPath>..\..\_TACT_DLL\_$(Configuration)\MKXML.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="RACTCommonClass">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\_TACT_DLL\_$(Configuration)\RACTCommonClass.dll</HintPath>

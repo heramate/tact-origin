@@ -1,12 +1,13 @@
 using RACTCommonClass;
 using System;
+using System.Threading.Tasks;
 using Dapper;
 
 namespace RACTServer
 {
     public class DeviceConnectionLogService
     {
-        public DeviceConnectionLogOpenResultInfo OpenLog(UserInfo aUserInfo, DeviceConnectionLogOpenRequestInfo aRequest)
+        public async Task<DeviceConnectionLogOpenResultInfo> OpenLogAsync(UserInfo aUserInfo, DeviceConnectionLogOpenRequestInfo aRequest)
         {
             DeviceConnectionLogOpenResultInfo tResult = new DeviceConnectionLogOpenResultInfo();
 
@@ -33,7 +34,7 @@ namespace RACTServer
                         ConnectionKind = aRequest.ConnectionKind
                     };
 
-                    tResult.ConnectionLogID = conn.QueryFirstOrDefault<int>(sql, param);
+                    tResult.ConnectionLogID = await conn.QueryFirstOrDefaultAsync<int>(sql, param);
                 }
 
                 tResult.Success = tResult.ConnectionLogID > 0;
@@ -51,7 +52,7 @@ namespace RACTServer
             return tResult;
         }
 
-        public DeviceConnectionLogCloseResultInfo CloseLog(UserInfo aUserInfo, DeviceConnectionLogCloseRequestInfo aRequest)
+        public async Task<DeviceConnectionLogCloseResultInfo> CloseLogAsync(UserInfo aUserInfo, DeviceConnectionLogCloseRequestInfo aRequest)
         {
             DeviceConnectionLogCloseResultInfo tResult = new DeviceConnectionLogCloseResultInfo();
 
@@ -60,7 +61,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     if (conn == null) throw new Exception("DBConnection Failed");
-                    conn.Execute("update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = GETDATE() where id = @ID", new { ID = aRequest.ConnectionLogID });
+                    await conn.ExecuteAsync("update RACT_LOG_DeviceConnection set ConnectLogType = 1, DisconnectTime = GETDATE() where id = @ID", new { ID = aRequest.ConnectionLogID });
                 }
 
                 tResult.Success = true;

@@ -292,19 +292,17 @@ namespace RACTDaemonProcess
                 UserInfo tUserInfo = (UserInfo)m_UserInfoList[aClientID];
                 if (tUserInfo == null) return null;
                 tUserInfo.LifeTime = DateTime.Now;
-                lock (tUserInfo.DataQueue.SyncRoot)
+
+                if (tUserInfo.DataQueue.Count > 0)
                 {
-                    if (tUserInfo.DataQueue.Count > 0)
+                    tResults = new ArrayList();
+                    while (tUserInfo.DataQueue.TryDequeue(out byte[] data))
                     {
-                        tResults = new ArrayList();
-                        while (tUserInfo.DataQueue.Count > 0)
-                        {
-                            if (tResultCount >= 200) break;
-                            tResults.Add(tUserInfo.DataQueue.Dequeue());
-                            tResultCount++;
-                        }
-                        tResult = (byte[])ObjectConverter.GetBytes(tResults);
+                        if (tResultCount >= 200) break;
+                        tResults.Add(data);
+                        tResultCount++;
                     }
+                    tResult = (byte[])ObjectConverter.GetBytes(tResults);
                 }
             }
             return tResult;
@@ -464,7 +462,7 @@ namespace RACTDaemonProcess
                     if (m_UserInfoList.Contains(aResultData.ClientID))
                     {
                         UserInfo tUserInfo = m_UserInfoList[aResultData.ClientID];
-                        lock (tUserInfo.DataQueue.SyncRoot) tUserInfo.DataQueue.Enqueue(ObjectConverter.GetBytes(aResultData));
+                        tUserInfo.DataQueue.Enqueue(ObjectConverter.GetBytes(aResultData));
                     }
                 }
             }
@@ -496,12 +494,9 @@ namespace RACTDaemonProcess
                     if (m_UserInfoList.Contains(aClientID))
                     {
                         UserInfo tUserInfo = m_UserInfoList[aClientID];
-                        lock (tUserInfo.DataQueue.SyncRoot)
+                        foreach (byte[] tResult in aResults)
                         {
-                            foreach (byte[] tResult in aResults)
-                            {
-                                tUserInfo.DataQueue.Enqueue(tResult);
-                            }
+                            tUserInfo.DataQueue.Enqueue(tResult);
                         }
                     }
                 }

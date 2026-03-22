@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
 using System.Threading;
+using System.Threading.Tasks;
 using ACPS.CommonConfigCompareClass;
 using RACTCommonClass;
 using Dapper;
@@ -16,22 +16,16 @@ namespace RACTServer
         /// <summary>
         /// 서버의 초기정보를 Load하는 클래스 입니다.
         /// </summary>
-        /// <returns>데이터 로드의 성공 요부 입니다.</returns>
+        /// <returns>데이터 로드의 성공 여부 입니다.</returns>
         public static bool LoadBaseData()
         {
             GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "기초 데이터를 로드 합니다.");
             if (!LoadFACTGroupInfo()) return false;
             if (!LoadModelInfo()) return false;
             if (!LoadUnUsedLimit()) return false;
-            /* 2019-01-16 제한명령어 명령어별 권한 변경건 수정 */
-            //if (!LoadLimitCmdInfo()) return false;
             if (!LoadDefaultCmdInfo()) return false;
-            // 2013-05-02- shinyn - 장비정보를 로드합니다.
-            //if (!LoadDeviceInfo()) return false;
-
 
             return true;
-
         }
 
         /// <summary>
@@ -104,45 +98,24 @@ namespace RACTServer
                             if (tOldORG1Code != tGroupInfo.ORG1Code)
                             {
                                 tOldORG1Code = tGroupInfo.ORG1Code;
-                                tORG1GroupInfo = new FACTGroupInfo();
-                                tORG1GroupInfo.ORG1Code = tGroupInfo.ORG1Code;
-                                tORG1GroupInfo.ORG1Name = tGroupInfo.ORG1Name;
-
-                                if (GlobalClass.m_FACTGroupInfo.SubGroups == null)
-                                    GlobalClass.m_FACTGroupInfo.SubGroups = new FACTGroupInfoCollection();
-                                
+                                tORG1GroupInfo = new FACTGroupInfo { ORG1Code = tGroupInfo.ORG1Code, ORG1Name = tGroupInfo.ORG1Name };
+                                if (GlobalClass.m_FACTGroupInfo.SubGroups == null) GlobalClass.m_FACTGroupInfo.SubGroups = new FACTGroupInfoCollection();
                                 GlobalClass.m_FACTGroupInfo.SubGroups.Add(tORG1GroupInfo);
                             }
 
                             if (tOldBranchCode != tGroupInfo.BranchCode)
                             {
                                 tOldBranchCode = tGroupInfo.BranchCode;
-                                tBranchGroupInfo = new FACTGroupInfo();
-                                tBranchGroupInfo.BranchCode = tGroupInfo.BranchCode;
-                                tBranchGroupInfo.BranchName = tGroupInfo.BranchName;
-                                tBranchGroupInfo.ORG1Code = tGroupInfo.ORG1Code;
-                                tBranchGroupInfo.ORG1Name = tGroupInfo.ORG1Name;
-
-                                if (tORG1GroupInfo.SubGroups == null)
-                                    tORG1GroupInfo.SubGroups = new FACTGroupInfoCollection();
-                                
+                                tBranchGroupInfo = new FACTGroupInfo { BranchCode = tGroupInfo.BranchCode, BranchName = tGroupInfo.BranchName, ORG1Code = tGroupInfo.ORG1Code, ORG1Name = tGroupInfo.ORG1Name };
+                                if (tORG1GroupInfo.SubGroups == null) tORG1GroupInfo.SubGroups = new FACTGroupInfoCollection();
                                 tORG1GroupInfo.SubGroups.Add(tBranchGroupInfo);
                             }
 
                             if (tOldCenterCode != tGroupInfo.CenterCode)
                             {
                                 tOldCenterCode = tGroupInfo.CenterCode;
-                                tCenterGroupInfo = new FACTGroupInfo();
-                                tCenterGroupInfo.ORG1Code = tGroupInfo.ORG1Code;
-                                tCenterGroupInfo.ORG1Name = tGroupInfo.ORG1Name;
-                                tCenterGroupInfo.BranchCode = tGroupInfo.BranchCode;
-                                tCenterGroupInfo.BranchName = tGroupInfo.BranchName;
-                                tCenterGroupInfo.CenterCode = tGroupInfo.CenterCode;
-                                tCenterGroupInfo.CenterName = tGroupInfo.CenterName;
-
-                                if (tBranchGroupInfo.SubGroups == null)
-                                    tBranchGroupInfo.SubGroups = new FACTGroupInfoCollection();
-                                
+                                tCenterGroupInfo = new FACTGroupInfo { ORG1Code = tGroupInfo.ORG1Code, ORG1Name = tGroupInfo.ORG1Name, BranchCode = tGroupInfo.BranchCode, BranchName = tGroupInfo.BranchName, CenterCode = tGroupInfo.CenterCode, CenterName = tGroupInfo.CenterName };
+                                if (tBranchGroupInfo.SubGroups == null) tBranchGroupInfo.SubGroups = new FACTGroupInfoCollection();
                                 tBranchGroupInfo.SubGroups.Add(tCenterGroupInfo);
                             }
                         }
@@ -189,10 +162,6 @@ namespace RACTServer
             catch (Exception) { }
         }
 
-        /// <summary>
-		/// 장비 모델 정보를 로드 합니다.
-		/// </summary>
-		/// <returns>장비 모델 정보 로드의 성공 여부 입니다.</returns>
 		private static bool LoadModelInfo()
 		{
 			try
@@ -247,13 +216,12 @@ namespace RACTServer
                                 foreach (var cfgRow in cfgCmds)
                                 {
                                     IDictionary<string, object> cDict = (IDictionary<string, object>)cfgRow;
-                                    var cmd = new CfgRestoreCommand
+                                    tModelInfo.CfgRestoreCommands.Add(new CfgRestoreCommand
                                     {
                                         CmdSeq = Convert.ToInt32(cDict["CmdSeq"]),
                                         Cmd = cDict["Cmd"]?.ToString(),
                                         T_Prompt = cDict["T_Prompt"]?.ToString()
-                                    };
-                                    tModelInfo.CfgRestoreCommands.Add(cmd);
+                                    });
                                 }
 
                                 // Load DefaultConnectionCommadSet
@@ -268,14 +236,13 @@ namespace RACTServer
                                 foreach (var defRow in defCmds)
                                 {
                                     IDictionary<string, object> dDict = (IDictionary<string, object>)defRow;
-                                    var cmd = new FACT_DefaultConnectionCommand
+                                    tModelInfo.DefaultConnectionCommadSet.CommandList.Add(new FACT_DefaultConnectionCommand
                                     {
                                         CMDSeq = Convert.ToInt32(dDict["cmdseq"]),
                                         CMD = dDict["cmd"]?.ToString(),
                                         Prompt = dDict["t_prompt"]?.ToString(),
                                         ErrorString = dDict["t_ErrStr"]?.ToString()
-                                    };
-                                    tModelInfo.DefaultConnectionCommadSet.CommandList.Add(cmd);
+                                    });
                                 }
 							}
 						}
@@ -295,11 +262,12 @@ namespace RACTServer
 			}
 		}
 
-
-        // 15-09-10
-        // 제한 명령어 정보를 수집합니다.
-        // Gunny
         public static bool LoadLimitCmdInfo(E_UserType tUserType)
+        {
+            return Task.Run(() => LoadLimitCmdInfoAsync(tUserType)).Result;
+        }
+
+        public static async Task<bool> LoadLimitCmdInfoAsync(E_UserType tUserType)
         {
             try
             {
@@ -309,7 +277,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "SP_RACT_Get_EmbargoCmdInfo @UserType";
-                    var results = conn.Query(tQuery, new { UserType = (int)tUserType });
+                    var results = await conn.QueryAsync(tQuery, new { UserType = (int)tUserType });
 
                     foreach (var row in results)
                     {
@@ -332,12 +300,11 @@ namespace RACTServer
 
                         if (dict["EmbargoCmd"] != DBNull.Value && dict["EmbargoCmd"] != null)
                         {
-                            var tEmbagoInfo = new EmbagoInfo
+                            tLimitCmdInfo.EmbagoCmd.Add(new EmbagoInfo
                             {
                                 Embargo = dict["EmbargoCmd"].ToString(),
                                 EmbargoEnble = Convert.ToBoolean(dict["mAdmin"])
-                            };
-                            tLimitCmdInfo.EmbagoCmd.Add(tEmbagoInfo);
+                            });
                         }
                     }
                 }
@@ -350,10 +317,12 @@ namespace RACTServer
             }
         }
 
-        // 15-09-30
-        // 기본 명령어 정보를 수집합니다.
-        // Gunny
         public static bool LoadDefaultCmdInfo()
+        {
+            return Task.Run(() => LoadDefaultCmdInfoAsync()).Result;
+        }
+
+        public static async Task<bool> LoadDefaultCmdInfoAsync()
         {
             try
             {
@@ -363,7 +332,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "SELECT ID , ModelID , Command , Description , UserID from fact_main.dbo.RACT_AutoCommandGuide order by ModelID , ID";
-                    var results = conn.Query(tQuery);
+                    var results = await conn.QueryAsync(tQuery);
 
                     foreach (var row in results)
                     {
@@ -400,10 +369,12 @@ namespace RACTServer
             }
         }
 
-        // 15-09-30
-        // 기본 명령어 정보를 수집합니다.
-        // Gunny
         public static bool LoadAutoCompleteInfo(int userID)
+        {
+            return Task.Run(() => LoadAutoCompleteInfoAsync(userID)).Result;
+        }
+
+        public static async Task<bool> LoadAutoCompleteInfoAsync(int userID)
         {
             try
             {
@@ -420,7 +391,7 @@ namespace RACTServer
                                     where B.UserID=@UserID 
                                     order by Command desc";
 
-                    var results = conn.Query(tQuery, new { UserID = userID });
+                    var results = await conn.QueryAsync(tQuery, new { UserID = userID });
 
                     foreach (var row in results)
                     {

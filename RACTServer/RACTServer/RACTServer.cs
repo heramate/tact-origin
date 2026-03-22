@@ -3,126 +3,95 @@ using RACTServerCommon;
 using System;
 using System.Collections;
 using System.IO;
+using MKLibrary.MKData;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RACTServer
 {
     public class RACTServer
     {
-        /// <summary>
-        /// 서버를 시작하는 쓰레드입니다.
-        /// </summary>
-        private Thread m_StartServerThread = null;
-
-        private Thread m_ReloadCheckThread = null;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private Task _reloadCheckTask = null;
+        private Task _startServerTask = null;
 
         /// <summary>
         /// 타임아웃된 사용자를 자동으로 삭제처리 할지 여부 입니다. ( 디버깅시 클라이언트 세션을 자동으로 제거하면 디버깅이 안되기 때문)
         /// </summary>
         private bool m_IsTimeoutUserAutoDelete = false;
-        /// <summary>
-        /// 서버 개체를 생성합니다.
-        /// </summary>
-        /// <param name="aStartupPath">시작 경로입니다.</param>
+
         public RACTServer(string aStartupPath) : this(aStartupPath, true) { }
-        /// <summary>
-        /// 서버 개체를 생성합니다.
-        /// </summary>
-        /// <param name="aStartupPath"></param>
-        /// <param name="aIsTimeoutUserAutoDelete"></param>
         public RACTServer(string aStartupPath, bool aIsTimeoutUserAutoDelete)
         {
             GlobalClass.m_StartupPath = aStartupPath;
             m_IsTimeoutUserAutoDelete = aIsTimeoutUserAutoDelete;
         }
 
-
-
         /// <summary>
         /// 서버를 시작합니다.
         /// </summary>
-        /// <returns></returns>
         public bool Start()
         {
             try
             {
-                GlobalClass.m_LogProcess = new FileLogProcess(Application.StartupPath + "\\System Log", "ServerSystem");
+                GlobalClass.m_LogProcess = new FileLogProcess(Path.Combine(Application.StartupPath, "System Log"), "ServerSystem");
                 GlobalClass.m_LogProcess.Start();
 
-                GlobalClass.s_DaemonProcessManager = new DaemonProcessManager();
                 GlobalClass.s_DeviceConnectionLogService = new DeviceConnectionLogService();
 
-                if (!InitializeServer())
-                {
-                    return false;
-                }
+                if (!InitializeServer()) return false;
+
                 GlobalClass.m_IsRun = true;
+                _cts = new CancellationTokenSource();
 
-                //서버 스래드를 시작합니다.
-                m_StartServerThread = new Thread(new ThreadStart(StartServer));
-                m_StartServerThread.Start();
+                // 서버 구동 백그라운드 태스크
+                _startServerTask = Task.Run(() => StartServerAsync());
 
-
-                m_ReloadCheckThread = new Thread(new ThreadStart(ProcessReloadCheck));
-                m_ReloadCheckThread.Start();
-
+                // 주기적 데이터 갱신 태스크
+                _reloadCheckTask = Task.Run(() => ProcessReloadCheckAsync(_cts.Token));
 
                 return true;
             }
             catch (Exception ex)
             {
+                GlobalClass.m_LogProcess?.PrintLog(E_FileLogType.Error, "Server Start Failed: " + ex.Message);
                 return false;
             }
         }
 
-        private void ProcessReloadCheck()
+        private async Task ProcessReloadCheckAsync(CancellationToken token)
         {
-            while (!GlobalClass.m_IsRequestToStop)
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "데이터 재로딩 체크 프로세스를 시작합니다.");
+            
+            while (!token.IsCancellationRequested && GlobalClass.m_IsRun)
             {
-                DateTime tNowTime = DateTime.Now;
-                DateTime tReloadTime;
-
-                DateTime tStartTime;
-                TimeSpan tSpan;
                 try
                 {
-                    tReloadTime = new DateTime(tNowTime.Year, tNowTime.Month, tNowTime.Day, GlobalClass.m_SystemInfo.ReloadHour, GlobalClass.m_SystemInfo.ReloadMinute, 0);
-                    if (tNowTime.Hour != tReloadTime.Hour || tNowTime.Minute != tReloadTime.Minute) continue;
-
-                    tStartTime = DateTime.Now;
-
-                    GlobalClass.m_LogProcess.PrintLog("==============================기초 데이터를 새로 올리기 시작합니다.==============================");
-
-                    if (!BaseDataLoadProcess.LoadBaseData())
+                    DateTime now = DateTime.Now;
+                    if (now.Hour == GlobalClass.m_SystemInfo.ReloadHour && now.Minute == GlobalClass.m_SystemInfo.ReloadMinute)
                     {
-                        GlobalClass.m_LogProcess.PrintLog("'기초 데이터 로드에 실패하였습니다.");
+                        GlobalClass.m_LogProcess.PrintLog("==============================기초 데이터를 새로 올리기 시작합니다.==============================");
+                        
+                        if (!BaseDataLoadProcess.LoadBaseData())
+                        {
+                            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning, "기초 데이터 로드에 실패하였습니다.");
+                        }
+
+                        // 1분 동안 중복 실행 방지
+                        await Task.Delay(60000, token);
                     }
-
-                    //2011-10-01 hanjiyeon 추가 Telnet 기본 접속 테스트 작업 수행.
-                    // FOMS 연동 실패 조회는 SP_FOMS_DEVICE_DISCORD_INFO 를 이용하여 FOMS 연동 실패 테이블에서 직접 데이터를 얻어오고,
-                    // Telnet 기본 접속 테스트 결과 실패된 장비 조회는 FACT 서버에서 시설연동 후 명령을 실행하여 결과를 DB Ne_Ne 테이블과 서버의 메모리내에 있는 장비정보에 Update 한다.
-
-                    tSpan = DateTime.Now - tStartTime;
-                    if (tSpan.Seconds < 60)
-                    {
-                        //데이터 갱신 작업이 60초 보다 적게 걸릴 경우 다시 RefreshData()함수가 호출되기 때문에 시간을 계산에 기다리게 처리한다.
-                        Thread.Sleep((60 - tSpan.Seconds) * 1000);
-                    }
-
                 }
+                catch (OperationCanceledException) { break; }
                 catch (Exception ex)
                 {
-                    GlobalClass.m_LogProcess.PrintLog("ProcessReloadCheck exception : " + ex.Message.ToString());
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "ProcessReloadCheckAsync exception : " + ex.Message);
                 }
-                finally
-                {
-                    Thread.Sleep(1000);   //1초에 한번씩 체크
-                }
+                
+                await Task.Delay(1000, token);
             }
         }
-
 
         /// <summary>
         /// 서버를 종료합니다.
@@ -130,12 +99,16 @@ namespace RACTServer
         public void Stop()
         {
             GlobalClass.m_IsRun = false;
+            _cts.Cancel();
+
+            GlobalClass.m_LogProcess?.PrintLog(E_FileLogType.Infomation, "서버 종료 절차를 시작합니다.");
 
             if (GlobalClass.s_ServiceManagerCommunicationProcess != null)
             {
                 GlobalClass.s_ServiceManagerCommunicationProcess.Stop();
                 GlobalClass.s_ServiceManagerCommunicationProcess = null;
             }
+
             if (GlobalClass.s_DaemonProcessManager != null)
             {
                 GlobalClass.s_DaemonProcessManager.Stop();
@@ -148,180 +121,108 @@ namespace RACTServer
                 GlobalClass.m_ClientProcess = null;
             }
 
-            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "재로딩 프로세스를 종료 합니다.");
-            if (m_ReloadCheckThread != null)
+            try
             {
-                GlobalClass.m_IsRequestToStop = true;
-
-                if (m_ReloadCheckThread.ThreadState == ThreadState.Running)
-                {
-                    m_ReloadCheckThread.Abort();
-                    m_ReloadCheckThread.Join();
-                }
-                m_ReloadCheckThread = null;
+                // 실행 중인 태스크들 대기
+                Task.WaitAll(new[] { _reloadCheckTask, _startServerTask }.FilterNotNull(), 3000);
             }
-
-
-            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "서버를 종료 합니다.");
-            if (m_StartServerThread != null)
-            {
-                if (m_StartServerThread.ThreadState == ThreadState.Running)
-                {
-                    m_StartServerThread.Abort();
-                    m_StartServerThread.Join();
-                }
-                m_StartServerThread = null;
-            }
-
+            catch { }
 
             if (GlobalClass.m_DBLogProcess != null)
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "DB로그 프로세서를 종료 합니다.");
                 GlobalClass.m_DBLogProcess.Dispose();
                 GlobalClass.m_DBLogProcess = null;
             }
 
-
             if (GlobalClass.m_LogProcess != null)
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "로그 프로세서를 종료 합니다.");
                 GlobalClass.m_LogProcess.Stop();
                 GlobalClass.m_LogProcess = null;
             }
-
-
         }
 
-        /// <summary>
-        /// 서버 설정 정보를 로드합니다.
-        /// </summary>
-        /// <returns></returns>
         public bool LoadSystemInfo()
         {
-            ArrayList tSystemInfos = null;
-            E_XmlError tXmlError = E_XmlError.Success;
             try
             {
-                FileInfo tFileInfo = new FileInfo(GlobalClass.m_StartupPath + GlobalClass.c_SystemConfigFileName);
+                string configPath = Path.Combine(GlobalClass.m_StartupPath, GlobalClass.c_SystemConfigFileName.TrimStart('\\'));
+                FileInfo tFileInfo = new FileInfo(configPath);
+                
                 if (!tFileInfo.Exists) MKXML.ObjectToXML(tFileInfo.FullName, new SystemConfig());
 
-                tSystemInfos = MKXML.ObjectFromXML(GlobalClass.m_StartupPath + GlobalClass.c_SystemConfigFileName, typeof(SystemConfig), out tXmlError);
-                if (tSystemInfos == null) return false;
-                if (tSystemInfos.Count == 0) return false;
-                GlobalClass.m_SystemInfo = (SystemConfig)tSystemInfos[0];
+                ArrayList tSystemInfos = MKXML.ObjectFromXML(tFileInfo.FullName, typeof(SystemConfig), out E_XmlError tXmlError);
+                if (tSystemInfos == null || tSystemInfos.Count == 0) return false;
 
-                GlobalClass.m_DBConnectionInfo = new DBConnectionInfo();
-                GlobalClass.m_DBConnectionInfo.DBServerIP = GlobalClass.m_SystemInfo.DBServerIP;
-                GlobalClass.m_DBConnectionInfo.DBName = GlobalClass.m_SystemInfo.DBName;
-                GlobalClass.m_DBConnectionInfo.UserID = GlobalClass.m_SystemInfo.UserID;
-                GlobalClass.m_DBConnectionInfo.Password = GlobalClass.m_SystemInfo.Password;
-                GlobalClass.m_DBConnectionInfo.DBConnectionCount = GlobalClass.m_SystemInfo.DBConnectionCount;
+                GlobalClass.m_SystemInfo = (SystemConfig)tSystemInfos[0];
+                GlobalClass.m_DBConnectionInfo = new DBConnectionInfo
+                {
+                    DBServerIP = GlobalClass.m_SystemInfo.DBServerIP,
+                    DBName = GlobalClass.m_SystemInfo.DBName,
+                    UserID = GlobalClass.m_SystemInfo.UserID,
+                    Password = GlobalClass.m_SystemInfo.Password,
+                    DBConnectionCount = GlobalClass.m_SystemInfo.DBConnectionCount
+                };
 
                 return true;
             }
             catch (Exception ex)
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
+                GlobalClass.m_LogProcess?.PrintLog(E_FileLogType.Error, "LoadSystemInfo Failed: " + ex.Message);
                 return false;
             }
         }
 
-
-
-
-        /// <summary>
-        /// 환경 정보를 생성합니다.
-        /// </summary>
-        /// <returns></returns>
         public bool MakeSystemInfo()
         {
-            IPAddress[] tIPAddress = null;
-            E_XmlError tXmlError = E_XmlError.Success;
-            SystemConfig tSystemInfo = null;
             try
             {
-                tIPAddress = Dns.GetHostEntry(Environment.MachineName).AddressList;
-                tSystemInfo = new SystemConfig();
-
-                tSystemInfo.ServerID = 0;
-                if (tIPAddress.Length > 0)
+                IPAddress[] addressList = Dns.GetHostEntry(Environment.MachineName).AddressList;
+                SystemConfig tSystemInfo = new SystemConfig
                 {
-                    tSystemInfo.ServerIP = tIPAddress[0].ToString();
+                    ServerID = 0,
+                    ServerIP = addressList.Length > 0 ? addressList[0].ToString() : "127.0.0.1",
+                    DBServerIP = Environment.MachineName + ",43218\\FACT_TEST",
+                    DBName = "FACT_TEST",
+                    UserID = "sa",
+                    Password = "factskB~2012",
+                    ServerPort = 54321,
+                    ServerChannel = "RemoteClient"
+                };
 
-                }
-                // 2013-01-11 - shinyn - 테스트인경우 FACT_TEST에서 하도록 수정
-                tSystemInfo.DBServerIP = Environment.MachineName + ",43218" + "\\FACT_TEST";
-                tSystemInfo.DBName = "FACT_TEST";
-                tSystemInfo.UserID = "sa";
-                tSystemInfo.Password = "factskB~2012";
-                //tSystemInfo.DBServerIP = Environment.MachineName + ",43218" + "\\FACT_MAIN";
-                //tSystemInfo.DBName = "FACT_TEST";
-                //tSystemInfo.UserID = "factdev";
-                //tSystemInfo.Password = "factdev";
-
-                tSystemInfo.ServerPort = 54321;
-                tSystemInfo.ServerChannel = "RemoteClient";
-
-
-
-                tXmlError = MKXML.ObjectToXML(string.Concat(GlobalClass.m_StartupPath, GlobalClass.c_SystemConfigFileName), tSystemInfo);
-
-                if (tXmlError == E_XmlError.Success)
-                    return true;
-                else
-                    return false;
+                string configPath = Path.Combine(GlobalClass.m_StartupPath, GlobalClass.c_SystemConfigFileName.TrimStart('\\'));
+                return MKXML.ObjectToXML(configPath, tSystemInfo) == E_XmlError.Success;
             }
             catch (Exception ex)
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
+                GlobalClass.m_LogProcess?.PrintLog(E_FileLogType.Error, "MakeSystemInfo Failed: " + ex.Message);
                 return false;
             }
         }
-
 
         private bool InitializeServer()
         {
-            try
-            {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "서버를 초기화 합니다.");
-                if (!LoadSystemInfo()) return false;
-
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "Dapper 기반 Native SQL Pool(Max 200)을 사용합니다.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, ex.ToString());
-                return false;
-            }
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "서버 초기화를 진행합니다.");
+            if (!LoadSystemInfo()) return false;
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "Dapper 기반 고성능 비동기 파이프라인이 활성화되었습니다.");
+            return true;
         }
 
-        /// <summary>
-        /// 서버를 시작합니다.
-        /// </summary>
-        private void StartServer()
+        private void StartServerAsync()
         {
             if (!BaseDataLoadProcess.LoadBaseData())
             {
-                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "기초 정보 로드에 실패 했습니다.");
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "기초 정보 로드 실패로 서버 구동을 중단합니다.");
                 return;
             }
-            RemoteServerStart();
 
-            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "서버 초기화가 완료 되었습니다.");
+            RemoteServerStart();
+            GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, "서버 서비스가 성공적으로 시작되었습니다.");
         }
 
-        /// <summary>
-        /// 원격 채널을 시작합니다.
-        /// </summary>
         private void RemoteServerStart()
         {
             try
             {
-                //Jbo ID생성자를 초기화 합니다.
-                //GlobalClass.m_JobIDGenerator = new JobIDGenerator();
-                //GlobalClass.m_JobIDGenerator.Initialize();
-
                 GlobalClass.m_ClientProcess = new ClientCommunicationProcess();
                 GlobalClass.m_ClientProcess.Start();
 
@@ -330,16 +231,19 @@ namespace RACTServer
 
                 GlobalClass.s_ServiceManagerCommunicationProcess = new ServiceManagerCommunicationProcess();
                 GlobalClass.s_ServiceManagerCommunicationProcess.Start();
-
-                //GlobalClass.m_TelnetProcessor = new TelnetProcessor.TelnetProcessor(GlobalClass.m_DBLogProcess,GlobalClass.m_LogProcess);
-                //GlobalClass.m_TelnetProcessor.Start();
             }
             catch (Exception ex)
             {
-
+                GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "RemoteServerStart Error: " + ex.Message);
             }
         }
+    }
 
-
+    internal static class TaskExtensions
+    {
+        public static Task[] FilterNotNull(this Task[] tasks)
+        {
+            return Array.FindAll(tasks, t => t != null);
+        }
     }
 }

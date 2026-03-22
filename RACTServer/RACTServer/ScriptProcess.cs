@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using RACTCommonClass;
 using Dapper;
 
@@ -9,29 +10,29 @@ namespace RACTServer
     public class ScriptProcess
     {
         /// <summary>
-        /// 요청을 처리 합니다.
+        /// 요청을 비동기로 처리 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        internal static void RequestProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestProcessAsync(RequestCommunicationData aClientRequest)
         {
             ScriptGroupRequestInfo tRequesetInfo = aClientRequest.RequestData as ScriptGroupRequestInfo;
 
             switch (tRequesetInfo.WorkType)
             {
                 case E_WorkType.Search:
-                    SearchScriptGroup(aClientRequest);
+                    await SearchScriptGroupAsync(aClientRequest);
                     break;
                 default:
-                    ModifyScriptGroup(aClientRequest);
+                    await ModifyScriptGroupAsync(aClientRequest);
                     break;
             }
         }
 
         /// <summary>
-        /// 스크립트 그룹을 수정 합니다.
+        /// 스크립트 그룹을 비동기로 수정 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        private static void ModifyScriptGroup(RequestCommunicationData aClientRequest)
+        private static async Task ModifyScriptGroupAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -42,7 +43,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "EXEC SP_RACT_Modify_ScriptGroup @WorkType, @ID, @UserID, @Name, @Description";
-                    var result = conn.QueryFirstOrDefault(tQuery, new
+                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
                     {
                         WorkType = (int)tRequestCommandInfo.WorkType,
                         ID = tInfo.ID,
@@ -69,10 +70,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 스크립트 그룹 목록을 가져오기 합니다.
+        /// 스크립트 그룹 목록을 비동기로 가져오기 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        private static void SearchScriptGroup(RequestCommunicationData aClientRequest)
+        private static async Task SearchScriptGroupAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -81,11 +82,11 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    using (var multi = conn.QueryMultiple("EXEC SP_RACT_Get_Script @UserID", new { UserID = tRequestCommandInfo.UserID }))
+                    await conn.OpenAsync();
+                    using (var multi = await conn.QueryMultipleAsync("EXEC SP_RACT_Get_Script @UserID", new { UserID = tRequestCommandInfo.UserID }))
                     {
-                        var groups = multi.Read<ScriptGroupInfo>().ToList();
-                        var scripts = multi.Read<dynamic>().ToList();
+                        var groups = (await multi.ReadAsync<ScriptGroupInfo>()).ToList();
+                        var scripts = (await multi.ReadAsync<dynamic>()).ToList();
 
                         var scriptGroupList = new ScriptGroupInfoCollection();
                         foreach (var g in groups) scriptGroupList.Add(g);
@@ -119,7 +120,7 @@ namespace RACTServer
             }
         }
 
-        internal static void RequestScriptProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestScriptProcessAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -130,7 +131,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "EXEC SP_RACT_Modify_ScriptInfo @WorkType, @ID, @GroupID, @UserID, @Name, @Description, @RawScript";
-                    var result = conn.QueryFirstOrDefault(tQuery, new
+                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
                     {
                         WorkType = (int)tRequestCommandInfo.WorkType,
                         ID = tInfo.ID,
@@ -159,10 +160,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// Cfg복원명령을 가져온다.
+        /// Cfg복원명령을 비동기로 가져온다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        internal static void RequestCfgRestoreCommand(RequestCommunicationData aClientRequest)
+        internal static async Task RequestCfgRestoreCommandAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -172,8 +173,8 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    var tempSaveInfos = conn.Query<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequestCommandInfo.IPAddress }).ToList();
+                    await conn.OpenAsync();
+                    var tempSaveInfos = (await conn.QueryAsync<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequestCommandInfo.IPAddress })).ToList();
 
                     if (tempSaveInfos.Count == 0)
                     {
@@ -183,8 +184,8 @@ namespace RACTServer
                     }
                     else
                     {
-                        var commands = conn.Query<CfgRestoreCommand>("EXEC SP_RACT_GET_COMMANDS @ModelID, @PartID", 
-                                                                   new { ModelID = tRequestCommandInfo.ModelID, PartID = (int)tRequestCommandInfo.CommandPart }).ToList();
+                        var commands = (await conn.QueryAsync<CfgRestoreCommand>("EXEC SP_RACT_GET_COMMANDS @ModelID, @PartID", 
+                                                                   new { ModelID = tRequestCommandInfo.ModelID, PartID = (int)tRequestCommandInfo.CommandPart })).ToList();
 
                         foreach (var saveInfo in tempSaveInfos)
                         {
@@ -214,10 +215,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 여러대의 Cfg복원명령리스트를 가져온다.
+        /// 여러대의 Cfg복원명령리스트를 비동기로 가져온다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        internal static void RequestDevicesCfgRestoreCommand(RequestCommunicationData aClientRequest)
+        internal static async Task RequestDevicesCfgRestoreCommandAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -227,13 +228,13 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
+                    await conn.OpenAsync();
                     foreach (CfgRestoreCommandRequestInfo tRequestCommandInfo in tRequestCommandInfos)
                     {
                         var tDeviceCfgSaveInfo = new DeviceCfgSaveInfo { IPAddress = tRequestCommandInfo.IPAddress };
                         var tCfgSaveInfos = new CfgSaveInfoCollection();
 
-                        var saveRows = conn.Query<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequestCommandInfo.IPAddress }).ToList();
+                        var saveRows = (await conn.QueryAsync<CfgSaveInfo>("EXEC SP_RACT_GET_CFGSAVEINFO @IPAddress", new { IPAddress = tRequestCommandInfo.IPAddress })).ToList();
 
                         if (saveRows.Count > 0)
                         {

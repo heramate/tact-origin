@@ -2,8 +2,10 @@ using RACTCommonClass;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Linq;
 using Dapper;
+using System.Collections;
 
 namespace RACTServer
 {
@@ -13,7 +15,8 @@ namespace RACTServer
     public class ClientResponseProcess : IDisposable
     {
         private System.Collections.Concurrent.BlockingCollection<RequestCommunicationData> m_RequestQueue = null;
-        private Thread[] m_RequestProcessThreads = null;
+        private Task[] m_RequestProcessTasks = null;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public ClientResponseProcess()
         {
@@ -29,12 +32,13 @@ namespace RACTServer
         {
             try
             {
-                int threadCount = Math.Max(2, GlobalClass.m_SystemInfo.DBConnectionCount / 3);
-                m_RequestProcessThreads = new Thread[threadCount];
-                for (int i = 0; i < threadCount; i++)
+                // DB 연결 수에 비례하여 워커 태스크 생성 (비동기이므로 스레드보다 적은 수로도 충분하지만 병렬성 유지)
+                int taskCount = Math.Max(Environment.ProcessorCount, GlobalClass.m_SystemInfo.DBConnectionCount / 4);
+                m_RequestProcessTasks = new Task[taskCount];
+                
+                for (int i = 0; i < taskCount; i++)
                 {
-                    m_RequestProcessThreads[i] = new Thread(new ThreadStart(ProcessClientRequest));
-                    m_RequestProcessThreads[i].Start();
+                    m_RequestProcessTasks[i] = Task.Run(() => ProcessClientRequestAsync(_cts.Token));
                 }
                 return true;
             }
@@ -46,29 +50,39 @@ namespace RACTServer
 
         public void Stop()
         {
-            if (m_RequestProcessThreads != null)
+            _cts.Cancel();
+            
+            if (m_RequestQueue != null && !m_RequestQueue.IsAddingCompleted)
             {
-                foreach (Thread t in m_RequestProcessThreads)
-                {
-                    GlobalClass.StopThread(t);
-                }
+                m_RequestQueue.CompleteAdding();
             }
-            if (m_RequestQueue != null) { m_RequestQueue.CompleteAdding(); m_RequestQueue.Dispose(); }
+
+            if (m_RequestProcessTasks != null)
+            {
+                try
+                {
+                    Task.WaitAll(m_RequestProcessTasks, 3000);
+                }
+                catch (AggregateException) { }
+            }
+
+            if (m_RequestQueue != null) { m_RequestQueue.Dispose(); m_RequestQueue = null; }
         }
 
         public void AddRequest(RequestCommunicationData aRequest)
         {
-            if (!m_RequestQueue.IsAddingCompleted) m_RequestQueue.Add(aRequest);
+            if (m_RequestQueue != null && !m_RequestQueue.IsAddingCompleted) 
+                m_RequestQueue.Add(aRequest);
         }
 
-        private void ProcessClientRequest()
+        private async Task ProcessClientRequestAsync(CancellationToken cancellationToken)
         {
-            RequestCommunicationData tClientRequest = null;
-            while (GlobalClass.m_IsRun)
+            while (!cancellationToken.IsCancellationRequested && !m_RequestQueue.IsCompleted)
             {
+                RequestCommunicationData tClientRequest = null;
                 try
                 {
-                    if (!m_RequestQueue.TryTake(out tClientRequest, 1000)) continue;
+                    if (!m_RequestQueue.TryTake(out tClientRequest, 1000, cancellationToken)) continue;
                     if (tClientRequest == null) continue;
 
                     UserInfo tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(tClientRequest.ClientID);
@@ -78,64 +92,64 @@ namespace RACTServer
                     switch (tClientRequest.CommType)
                     {
                         case E_CommunicationType.RequestGroupInfo:
-                            GroupProcess.RequestProcess(tClientRequest);
+                            await GroupProcess.RequestProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestRactUserList:
-                            GroupProcess.RequestRactUserListProcess(tClientRequest);
+                            await GroupProcess.RequestRactUserListProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestAddShareDevice:
-                            GroupProcess.RequestAddShareDeviceProcess(tClientRequest);
+                            await GroupProcess.RequestAddShareDeviceProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestDeviceInfo:
-                            DeviceProcess.RequestProcess(tClientRequest);
+                            await DeviceProcess.RequestProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestModelInfo:
                             ModelInfoReceiver(tClientRequest);
                             break;
                         case E_CommunicationType.RequestOneTerminalModelInfo:
-                            OneTerminalModelInfoReceiver(tClientRequest);
+                            await OneTerminalModelInfoReceiverAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestLimitCmdInfo:
-                            LimitCmdInfoReceiver(tClientRequest);
+                            await LimitCmdInfoReceiverAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestDefaultCmdInfo:
-                            DefaultCmdInfoReceiver(tClientRequest);
+                            await DefaultCmdInfoReceiverAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestAutoCompleteCmd:
-                            RequestAutoCompleteCmd(tClientRequest);
+                            await RequestAutoCompleteCmdAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestFactGroupInfo:
-                            FactGroupInfoReceiver(tClientRequest);
+                            await FactGroupInfoReceiverAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestShortenCommand:
-                            ShortenCommandProcess.RequestProcess(tClientRequest);
+                            await ShortenCommandProcess.RequestProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestShortenCommandGroup:
-                            ShortenCommandProcess.RequestGroupProcess(tClientRequest);
+                            await ShortenCommandProcess.RequestGroupProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestScriptGroup:
-                            ScriptProcess.RequestProcess(tClientRequest);
+                            await ScriptProcess.RequestProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestScriptInfo:
-                            ScriptProcess.RequestScriptProcess(tClientRequest);
+                            await ScriptProcess.RequestScriptProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestBatchRegisteration:
-                            DeviceProcess.RequestBatchRegisteration(tClientRequest);
+                            await DeviceProcess.RequestBatchRegisterationAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestConnectionHistory:
-                            ConnectionHistoryRequestReceiver(tClientRequest);
+                            await ConnectionHistoryRequestReceiverAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestCommandHistory:
-                            CommandHistoryRequestReceiver(tClientRequest);
+                            await CommandHistoryRequestReceiverAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestFACTSearchDevice:
-                            DeviceProcess.RequestFactDeviceSearchProcess(tClientRequest);
+                            await DeviceProcess.RequestFactDeviceSearchProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestSearchDeviceForType:
-                            DeviceProcess.RequestSearchDeviceForType(tClientRequest);
+                            await DeviceProcess.RequestSearchDeviceForTypeAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestFACTIPSearchDevice:
-                            DeviceProcess.RequestFactIPDeviceSearchProcess(tClientRequest);
+                            await DeviceProcess.RequestFactIPDeviceSearchProcessAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestDaemonInfo:
                             DaemonProcessInfoRequestReceiver(tClientRequest);
@@ -153,16 +167,16 @@ namespace RACTServer
                             DefaultConnectionCommand(tClientRequest);
                             break;
                         case E_CommunicationType.RequestCfgRestoreCommand:
-                            ScriptProcess.RequestCfgRestoreCommand(tClientRequest);
+                            await ScriptProcess.RequestCfgRestoreCommandAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestDevicesCfgRestoreCommand:
-                            ScriptProcess.RequestDevicesCfgRestoreCommand(tClientRequest);
+                            await ScriptProcess.RequestDevicesCfgRestoreCommandAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestRMSCMTSSearchDevice:
-                            DeviceProcess.RequestSearchRMSCMTSDevice(tClientRequest);
+                            await DeviceProcess.RequestSearchRMSCMTSDeviceAsync(tClientRequest);
                             break;
                         case E_CommunicationType.RequestSearchDeviceAuth:
-                            DeviceProcess.RequestFactDeviceSearchProcess(tClientRequest, true);
+                            await DeviceProcess.RequestFactDeviceSearchProcessAsync(tClientRequest, true);
                             break;
                         default:
                             GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Warning,
@@ -170,11 +184,15 @@ namespace RACTServer
                                 tClientRequest.ClientID, tUserInfo != null ? tUserInfo.Account : "정보없음", tClientRequest.CommType.ToString()));
                             break;
                     }
-                    tClientRequest = null;
                 }
+                catch (OperationCanceledException) { break; }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                    GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Error, "ProcessClientRequestAsync Error: " + ex.ToString());
+                }
+                finally
+                {
+                    tClientRequest = null;
                 }
             }
         }
@@ -187,7 +205,7 @@ namespace RACTServer
         private void DaemonProcessInfoRequestReceiver(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
-            lock (this)
+            lock (GlobalClass.s_DaemonProcessManager)
             {
                 UseableDaemonRequestInfo tRequestInfo = (UseableDaemonRequestInfo)aClientRequest.RequestData;
                 DaemonProcessInfo tProcessInfo;
@@ -205,7 +223,7 @@ namespace RACTServer
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             List<DaemonProcessInfo> tDaemonList = new List<DaemonProcessInfo>();
-            lock (this)
+            lock (GlobalClass.s_DaemonProcessManager)
             {
                 int tRequestCount = (int)aClientRequest.RequestData;
                 GlobalClass.s_DaemonProcessManager.TempConnectionListClear();
@@ -222,7 +240,7 @@ namespace RACTServer
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             List<DaemonProcessInfo> tDaemonList = new List<DaemonProcessInfo>();
-            lock (this)
+            lock (GlobalClass.s_DaemonProcessManager)
             {
                 DeviceInfoCollection tDeviceList = (DeviceInfoCollection)aClientRequest.RequestData;
                 GlobalClass.m_LogProcess.PrintLog(E_FileLogType.Infomation, string.Format("[LTE연결을 위한 데몬요청 수신] 장비={0}건, ", tDeviceList.Count));
@@ -242,7 +260,7 @@ namespace RACTServer
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             DaemonProcessInfo tDaemonProcessInfo = null;
-            lock (this)
+            lock (GlobalClass.s_DaemonProcessManager)
             {
                 UseableDaemonRequestInfo tRequestInfo = (UseableDaemonRequestInfo)aClientRequest.RequestData;
                 tDaemonProcessInfo = GlobalClass.s_DaemonProcessManager.GetSSHTunnelDaemonProcess();
@@ -251,7 +269,7 @@ namespace RACTServer
             GlobalClass.SendResultClient(tResultData);
         }
 
-        private void CommandHistoryRequestReceiver(RequestCommunicationData aClientRequest)
+        private async Task CommandHistoryRequestReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -259,8 +277,8 @@ namespace RACTServer
                 var tCommandHistoryRequestInfo = (TelnetCommandHistoryRequestInfo)aClientRequest.RequestData;
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    var results = conn.Query("select * from dbo.RACT_Log_ExcuteCommand where ConnectionLogID = @ID", 
-                        new { ID = tCommandHistoryRequestInfo.ConnectionLogID }).ToList();
+                    var results = (await conn.QueryAsync("select * from dbo.RACT_Log_ExcuteCommand where ConnectionLogID = @ID", 
+                        new { ID = tCommandHistoryRequestInfo.ConnectionLogID })).ToList();
                     
                     var tHistoryList = new TelnetCommandHistoryInfoCollection();
                     foreach (var row in results)
@@ -284,7 +302,7 @@ namespace RACTServer
             }
         }
 
-        private void ConnectionHistoryRequestReceiver(RequestCommunicationData aClientRequest)
+        private async Task ConnectionHistoryRequestReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -299,11 +317,11 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    var results = conn.Query(tQuery, new { 
+                    var results = (await conn.QueryAsync(tQuery, new { 
                         UserID = tConnectionHistoryRequestInfo.UserID, 
                         Start = tConnectionHistoryRequestInfo.StartTime.ToString("yyyy-MM-dd HH:mm:ss"), 
                         End = tConnectionHistoryRequestInfo.EndTime.ToString("yyyy-MM-dd HH:mm:ss") 
-                    }).ToList();
+                    })).ToList();
 
                     var tHistoryList = new ConnectionHistoryInfoCollection();
                     foreach (var row in results)
@@ -337,7 +355,7 @@ namespace RACTServer
             }
         }
 
-        private void FactGroupInfoReceiver(RequestCommunicationData aClientRequest)
+        private async Task FactGroupInfoReceiverAsync(RequestCommunicationData aClientRequest)
         {
             UserInfo tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo((int)aClientRequest.RequestData);
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
@@ -347,7 +365,7 @@ namespace RACTServer
             }
             else
             {
-                tResultData.ResultData = GroupProcess.GetFactGroup(tUserInfo);
+                tResultData.ResultData = await GroupProcess.GetFactGroupAsync(tUserInfo);
             }
             GlobalClass.SendResultClient(tResultData);
         }
@@ -359,7 +377,7 @@ namespace RACTServer
             GlobalClass.SendResultClient(tResultData);
         }
 
-        private void OneTerminalModelInfoReceiver(RequestCommunicationData aClientRequest)
+        private async Task OneTerminalModelInfoReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -367,7 +385,7 @@ namespace RACTServer
                 string reqData = (string)aClientRequest.RequestData;
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    var modelId = conn.QueryFirstOrDefault<int>("SELECT ModelID FROM NE_NE WHERE MasterIP = @IP and Uses = 1", new { IP = reqData });
+                    var modelId = await conn.QueryFirstOrDefaultAsync<int>("SELECT ModelID FROM NE_NE WHERE MasterIP = @IP and Uses = 1", new { IP = reqData });
                     if (modelId != 0)
                         tResultData.ResultData = GlobalClass.m_ModelInfoCollection[modelId];
                 }
@@ -381,27 +399,27 @@ namespace RACTServer
             }
         }
 
-        private void LimitCmdInfoReceiver(RequestCommunicationData aClientRequest)
+        private async Task LimitCmdInfoReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             UserInfo tUserInfo = GlobalClass.m_ClientProcess.GetUserInfo(aClientRequest.ClientID);
-            if (!BaseDataLoadProcess.LoadLimitCmdInfo(tUserInfo.UserType)) return;
+            if (!await BaseDataLoadProcess.LoadLimitCmdInfoAsync(tUserInfo.UserType)) return;
             tResultData.ResultData = GlobalClass.m_LimitCmdInfoCollection.DeepClone();
             GlobalClass.SendResultClient(tResultData);
         }
 
-        private void DefaultCmdInfoReceiver(RequestCommunicationData aClientRequest)
+        private async Task DefaultCmdInfoReceiverAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
-            if (!BaseDataLoadProcess.LoadDefaultCmdInfo()) return;
+            if (!await BaseDataLoadProcess.LoadDefaultCmdInfoAsync()) return;
             tResultData.ResultData = GlobalClass.m_DefaultCmdInfoCollection.DeepClone();
             GlobalClass.SendResultClient(tResultData);
         }
 
-        private void RequestAutoCompleteCmd(RequestCommunicationData aClientRequest)
+        private async Task RequestAutoCompleteCmdAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
-            if (!BaseDataLoadProcess.LoadAutoCompleteInfo((int)aClientRequest.RequestData)) return;
+            if (!await BaseDataLoadProcess.LoadAutoCompleteInfoAsync((int)aClientRequest.RequestData)) return;
             tResultData.ResultData = GlobalClass.m_AutoCompleteCmdInfoCollection.DeepClone();
             GlobalClass.SendResultClient(tResultData);
         }

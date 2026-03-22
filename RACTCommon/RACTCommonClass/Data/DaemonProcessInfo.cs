@@ -44,6 +44,11 @@ namespace RACTCommonClass
         private DateTime m_LifeTime;
 
         /// <summary>
+        /// Daemon ID 입니다.
+        /// </summary>
+        private int m_DaemonID;
+
+        /// <summary>
         /// 기본 생성자입니다. 
         /// </summary>
         public DaemonProcessInfo()
@@ -259,13 +264,14 @@ namespace RACTCommonClass
 
         private readonly ConcurrentDictionary<int, DaemonProcessInfo> m_ClientMap = new ConcurrentDictionary<int, DaemonProcessInfo>();
 
-        public override void Add(DaemonProcessInfo item)
+        public override int Add(DaemonProcessInfo item)
         {
             if (item != null)
             {
                 m_ClientMap[item.DaemonID] = item;
-                base.Add(item);
+                return base.Add(item);
             }
+            return -1;
         }
 
         public override void Remove(DaemonProcessInfo item)
@@ -278,7 +284,7 @@ namespace RACTCommonClass
             }
         }
 
-        public override void Clear()
+        public new void Clear()
         {
             m_ClientMap.Clear();
             base.Clear();

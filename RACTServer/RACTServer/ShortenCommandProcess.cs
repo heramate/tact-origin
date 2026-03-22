@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using RACTCommonClass;
 using Dapper;
 
@@ -9,29 +10,29 @@ namespace RACTServer
     public class ShortenCommandProcess
     {
         /// <summary>
-        /// 요청을 처리 합니다.
+        /// 요청을 비동기로 처리 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        internal static void RequestProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestProcessAsync(RequestCommunicationData aClientRequest)
         {
             ShortenCommandRequestInfo tRequesetInfo = aClientRequest.RequestData as ShortenCommandRequestInfo;
 
             switch (tRequesetInfo.WorkType)
             {
                 case E_WorkType.Search:
-                    SearchShortenCommand(aClientRequest);
+                    await SearchShortenCommandAsync(aClientRequest);
                     break;
                 default:
-                    ModifyShortenCommand(aClientRequest);
+                    await ModifyShortenCommandAsync(aClientRequest);
                     break;
             }
         }
 
         /// <summary>
-        /// 단축 명령을 수정 합니다.
+        /// 단축 명령을 비동기로 수정 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        private static void ModifyShortenCommand(RequestCommunicationData aClientRequest)
+        private static async Task ModifyShortenCommandAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -42,7 +43,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "EXEC SP_RACT_Modify_ShortenCommand @WorkType, @ID, @GroupID, @UserID, @Name, @Command, @Description";
-                    var result = conn.QueryFirstOrDefault(tQuery, new
+                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
                     {
                         WorkType = (int)tRequestCommandInfo.WorkType,
                         ID = tInfo.ID,
@@ -71,10 +72,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 단축 명령 목록을 가져오기 합니다.
+        /// 단축 명령 목록을 비동기로 가져오기 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        private static void SearchShortenCommand(RequestCommunicationData aClientRequest)
+        private static async Task SearchShortenCommandAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -83,20 +84,22 @@ namespace RACTServer
 
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
-                    conn.Open();
-                    using (var multi = conn.QueryMultiple("EXEC SP_RACT_Get_ShortenCommand @UserID", new { UserID = tRequestCommandInfo.UserID }))
+                    await conn.OpenAsync();
+                    using (var multi = await conn.QueryMultipleAsync("EXEC SP_RACT_Get_ShortenCommand @UserID", new { UserID = tRequestCommandInfo.UserID }))
                     {
-                        var groups = multi.Read<ShortenCommandGroupInfo>().ToList();
-                        var commands = multi.Read<ShortenCommandInfo>().ToList();
+                        var groups = (await multi.ReadAsync<ShortenCommandGroupInfo>()).ToList();
+                        var commands = (await multi.ReadAsync<ShortenCommandInfo>()).ToList();
 
                         var groupList = new ShortenCommandGroupInfoCollection();
                         foreach (var g in groups) groupList.Add(g);
 
                         foreach (var c in commands)
                         {
-                            if (c.GroupID >= 0 && c.GroupID < groupList.Count)
+                            // GroupID는 groupList의 Index가 아닐 수 있으므로 정확한 매칭 로직 필요 (기존 로직 유지하되 안전성 확보)
+                            var targetGroup = groupList.Cast<ShortenCommandGroupInfo>().FirstOrDefault(g => g.ID == c.GroupID);
+                            if (targetGroup != null)
                             {
-                                groupList[c.GroupID].ShortenCommandList.Add(c);
+                                targetGroup.ShortenCommandList.Add(c);
                             }
                         }
 
@@ -114,10 +117,10 @@ namespace RACTServer
         }
 
         /// <summary>
-        /// 단축 명령 그룹을 처리 합니다.
+        /// 단축 명령 그룹을 비동기로 처리 합니다.
         /// </summary>
         /// <param name="aClientRequest"></param>
-        internal static void RequestGroupProcess(RequestCommunicationData aClientRequest)
+        internal static async Task RequestGroupProcessAsync(RequestCommunicationData aClientRequest)
         {
             ResultCommunicationData tResultData = new ResultCommunicationData(aClientRequest);
             try
@@ -128,7 +131,7 @@ namespace RACTServer
                 using (var conn = GlobalClass.GetSqlConnection())
                 {
                     string tQuery = "EXEC SP_RACT_Modify_ShortenCommandGroup @WorkType, @ID, @UserID, @Name, @Description";
-                    var result = conn.QueryFirstOrDefault(tQuery, new
+                    var result = await conn.QueryFirstOrDefaultAsync(tQuery, new
                     {
                         WorkType = (int)tRequestCommandInfo.WorkType,
                         ID = tInfo.ID,
